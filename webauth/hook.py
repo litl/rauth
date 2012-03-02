@@ -67,12 +67,6 @@ class OAuthHook(object):
         self.header_auth = header_auth
 
     def __call__(self, request):
-        # apparently it's possible for these not to be set?
-        if not request.params:
-            request.params = {}
-        if not request.data:
-            request.data = {}
-
         # this is a workaround for a known bug that will be patched
         if isinstance(request.params, list):
             request.params = dict(request.params)
