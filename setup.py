@@ -18,12 +18,12 @@ setup(
     url='https://github.com/litl/webauth',
     packages=find_packages(),
     install_requires=['requests>=0.10.0'],
-    license='BSD', # i don't know what litl will prefer for this
+    license='MIT',
     classifiers=(
         'Development Status :: 4 - Beta',
         'Intended Audience :: Developers',
         'Programming Language :: Python',
-        'License :: OSI Approved :: BSD License',
+        'License :: OSI Approved :: MIT License',
         'Operating System :: OS Independent',
         'Topic :: Internet :: WWW/HTTP',
         'Topic :: Software Development :: Libraries :: Python Modules',
