@@ -7,9 +7,9 @@
 
 import base64
 import hmac
-import urlparse
 
 from hashlib import sha1
+from urlparse import parse_qsl
 from urllib import quote, urlencode
 
 
@@ -40,6 +40,7 @@ class SignatureMethod(object):
         return unicode(s, 'utf-8').encode('utf-8')
 
     def _escape(self, s):
+        '''Escapes a string, ensuring it is encoded as a UTF-8 octet.'''
         return quote(self._encode_utf8(s), safe='~')
 
     def _normalize_request_parameters(self, request):
@@ -70,19 +71,19 @@ class SignatureMethod(object):
                 normalized += [(k, v)]
         elif type(request.params) == str and type(request.data) == str:
             # if both params and data are strings
-            params = urlparse.parse_qsl(request.params)
-            data = urlparse.parse_qsl(request.data)
+            params = parse_qsl(request.params)
+            data = parse_qsl(request.data)
             normalized = params + data
         elif type(request.params) == str:
             # parse the string into a list of tuples
-            normalized = urlparse.parse_qsl(request.params)
+            normalized = parse_qsl(request.params)
 
             # extract any data
             for k, v in request.data.items():
                 normalized += [(k, v)]
         elif type(request.data) == str:
             # and we do the same if data
-            normalized = urlparse.parse_qsl(request.data)
+            normalized = parse_qsl(request.data)
 
             # extract any params
             for k, v in request.params.items():
