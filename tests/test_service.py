@@ -11,6 +11,7 @@ from webauth.service import OAuth1Service
 from mock import Mock, patch
 
 import requests
+import json
 
 
 class OAuth1ServiceTestCase(WebauthTestCase):
@@ -119,3 +120,19 @@ class OAuth1ServiceTestCase(WebauthTestCase):
             self.service.get_authenticated_session(access_token='123',
                                                    access_token_secret='456')
         self.assertTrue(auth_session is not None)
+
+    @patch.object(requests.Session, 'request')
+    def test_json_response(self, mock_request):
+        mock_request.return_value = self.response
+
+        self.response.content = json.dumps({'a': 'b'})
+        access_resp = self.service.get_access_token('123','456', 'GET')
+        self.assertEqual({'a': 'b'}, access_resp)
+
+    @patch.object(requests.Session, 'request')
+    def test_other_response(self, mock_request):
+        mock_request.return_value = self.response
+
+        self.response.content = {'a': 'b'}
+        access_resp = self.service.get_access_token('123','456', 'GET')
+        self.assertEqual({'a': 'b'}, access_resp)

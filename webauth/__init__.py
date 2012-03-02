@@ -6,5 +6,7 @@
 '''
 
 from webauth.hook import OAuthHook
+from webauth.service import OAuth1Service
+
 
 __version__ = 0.1

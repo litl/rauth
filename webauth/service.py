@@ -6,6 +6,7 @@
 '''
 
 import requests
+import json
 
 from webauth import OAuthHook
 
@@ -56,7 +57,7 @@ class OAuth1Service(object):
         response['oauth_key']
     '''
     def __init__(self, name, consumer_key, consumer_secret, request_token_url,
-            access_token_url, authorize_url, use_header_auth=False):
+            access_token_url, authorize_url, header_auth=False):
         self.name = name
 
         self.consumer_key = consumer_key
@@ -67,7 +68,7 @@ class OAuth1Service(object):
         self.authorize_url = authorize_url
 
         # set to True to use header authentication for this service
-        self.header_auth = use_header_auth
+        self.header_auth = header_auth
 
     def _construct_session(self, **kwargs):
         '''Construct the request session, supplying the consumer key and
@@ -113,7 +114,13 @@ class OAuth1Service(object):
         if not response.ok:
             response.raise_for_status()
 
-        return dict(parse_qsl(response.content))
+        if isinstance(response.content, str):
+            try:
+                content = json.loads(response.content)
+            except ValueError:
+                return dict(parse_qsl(response.content))
+            return content
+        return response.content
 
     def get_authenticated_session(self, access_token, access_token_secret,
             header_auth=False):

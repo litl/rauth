@@ -111,6 +111,12 @@ class OAuthTestHmacSha1Case(WebauthTestCase):
         HmacSha1Signature().sign(self.request, self.consumer)
         self.assertEqual({'foo': 'bar'},  self.request.params)
 
+    def test_remove_query_string(self):
+        # can't sign the URL with the query string so
+        url = 'http://example.com/?foo=bar'
+        signable_url = HmacSha1Signature()._remove_qs(url)
+        self.assertEqual('http://example.com/', signable_url)
+
 
 class OAuthTestRsaSha1Case(WebauthTestCase):
     def test_rsasha1_notimplemented(self):

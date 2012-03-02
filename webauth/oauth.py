@@ -9,7 +9,7 @@ import base64
 import hmac
 
 from hashlib import sha1
-from urlparse import parse_qsl
+from urlparse import parse_qsl, urlsplit, urlunsplit
 from urllib import quote, urlencode
 
 
@@ -42,6 +42,17 @@ class SignatureMethod(object):
     def _escape(self, s):
         '''Escapes a string, ensuring it is encoded as a UTF-8 octet.'''
         return quote(self._encode_utf8(s), safe='~')
+
+    def _remove_qs(self, url):
+        '''Removes a query string from a URL before signing.'''
+        # split 'em up
+        scheme, netloc, path, query, fragment = urlsplit(url)
+
+        # the query string can't be sign as per the spec, kill it
+        query = ''
+
+        # and return our query-string-less URL!
+        return urlunsplit((scheme, netloc, path, query, fragment))
 
     def _normalize_request_parameters(self, request):
         '''The OAuth 1.0/a specs indicate that parameter and body data must be
@@ -123,9 +134,10 @@ class HmacSha1Signature(SignatureMethod):
         '''Sign request parameters.'''
 
         # the necessary parameters we'll sign
+        url = self._remove_qs(request.url)
         params_and_data = self._normalize_request_parameters(request)
         parameters = [self._escape(request.method),
-                      self._escape(request.url),
+                      self._escape(url),
                       self._escape(params_and_data)]
 
         # set our key
