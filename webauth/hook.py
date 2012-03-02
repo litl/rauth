@@ -50,7 +50,7 @@ class OAuthHook(object):
     the provider.
 
     Additionally some services will make use of header authentication. This is
-    provided by passing :class:`__init__` the `auth_header` parameter as 
+    provided by passing :class:`__init__` the `auth_header` parameter as
     `True`.
     '''
     OAUTH_VERSION = '1.0'
@@ -136,6 +136,6 @@ class OAuthHook(object):
         auth_header = 'OAuth realm=""'
         params = ''
         for k, v in oauth_params.items():
-           params += ',{0}="{1}"'.format(k, quote(str(v)))
+            params += ',{0}="{1}"'.format(k, quote(str(v)))
         auth_header += params
         return auth_header

@@ -12,6 +12,7 @@ from mock import Mock, patch
 
 import requests
 
+
 class OAuth1ServiceTestCase(WebauthTestCase):
     def setUp(self):
         WebauthTestCase.setUp(self)
