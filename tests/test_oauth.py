@@ -6,12 +6,13 @@
 '''
 
 from base import WebauthTestCase
-from webauth.oauth import HmacSha1Signature
+from webauth.oauth import (HmacSha1Signature, RsaSha1Signature,
+        PlaintextSignature)
 
 from urllib import urlencode
 
 
-class OAuthTestCase(WebauthTestCase):
+class OAuthTestHmacSha1Case(WebauthTestCase):
     def test_hamcsha1_signature(self):
         self.request.params = {'foo': 'bar'}
         HmacSha1Signature().sign(self.request, self.consumer, self.token)
@@ -109,3 +110,14 @@ class OAuthTestCase(WebauthTestCase):
         self.request.url = u'http://example.com/'
         HmacSha1Signature().sign(self.request, self.consumer)
         self.assertEqual({'foo': 'bar'},  self.request.params)
+
+
+class OAuthTestRsaSha1Case(WebauthTestCase):
+    def test_rsasha1_notimplemented(self):
+        self.assertRaises(NotImplementedError, RsaSha1Signature)
+
+
+class OAuthTestPlaintextCase(WebauthTestCase):
+    def test_plaintext_notimplemented(self):
+        self.assertRaises(NotImplementedError, PlaintextSignature)
+
