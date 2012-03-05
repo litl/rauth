@@ -8,6 +8,8 @@
 from base import WebauthTestCase
 from webauth.hook import OAuthHook
 
+from mock import Mock
+
 
 class OAuthHookTestCase(WebauthTestCase):
     def test_intialize_oauthhook(self):
@@ -102,3 +104,9 @@ class OAuthHookTestCase(WebauthTestCase):
         oauth(self.request)
         self.assertTrue(isinstance(self.request.params, dict))
         self.assertTrue(isinstance(self.request.data, dict))
+
+    def test_custom_signature_object(self):
+        some_signature = Mock()
+        oauth = OAuthHook('123', '345', signature=some_signature)
+        self.assertTrue(oauth.signature is some_signature)
+

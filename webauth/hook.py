@@ -54,14 +54,19 @@ class OAuthHook(object):
     `True`.
     '''
     OAUTH_VERSION = '1.0'
-    signature = HmacSha1Signature()
     token = None
 
     def __init__(self, consumer_key, consumer_secret, access_token=None,
-            access_token_secret=None, header_auth=False):
+            access_token_secret=None, header_auth=False, signature=None):
         # construct a token if the access token is available
         if not None in (access_token, access_token_secret):
             self.token = Token(access_token, access_token_secret)
+
+        self.signature = HmacSha1Signature()
+
+        # override the default signature object if available
+        if signature is not None:
+            self.signature = signature
 
         self.consumer = Consumer(consumer_key, consumer_secret)
         self.header_auth = header_auth
@@ -125,9 +130,9 @@ class OAuthHook(object):
         oauth_params['oauth_signature_method'] = self.signature.NAME
         return oauth_params
 
-    def generate_authorization_header(self, oauth_params):
+    def generate_authorization_header(self, oauth_params, realm=None):
         '''This method constructs an authorization header.'''
-        auth_header = 'OAuth realm=""'
+        auth_header = 'OAuth realm="{0}"'.format(realm)
         params = ''
         for k, v in oauth_params.items():
             params += ',{0}="{1}"'.format(k, quote(str(v)))
