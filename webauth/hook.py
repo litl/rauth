@@ -12,12 +12,16 @@ import random
 from hashlib import sha1
 from urllib import quote, urlencode
 
-from oauth import HmacSha1Signature, Token, Consumer
+from webauth.oauth import HmacSha1Signature, Token, Consumer
 
 
-class OAuthHook(object):
-    '''Primary hook object providing the interface through which a request is
-    hooked into and patched.
+class OAuth2Hook(object):
+    '''Provides a pre-request hook into requests for OAuth 1.0/a services.'''
+    pass
+
+
+class OAuth1Hook(object):
+    '''Provides a pre-request hook into requests for OAuth 1.0/a services.
 
     This package is built on the excellent Python Requests package. It
     functions by "hooking" into a request and appending various attributes to

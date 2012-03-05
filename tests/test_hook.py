@@ -6,7 +6,7 @@
 '''
 
 from base import WebauthTestCase
-from webauth.hook import OAuthHook
+from webauth.hook import OAuth1Hook
 
 from mock import Mock
 
@@ -14,16 +14,16 @@ from mock import Mock
 class OAuthHookTestCase(WebauthTestCase):
     def test_intialize_oauthhook(self):
         # without token
-        oauth = OAuthHook('123', '345')
+        oauth = OAuth1Hook('123', '345')
         self.assertTrue(hasattr(oauth, 'consumer'))
 
         # with token
-        oauth = OAuthHook('123', '345', '321', '654')
+        oauth = OAuth1Hook('123', '345', '321', '654')
         self.assertTrue(hasattr(oauth, 'consumer'))
         self.assertTrue(oauth.token is not None)
 
     def test_oauth_header_auth(self):
-        oauth = OAuthHook('123', '345', header_auth=True)
+        oauth = OAuth1Hook('123', '345', header_auth=True)
         self.assertTrue(oauth.header_auth)
         oauth(self.request)
         auth_header = self.request.headers['Authorization']
@@ -35,7 +35,7 @@ class OAuthHookTestCase(WebauthTestCase):
         self.assertTrue('oauth_signature_method="HMAC-SHA1"' in auth_header)
 
     def test_oauth_post(self):
-        oauth = OAuthHook('123', '345')
+        oauth = OAuth1Hook('123', '345')
 
         # call the instance (this would be a POST)
         self.request.method = 'POST'
@@ -50,7 +50,7 @@ class OAuthHookTestCase(WebauthTestCase):
                          self.request.data['oauth_signature_method'])
 
     def test_oauth_get(self):
-        oauth = OAuthHook('123', '345')
+        oauth = OAuth1Hook('123', '345')
 
         # call the instance (this would be a GET)
         oauth(self.request)
@@ -61,7 +61,7 @@ class OAuthHookTestCase(WebauthTestCase):
         self.assertTrue('oauth_signature_method=HMAC-SHA1' in self.request.url)
 
     def test_oauth_callback(self):
-        oauth = OAuthHook('123', '345')
+        oauth = OAuth1Hook('123', '345')
 
         self.request.params = {'oauth_callback': 'http://example.com/callback'}
         oauth(self.request)
@@ -74,7 +74,7 @@ class OAuthHookTestCase(WebauthTestCase):
         self.assertEqual('http://example.com/callback', oauth_callback)
 
     def test_oauth_with_token(self):
-        oauth = OAuthHook('123', '345', '321', '654')
+        oauth = OAuth1Hook('123', '345', '321', '654')
         oauth(self.request)
         self.assertTrue(oauth.token.key is not None)
         self.assertTrue('oauth_token' in self.request.url)
@@ -88,7 +88,7 @@ class OAuthHookTestCase(WebauthTestCase):
         self.assertEqual('4242', self.request.oauth_params['oauth_verifier'])
 
     def test_unique_nonce(self):
-        oauth = OAuthHook('123', '345')
+        oauth = OAuth1Hook('123', '345')
         oauth(self.request)
         first_nonce = self.request.oauth_params['oauth_nonce']
         oauth(self.request)
@@ -96,7 +96,7 @@ class OAuthHookTestCase(WebauthTestCase):
         self.assertTrue(first_nonce != second_nonce)
 
     def test_params_or_data_as_lists(self):
-        oauth = OAuthHook('123', '345')
+        oauth = OAuth1Hook('123', '345')
         self.request.params = [('foo', 'bar')]
         self.request.data = [('foo', 'bar')]
         self.assertTrue(isinstance(self.request.params, list))
@@ -107,6 +107,6 @@ class OAuthHookTestCase(WebauthTestCase):
 
     def test_custom_signature_object(self):
         some_signature = Mock()
-        oauth = OAuthHook('123', '345', signature=some_signature)
+        oauth = OAuth1Hook('123', '345', signature=some_signature)
         self.assertTrue(oauth.signature is some_signature)
 

@@ -8,7 +8,7 @@
 import requests
 import json
 
-from webauth import OAuthHook
+from webauth.hook import OAuth1Hook
 
 from urllib import quote, urlencode
 from urlparse import parse_qsl
@@ -73,9 +73,9 @@ class OAuth1Service(object):
     def _construct_session(self, **kwargs):
         '''Construct the request session, supplying the consumer key and
         secret.'''
-        hook = OAuthHook(consumer_key=self.consumer_key,
-                         consumer_secret=self.consumer_secret,
-                         **kwargs)
+        hook = OAuth1Hook(consumer_key=self.consumer_key,
+                          consumer_secret=self.consumer_secret,
+                          **kwargs)
         return requests.session(hooks={'pre_request': hook})
 
     def get_request_token(self, http_method, **data):
