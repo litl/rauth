@@ -1,8 +1,8 @@
 '''
-    webauth.test_oauth
-    ------------------
+    webauth.test_service
+    --------------------
 
-    Test suite for webauth.oauth.
+    Test suite for webauth.service.
 '''
 
 from base import WebauthTestCase
