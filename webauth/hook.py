@@ -15,11 +15,6 @@ from urllib import quote, urlencode
 from webauth.oauth import HmacSha1Signature, Token, Consumer
 
 
-class OAuth2Hook(object):
-    '''Provides a pre-request hook into requests for OAuth 1.0/a services.'''
-    pass
-
-
 class OAuth1Hook(object):
     '''Provides a pre-request hook into requests for OAuth 1.0/a services.
 
@@ -58,22 +53,23 @@ class OAuth1Hook(object):
     `True`.
     '''
     OAUTH_VERSION = '1.0'
-    token = None
 
     def __init__(self, consumer_key, consumer_secret, access_token=None,
             access_token_secret=None, header_auth=False, signature=None):
-        # construct a token if the access token is available
+        self.consumer = Consumer(consumer_key, consumer_secret)
+
+        # intitialize the token and then set it if possible
+        self.token = None
         if not None in (access_token, access_token_secret):
             self.token = Token(access_token, access_token_secret)
+
+        self.header_auth = header_auth
 
         self.signature = HmacSha1Signature()
 
         # override the default signature object if available
         if signature is not None:
             self.signature = signature
-
-        self.consumer = Consumer(consumer_key, consumer_secret)
-        self.header_auth = header_auth
 
     def __call__(self, request):
         # this is a workaround for a known bug that will be patched

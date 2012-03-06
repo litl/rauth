@@ -2,16 +2,104 @@
     webauth.test_oauth
     ------------------
 
-    Test suite for webauth.oauth.
+    Test suite for webauth.service.
 '''
 
 from base import WebauthTestCase
-from webauth.service import OAuth1Service
+from webauth.service import OAuth1Service, OAuth2Service
 
 from mock import Mock, patch
 
 import requests
 import json
+
+
+class OAuth2ServiceTestCase(WebauthTestCase):
+    def setUp(self):
+        WebauthTestCase.setUp(self)
+
+        # mock service for testing
+        service = OAuth2Service(
+                'example',
+                consumer_key='123',
+                consumer_secret='456',
+                access_token_url='http://example.com/access_token',
+                authorize_url='http://example.com/authorize')
+        self.service = service
+
+        def raise_for_status(*args, **kwargs):
+            raise Exception('Response not OK!')
+
+        # mock response for testing
+        response = Mock()
+        response.content = 'access_token=321'
+        response.ok = True
+        response.raise_for_status = lambda *args, **kwargs: raise_for_status()
+        self.response = response
+
+    def test_init_with_access_token(self):
+        service = OAuth2Service(
+                'example',
+                consumer_key='123',
+                consumer_secret='456',
+                access_token_url='http://example.com/access_token',
+                authorize_url='http://example.com/authorize',
+                access_token='321')
+        self.assertEqual(service.access_token, '321')
+
+    def test_get_authorize_url(self):
+        authorize_url = self.service.get_authorize_url()
+        expected_url = 'http://example.com/authorize?client_id=123'
+        self.assertEqual(expected_url, authorize_url)
+
+    @patch.object(requests.Session, 'request')
+    def test_get_access_token(self, mock_request):
+        mock_request.return_value = self.response
+        response = self.service.get_access_token(code='4242')
+        self.assertEqual(response['access_token'], '321')
+
+    @patch.object(requests.Session, 'request')
+    def test_get_access_token_bad_response(self, mock_request):
+        self.response.ok = False
+        mock_request.return_value = self.response
+        try:
+            self.service.get_access_token(code='4242')
+        except Exception, e:
+            self.assertEqual('Response not OK!', str(e))
+
+    @patch.object(requests.Session, 'request')
+    def test_request(self, mock_request):
+        self.response.content = json.dumps({'status': 'ok'})
+        mock_request.return_value = self.response
+        response = self.service.request('GET',
+                                        'http://example.com/endpoint',
+                                         access_token='321')
+        self.assertEqual(response['status'], 'ok')
+
+        # test here again to make sure the access token was set
+        response = self.service.request('GET',
+                                        'http://example.com/endpoint')
+        self.assertEqual(response['status'], 'ok')
+
+    @patch.object(requests.Session, 'request')
+    def test_request_bad_response(self, mock_request):
+        self.response.ok = False
+        mock_request.return_value = self.response
+        try:
+            self.service.request('GET',
+                                 'http://example.com/endpoint',
+                                  access_token='321')
+        except Exception, e:
+            self.assertEqual('Response not OK!', str(e))
+
+    @patch.object(requests.Session, 'request')
+    def test_request_missing_acccess_token(self, mock_request):
+        self.response.content = json.dumps({'status': 'ok'})
+        mock_request.return_value = self.response
+        try:
+            self.service.request('GET', 'http://example.com/endpoint')
+        except Exception, e:
+            self.assertEqual('Access token must be set!', str(e))
 
 
 class OAuth1ServiceTestCase(WebauthTestCase):

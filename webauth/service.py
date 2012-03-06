@@ -2,7 +2,7 @@
     webauth.service
     ---------------
 
-    A module providing various OAuth related containers.
+    Provides OAuth 1.0/a and 2.0 service containers.
 '''
 
 import requests
@@ -14,9 +14,68 @@ from urllib import quote, urlencode
 from urlparse import parse_qsl
 
 
+def _parse_response(response):
+    if isinstance(response.content, str):
+        try:
+            content = json.loads(response.content)
+        except ValueError:
+            content = dict(parse_qsl(response.content))
+        return content
+    return response.content
+
+
 class OAuth2Service(object):
-    '''An OAuth 2.0 Service container. (Not implemented)'''
-    pass
+    '''An OAuth 2.0 Service container.'''
+    def __init__(self, name, consumer_key, consumer_secret, access_token_url,
+            authorize_url, access_token=None):
+        self.name = name
+
+        self.consumer_key = consumer_key
+        self.consumer_secret = consumer_secret
+
+        self.access_token_url = access_token_url
+        self.authorize_url = authorize_url
+
+        self.access_token = None
+        if access_token is not None:
+            self.access_token = access_token
+
+    def get_authorize_url(self, **params):
+        '''Returns a proper authorize URL.'''
+        params.update({'client_id': self.consumer_key})
+        params = '?' + urlencode(params)
+        return self.authorize_url + params
+
+    def get_access_token(self, code, **data):
+        '''Retrieves the access token.'''
+        data.update(dict(client_id=self.consumer_key,
+                         client_secret=self.consumer_secret,
+                         grant_type='authorization_code',
+                         code=code))
+
+        response = requests.post(self.authorize_url, data=data)
+
+        if not response.ok:
+            response.raise_for_status()
+
+        return _parse_response(response)
+
+    def request(self, http_method, url, access_token=None, **params):
+        '''Sends a request to an OAuth 2.0 endpoint, properly wrapped around
+        requests.'''
+        if access_token is None and self.access_token is None:
+            raise ValueError('Access token must be set!')
+        elif access_token is not None:
+            self.access_token = access_token
+
+        params.update({'access_token': self.access_token})
+
+        response = requests.request(http_method, url, params=params)
+
+        if not response.ok:
+            response.raise_for_status()
+
+        return _parse_response(response)
 
 
 class OAuth1Service(object):
@@ -52,9 +111,14 @@ class OAuth1Service(object):
         response = service.get_access_token(request_token,
                                             request_token_secret,
                                             http_method='GET')
+
         # access tokens are returned in the response dictionary
         response['oauth_token']
         response['oauth_key']
+
+    Finally the :class:`get_authenticated_session` method returns a wrapped
+    session and can be used once the access token has been made available.
+    This provides simple access to the providers endpoints.
     '''
     def __init__(self, name, consumer_key, consumer_secret, request_token_url,
             access_token_url, authorize_url, header_auth=False):
@@ -94,7 +158,7 @@ class OAuth1Service(object):
         return data['oauth_token'], data['oauth_token_secret']
 
     def get_authorize_url(self, request_token, **params):
-        '''Returns a proper authorize URI.'''
+        '''Returns a proper authorize URL.'''
         params.update({'oauth_token': quote(request_token)})
         params = '?' + urlencode(params)
         return self.authorize_url + params
@@ -114,13 +178,7 @@ class OAuth1Service(object):
         if not response.ok:
             response.raise_for_status()
 
-        if isinstance(response.content, str):
-            try:
-                content = json.loads(response.content)
-            except ValueError:
-                return dict(parse_qsl(response.content))
-            return content
-        return response.content
+        return _parse_response(response)
 
     def get_authenticated_session(self, access_token, access_token_secret,
             header_auth=False):
