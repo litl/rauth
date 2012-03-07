@@ -2,8 +2,8 @@
     webauth
     -------
 
-    OAuth 1.0/a wrapped around Python Requests.
+    OAuth 1.0/a and 2.0 wrapped around Python Requests.
 '''
 
 
-__version__ = '0.1.2'
+__version__ = '0.1.3'

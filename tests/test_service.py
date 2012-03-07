@@ -34,6 +34,7 @@ class OAuth2ServiceTestCase(WebauthTestCase):
         response = Mock()
         response.content = 'access_token=321'
         response.ok = True
+        response.status_code = 200
         response.raise_for_status = lambda *args, **kwargs: raise_for_status()
         self.response = response
 

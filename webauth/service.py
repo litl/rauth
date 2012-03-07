@@ -21,6 +21,8 @@ def _parse_response(response):
         except ValueError:
             content = dict(parse_qsl(response.content))
         return content
+    # TODO: rather than returning the content in the case of receiving
+    # something we can't parse we should probably raise an error
     return response.content
 
 
@@ -46,14 +48,13 @@ class OAuth2Service(object):
         params = '?' + urlencode(params)
         return self.authorize_url + params
 
-    def get_access_token(self, code, **data):
+    def get_access_token(self, **data):
         '''Retrieves the access token.'''
         data.update(dict(client_id=self.consumer_key,
-                         client_secret=self.consumer_secret,
-                         grant_type='authorization_code',
-                         code=code))
+                         client_secret=self.consumer_secret))
 
-        response = requests.post(self.authorize_url, data=data)
+        response = requests.post(self.access_token_url,
+                                 data=data)
 
         if not response.ok:
             response.raise_for_status()
