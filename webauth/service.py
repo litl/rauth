@@ -89,6 +89,8 @@ class OAuth2Service(object):
         # defaults to 'code'
         if response_type is None:
             params.update({'response_type': 'code'})
+        elif response_type is not None:
+            params.update({'response_type': response_type})
 
         params.update({'client_id': self.consumer_key})
         params = '?' + urlencode(params)
@@ -105,6 +107,8 @@ class OAuth2Service(object):
         # defaults to authorization_code
         if grant_type is None:
             data.update({'grant_type': 'authorization_code'})
+        elif grant_type is not None:
+            data.update({'grant_type': grant_type})
 
         data.update(dict(client_id=self.consumer_key,
                          client_secret=self.consumer_secret))

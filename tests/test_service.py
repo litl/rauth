@@ -54,6 +54,12 @@ class OAuth2ServiceTestCase(WebauthTestCase):
                 'http://example.com/authorize?response_type=code&client_id=123'
         self.assertEqual(expected_url, authorize_url)
 
+    def test_get_authorize_url_response_type(self):
+        authorize_url = self.service.get_authorize_url(response_type='token')
+        expected_url = \
+            'http://example.com/authorize?response_type=token&client_id=123'
+        self.assertEqual(expected_url, authorize_url)
+
     @patch.object(requests.Session, 'request')
     def test_get_access_token(self, mock_request):
         mock_request.return_value = self.response
@@ -68,6 +74,13 @@ class OAuth2ServiceTestCase(WebauthTestCase):
             self.service.get_access_token(code='4242')
         except Exception, e:
             self.assertEqual('Response not OK!', str(e))
+
+    @patch.object(requests.Session, 'request')
+    def test_get_access_token_grant_type(self, mock_request):
+        mock_request.return_value = self.response
+        response = self.service.get_access_token(code='4242',
+                                                grant_type='refresh_token')
+        self.assertEqual(response['access_token'], '321')
 
     @patch.object(requests.Session, 'request')
     def test_request(self, mock_request):
