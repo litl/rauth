@@ -1,7 +1,7 @@
-# Webauth: OAuth 1.0/a for Python
+# Webauth: OAuth 1.0/a and 2.0 for Python
 
-Webauth is a package providing OAuth 1.0/a consumer support. The package is
-written as a hook over the superb Python Requests package.
+Webauth is a package providing OAuth 1.0/a and 2.0 consumer support. The
+package is wrapped around the superb Python Requests.
 
 
 ## Installation
@@ -22,6 +22,30 @@ Import the relavent module and start utilizing OAuth endpoints!
 
 The easiest way to get started is by setting up a service wrapper. To do so
 simply import the service container object:
+
+    from webauth import OAuth2Service
+
+    service = OAuth2Service(
+               name='example',
+               consumer_key='123',
+               consumer_secret='456',
+               access_token_url='http://example.com/token',
+               authorize_url='http://example.com/authorize')
+
+Using the service wrapper API we can obtain an access token after the
+authorization URL has been visited by the client. First generate the
+authorization URL:
+
+    url = service.get_authorize_url()
+
+Once this URL has been visited and (presumably) the client authorizes the
+application an access token can be obtained:
+
+    # the code should be returned upon the redirect from the authorize step,
+    # be sure to use it here
+    token = service.get_access_token(code=foobar)
+
+Here is an example using the OAuth 1.0/a service wrapper:
 
     from webauth import OAuth1Service
 
