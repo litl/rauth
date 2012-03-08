@@ -15,6 +15,7 @@ from urlparse import parse_qsl
 
 
 def _parse_response(response):
+    '''Attempts to coerce response.content into a dictionary.'''
     if isinstance(response.content, str):
         try:
             content = json.loads(response.content)
@@ -27,7 +28,41 @@ def _parse_response(response):
 
 
 class OAuth2Service(object):
-    '''An OAuth 2.0 Service container.'''
+    '''An OAuth 2.0 Service container.
+
+    This class is similar in nature to the OAuth1Service container but does
+    not make use of a request's hook. Instead the OAuth 2.0 spec is currently
+    simple enough that we can wrap it around requests directly.
+
+    You might intialize :class:`OAuth2Service` something like this::
+
+        service = OAuth2Service(
+                   name='example',
+                   consumer_key='123',
+                   consumer_secret='456',
+                   access_token_url='http://example.com/token',
+                   authorize_url='http://example.com/authorize')
+
+    Given the simplicity of OAuth 2.0 now this object `service` can be used to
+    retrieve an access token in two steps::
+
+        # the return URL is used to validate the request
+        url = service.get_authorize_url(redirect_uri='http://example.com/',
+                                        response_type='code')
+
+        # once the above URL is consumed by a client we can ask for an access
+        # token. note that the code is retrieved from the redirect URL above,
+        # as set by the provider
+        token = service.get_access_token(code='foobar',
+                                         grant_type='authorization_code',
+                                         redirect_uri='http://example.com/')
+    :param name: The service name.
+    :param consumer_key: Client consumer key.
+    :param consumer_secret: Client consumer secret.
+    :param access_token_url: Access token endpoint.
+    :param authorize_url: Authorize endpoint.
+    :param access_token: An access token, defaults to None.
+    '''
     def __init__(self, name, consumer_key, consumer_secret, access_token_url,
             authorize_url, access_token=None):
         self.name = name
@@ -42,14 +77,35 @@ class OAuth2Service(object):
         if access_token is not None:
             self.access_token = access_token
 
-    def get_authorize_url(self, **params):
-        '''Returns a proper authorize URL.'''
+    def get_authorize_url(self, response_type=None, **params):
+        '''Returns a proper authorize URL.
+
+        :param reponse_type: The response type, usually 'code'. Defaults to
+        None, if set to None, appends 'response_type=code' to the request
+        querystring.
+        :param **params: Additional arguments to be added to the request
+        querystring.
+        '''
+        # defaults to 'code'
+        if response_type is None:
+            params.update({'response_type': 'code'})
+
         params.update({'client_id': self.consumer_key})
         params = '?' + urlencode(params)
         return self.authorize_url + params
 
-    def get_access_token(self, **data):
-        '''Retrieves the access token.'''
+    def get_access_token(self, grant_type=None, **data):
+        '''Retrieves the access token.
+
+        :param grant_type: The response type, usually 'authorization_code'.
+        Defaults to None, if set to None, appends
+        'grant_type=authorization_code' to the request body.
+        :param **data: Arguments to be passed in the body of the request.
+        '''
+        # defaults to authorization_code
+        if grant_type is None:
+            data.update({'grant_type': 'authorization_code'})
+
         data.update(dict(client_id=self.consumer_key,
                          client_secret=self.consumer_secret))
 
@@ -63,7 +119,19 @@ class OAuth2Service(object):
 
     def request(self, http_method, url, access_token=None, **params):
         '''Sends a request to an OAuth 2.0 endpoint, properly wrapped around
-        requests.'''
+        requests.
+
+        The first time an access token is provided it will be saved on the
+        object for convenience.
+
+        :param http_method: A string representation of the HTTP method to be
+        used.
+        :param url: The resource to be requested.
+        :param access_token: The access token as returned by
+        :class:`get_access_token`
+        :param **params: Additional arguments to be added to the request
+        querystring.
+        '''
         if access_token is None and self.access_token is None:
             raise ValueError('Access token must be set!')
         elif access_token is not None:
@@ -83,14 +151,14 @@ class OAuth1Service(object):
     '''An OAuth 1.0/a Service container.
 
     This class provides a container for an OAuth Service provider. It utilizes
-    the OAuthHook module which in turn is hooked into Python Requests.
-    Primarily this object can be used to provide a clean interface to provider
-    endpoints and helps streamline the process of making OAuth requests.
+    the OAuthHook object which in turn is hooked into Python Requests. This
+    object can be used to streamline the process of authenticating with and
+    using an OAuth 1.0/a service provider.
 
-    You might intialize :class:`OAuthService` something like this::
+    You might intialize :class:`OAuth1Service` something like this::
 
         service = OAuth1Service(
-                   'example',
+                   name='example',
                    consumer_key='123',
                    consumer_secret='456',
                    request_token_url='http://example.com/request_token',
@@ -120,6 +188,14 @@ class OAuth1Service(object):
     Finally the :class:`get_authenticated_session` method returns a wrapped
     session and can be used once the access token has been made available.
     This provides simple access to the providers endpoints.
+
+    :param name: The service name.
+    :param consumer_key: Client consumer key.
+    :param consumer_secret: Client consumer secret.
+    :param request_token_url: Request token endpoint.
+    :param access_token_url: Access token endpoint.
+    :param authorize_url: Authorize endpoint.
+    :param header_auth: Authenication via header, defauls to False.
     '''
     def __init__(self, name, consumer_key, consumer_secret, request_token_url,
             access_token_url, authorize_url, header_auth=False):
@@ -128,6 +204,7 @@ class OAuth1Service(object):
         self.consumer_key = consumer_key
         self.consumer_secret = consumer_secret
 
+        # authorization endpoints
         self.request_token_url = request_token_url
         self.access_token_url = access_token_url
         self.authorize_url = authorize_url
@@ -137,14 +214,23 @@ class OAuth1Service(object):
 
     def _construct_session(self, **kwargs):
         '''Construct the request session, supplying the consumer key and
-        secret.'''
+        secret.
+
+        :param **kwargs: Extra arguments to be passed to the OAuth1Hook
+        constructor.
+        '''
         hook = OAuth1Hook(consumer_key=self.consumer_key,
                           consumer_secret=self.consumer_secret,
                           **kwargs)
         return requests.session(hooks={'pre_request': hook})
 
     def get_request_token(self, http_method, **data):
-        '''Gets a request token from the request token endpoint.'''
+        '''Gets a request token from the request token endpoint.
+
+        :param http_method: A string representation of the HTTP method to be
+        used.
+        :param **data: Arguments to be passed in the body of the request.
+        '''
         auth_session = \
                 self._construct_session(header_auth=self.header_auth)
 
@@ -159,14 +245,30 @@ class OAuth1Service(object):
         return data['oauth_token'], data['oauth_token_secret']
 
     def get_authorize_url(self, request_token, **params):
-        '''Returns a proper authorize URL.'''
+        '''Returns a proper authorize URL.
+
+        :param request_token: The request token as returned by
+        :class:`get_request_token`.
+        :param **params: Additional arguments to be added to the request
+        querystring.
+        '''
         params.update({'oauth_token': quote(request_token)})
         params = '?' + urlencode(params)
         return self.authorize_url + params
 
     def get_access_token(self, request_token, request_token_secret,
                          http_method, **params):
-        '''Retrieves the access token.'''
+        '''Retrieves the access token.
+
+        :param request_token: The request token as returned by
+        :class:`get_request_token`
+        :param request_token_secret: The request token secret as returned by
+        :class:`get_request_token`
+        :param http_method: A string representation of the HTTP method to be
+        used.
+        :param **params: Additional arguments to be added to the request
+        querystring.
+        '''
         auth_session = self._construct_session(
                                 access_token=request_token,
                                 access_token_secret=request_token_secret,
@@ -183,7 +285,14 @@ class OAuth1Service(object):
 
     def get_authenticated_session(self, access_token, access_token_secret,
             header_auth=False):
-        '''Returns an authenticated Requests session utilizing the hook.'''
+        '''Returns an authenticated Requests session utilizing the hook.
+
+        :param access_token: The access token as returned by
+        :class:`get_access_token`
+        :param access_token_secret: The access token secret as returned by
+        :class:`get_access_token`
+        :param header_auth: Authenication via header, defauls to False.
+        '''
         return self._construct_session(access_token=access_token,
                                        access_token_secret=access_token_secret,
                                        header_auth=header_auth)

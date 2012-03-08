@@ -51,6 +51,15 @@ class OAuth1Hook(object):
     Additionally some services will make use of header authentication. This is
     provided by passing :class:`__init__` the `auth_header` parameter as
     `True`.
+
+    :param consumer_key: Client consumer key.
+    :param consumer_secret: Client consumer secret.
+    :param access_token: Access token key.
+    :param access_token_secret: Access token secret.
+    :param header_auth: Authenication via header, defauls to False.
+    :param signature: A signature method used to sign request parameters.
+    Defaults to None. If None the `HmacSha1Signature` method is used as
+    default.
     '''
     OAUTH_VERSION = '1.0'
 
@@ -131,7 +140,11 @@ class OAuth1Hook(object):
         return oauth_params
 
     def generate_authorization_header(self, oauth_params, realm=None):
-        '''This method constructs an authorization header.'''
+        '''This method constructs an authorization header.
+
+        :param oauth_params: The OAuth parameters to be added to the header.
+        :param realm: The authentication realm. Defaults to None.
+        '''
         auth_header = 'OAuth realm="{0}"'.format(realm)
         params = ''
         for k, v in oauth_params.items():

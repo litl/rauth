@@ -50,7 +50,8 @@ class OAuth2ServiceTestCase(WebauthTestCase):
 
     def test_get_authorize_url(self):
         authorize_url = self.service.get_authorize_url()
-        expected_url = 'http://example.com/authorize?client_id=123'
+        expected_url = \
+                'http://example.com/authorize?response_type=code&client_id=123'
         self.assertEqual(expected_url, authorize_url)
 
     @patch.object(requests.Session, 'request')

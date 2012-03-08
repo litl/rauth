@@ -40,11 +40,17 @@ class SignatureMethod(object):
         return unicode(s, 'utf-8').encode('utf-8')
 
     def _escape(self, s):
-        '''Escapes a string, ensuring it is encoded as a UTF-8 octet.'''
+        '''Escapes a string, ensuring it is encoded as a UTF-8 octet.
+
+        :param s: A string to be encoded.
+        '''
         return quote(self._encode_utf8(s), safe='~')
 
     def _remove_qs(self, url):
-        '''Removes a query string from a URL before signing.'''
+        '''Removes a query string from a URL before signing.
+
+        :param url: The URL to strip.
+        '''
         # split 'em up
         scheme, netloc, path, query, fragment = urlsplit(url)
 
@@ -69,6 +75,8 @@ class SignatureMethod(object):
 
         Otherwise we build a series intermediary lists of tuples depending on
         the type of `request.params` and `request.data`.
+
+        :param request: The request object that will be normalized.
         '''
         if type(request.params) != str and type(request.data) != str:
             # if neither params nor data are a string, i.e. both are dicts
@@ -131,7 +139,12 @@ class HmacSha1Signature(SignatureMethod):
     NAME = 'HMAC-SHA1'
 
     def sign(self, request, consumer, token=None):
-        '''Sign request parameters.'''
+        '''Sign request parameters.
+
+        :param request: The request to sign.
+        :param consumer: The consumer token object.
+        :param token: The access token object.
+        '''
 
         # the necessary parameters we'll sign
         url = self._remove_qs(request.url)
