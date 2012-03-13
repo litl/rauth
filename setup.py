@@ -5,9 +5,15 @@ import webauth
 from setuptools import setup, find_packages
 
 if sys.argv[-1] == 'test':
+    nosetests = 'nosetests -v --with-coverage --cover-package=webauth'
+    try:
+        import yanc
+        nosetests += ' --with-yanc'
+    except ImportError:
+        pass
     os.system('pyflakes webauth tests; '
               'pep8 webauth tests && '
-              'nosetests --with-coverage --cover-package=webauth')
+              + nosetests)
     sys.exit()
 
 setup(

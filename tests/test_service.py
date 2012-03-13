@@ -226,6 +226,24 @@ class OAuth1ServiceTestCase(WebauthTestCase):
                           self.service.get_access_token,
                           ('123', '456', 'GET'))
 
+    def test_get_authenticated_session(self):
+        auth_session = \
+            self.service.get_authenticated_session(access_token='123',
+                                                   access_token_secret='456')
+        self.assertTrue(auth_session is not None)
+
+    @patch.object(requests.Session, 'request')
+    def test_use_authenticated_session(self, mock_request):
+        mock_request.return_value = self.response
+
+        auth_session = \
+            self.service.get_authenticated_session(access_token='123',
+                                                   access_token_secret='456')
+
+        response = auth_session.get('http://example.com/foobar').content
+        self.assertTrue(response is not None)
+        self.assertEqual('oauth_token=123&oauth_token_secret=456', response)
+
     @patch.object(requests.Session, 'request')
     def test_request_get(self, mock_request):
         mock_request.return_value = self.response

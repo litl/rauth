@@ -274,8 +274,22 @@ class OAuth1Service(object):
 
         return _parse_response(response)
 
+    def get_authenticated_session(self, access_token, access_token_secret,
+            header_auth=False):
+        '''Returns an authenticated Requests session utilizing the hook.
+
+        :param access_token: The access token as returned by
+        :class:`get_access_token`
+        :param access_token_secret: The access token secret as returned by
+        :class:`get_access_token`
+        :param header_auth: Authenication via header, defauls to False.
+        '''
+        return self._construct_session(access_token=access_token,
+                                       access_token_secret=access_token_secret,
+                                       header_auth=header_auth)
+
     def request(self, http_method, url, access_token, access_token_secret,
-            header_auth=False, **params):
+            header_auth=False, params=None, data=None):
         '''Makes a request using :class:`_construct_session`.
 
         :param http_method: A string representation of the HTTP method to be
@@ -286,15 +300,20 @@ class OAuth1Service(object):
         :param access_token_secret: The access token secret as returned by
         :class:`get_access_token`.
         :param header_auth: Authenication via header, defauls to False.
-        :param **params: Additional arguments to be added to the request
+        :param params: Additional arguments to be added to the request
         querystring.
+        :param data: Additional data to be included in the request body.
         '''
         auth_session = \
             self._construct_session(access_token=access_token,
                                     access_token_secret=access_token_secret,
                                     header_auth=header_auth)
 
-        response = auth_session.request(http_method, url, params=params)
+        response = auth_session.request(http_method,
+                                        url,
+                                        params=params,
+                                        data=data,
+                                        allow_redirects=True)
 
         response.raise_for_status()
 
