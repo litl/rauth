@@ -109,4 +109,3 @@ class OAuthHookTestCase(WebauthTestCase):
         some_signature = Mock()
         oauth = OAuth1Hook('123', '345', signature=some_signature)
         self.assertTrue(oauth.signature is some_signature)
-

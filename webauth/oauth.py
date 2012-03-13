@@ -172,6 +172,7 @@ class HmacSha1Signature(SignatureMethod):
 class RsaSha1Signature(SignatureMethod):
     '''RSA-SHA1 Signature Method. (Not implemented)'''
     NAME = 'RSA-SHA1'
+
     def __init__(self):
         raise NotImplementedError
 
@@ -179,5 +180,6 @@ class RsaSha1Signature(SignatureMethod):
 class PlaintextSignature(SignatureMethod):
     '''PLAINTEXT Signature Method. (Not implemented)'''
     NAME = 'PLAINTEXT'
+
     def __init__(self):
         raise NotImplementedError

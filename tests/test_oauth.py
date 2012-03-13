@@ -97,7 +97,7 @@ class OAuthTestHmacSha1Case(WebauthTestCase):
         self.assertEqual('a=b&foo=bar',  normalized)
 
     def test_normalize_request_parameters_data_string(self):
-        # params is a dict but data is a string 
+        # params is a dict but data is a string
         self.request.params = {'a': 'b'}
         self.request.data = urlencode({'foo': 'bar'})
         normalized = \
@@ -126,4 +126,3 @@ class OAuthTestRsaSha1Case(WebauthTestCase):
 class OAuthTestPlaintextCase(WebauthTestCase):
     def test_plaintext_notimplemented(self):
         self.assertRaises(NotImplementedError, PlaintextSignature)
-

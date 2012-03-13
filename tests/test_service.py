@@ -168,7 +168,7 @@ class OAuth1ServiceTestCase(WebauthTestCase):
     @patch.object(requests.Session, 'request')
     def test_get_request_token_header_auth(self, mock_request):
         mock_request.return_value = self.response
-        
+
         self.service.header_auth = True
         request_token, request_token_secret = \
                 self.service.get_request_token('POST')
@@ -218,13 +218,13 @@ class OAuth1ServiceTestCase(WebauthTestCase):
         mock_request.return_value = self.response
 
         try:
-            self.service.get_access_token('123','456', 'GET')
+            self.service.get_access_token('123', '456', 'GET')
         except Exception, e:
             self.assertEqual('Response not OK!', str(e))
 
         self.assertRaises(Exception,
                           self.service.get_access_token,
-                          ('123','456', 'GET'))
+                          ('123', '456', 'GET'))
 
     @patch.object(requests.Session, 'request')
     def test_request_get(self, mock_request):
@@ -244,7 +244,7 @@ class OAuth1ServiceTestCase(WebauthTestCase):
         mock_request.return_value = self.response
 
         self.response.content = json.dumps({'a': 'b'})
-        access_resp = self.service.get_access_token('123','456', 'GET')
+        access_resp = self.service.get_access_token('123', '456', 'GET')
         self.assertEqual({'a': 'b'}, access_resp)
 
     @patch.object(requests.Session, 'request')
@@ -252,5 +252,5 @@ class OAuth1ServiceTestCase(WebauthTestCase):
         mock_request.return_value = self.response
 
         self.response.content = {'a': 'b'}
-        access_resp = self.service.get_access_token('123','456', 'GET')
+        access_resp = self.service.get_access_token('123', '456', 'GET')
         self.assertEqual({'a': 'b'}, access_resp)
