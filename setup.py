@@ -20,7 +20,7 @@ setup(
     name='webauth',
     version=webauth.__version__,
     description='A Python Requests hook providing OAuth 1.0/a support.',
-    long_description=open('README.markdown'),
+    long_description=open('README.markdown').read(),
     author='Max Countryman', # this is just a stand-in don't know what's preferred
     author_email='max@litl.com', # ditto
     url='https://github.com/litl/webauth',
