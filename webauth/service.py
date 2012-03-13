@@ -15,7 +15,10 @@ from urlparse import parse_qsl
 
 
 def _parse_response(response):
-    '''Attempts to coerce response.content into a dictionary.'''
+    '''Attempts to coerce response.content into a dictionary.
+
+    :param response: A Requests response object.
+    '''
     if isinstance(response.content, str):
         try:
             content = json.loads(response.content)
@@ -77,38 +80,26 @@ class OAuth2Service(object):
         if access_token is not None:
             self.access_token = access_token
 
-    def get_authorize_url(self, response_type=None, **params):
+    def get_authorize_url(self, response_type='code', **params):
         '''Returns a proper authorize URL.
 
-        :param reponse_type: The response type, usually 'code'. Defaults to
-        None, if set to None, appends 'response_type=code' to the request
-        querystring.
+        :param reponse_type: The response type. Defaults to 'code'.
         :param **params: Additional arguments to be added to the request
         querystring.
         '''
-        # defaults to 'code'
-        if response_type is None:
-            params.update({'response_type': 'code'})
-        elif response_type is not None:
-            params.update({'response_type': response_type})
+        params.update({'response_type': response_type})
 
         params.update({'client_id': self.consumer_key})
         params = '?' + urlencode(params)
         return self.authorize_url + params
 
-    def get_access_token(self, grant_type=None, **data):
+    def get_access_token(self, grant_type='authorization_code', **data):
         '''Retrieves the access token.
 
-        :param grant_type: The response type, usually 'authorization_code'.
-        Defaults to None, if set to None, appends
-        'grant_type=authorization_code' to the request body.
+        :param grant_type: The grant type. Deaults to 'authorization_code'.
         :param **data: Arguments to be passed in the body of the request.
         '''
-        # defaults to authorization_code
-        if grant_type is None:
-            data.update({'grant_type': 'authorization_code'})
-        elif grant_type is not None:
-            data.update({'grant_type': grant_type})
+        data.update({'grant_type': grant_type})
 
         data.update(dict(client_id=self.consumer_key,
                          client_secret=self.consumer_secret))
@@ -116,8 +107,7 @@ class OAuth2Service(object):
         response = requests.post(self.access_token_url,
                                  data=data)
 
-        if not response.ok:
-            response.raise_for_status()
+        response.raise_for_status()
 
         return _parse_response(response)
 
@@ -132,7 +122,7 @@ class OAuth2Service(object):
         used.
         :param url: The resource to be requested.
         :param access_token: The access token as returned by
-        :class:`get_access_token`
+        :class:`get_access_token`.
         :param **params: Additional arguments to be added to the request
         querystring.
         '''
@@ -145,8 +135,7 @@ class OAuth2Service(object):
 
         response = requests.request(http_method, url, params=params)
 
-        if not response.ok:
-            response.raise_for_status()
+        response.raise_for_status()
 
         return _parse_response(response)
 
@@ -242,8 +231,7 @@ class OAuth1Service(object):
                                         self.request_token_url,
                                         data=data)
 
-        if not response.ok:
-            response.raise_for_status()
+        response.raise_for_status()
 
         data = dict(parse_qsl(response.content))
         return data['oauth_token'], data['oauth_token_secret']
@@ -265,9 +253,9 @@ class OAuth1Service(object):
         '''Retrieves the access token.
 
         :param request_token: The request token as returned by
-        :class:`get_request_token`
+        :class:`get_request_token`.
         :param request_token_secret: The request token secret as returned by
-        :class:`get_request_token`
+        :class:`get_request_token`.
         :param http_method: A string representation of the HTTP method to be
         used.
         :param **params: Additional arguments to be added to the request
@@ -282,21 +270,32 @@ class OAuth1Service(object):
                                         self.access_token_url,
                                         params=params)
 
-        if not response.ok:
-            response.raise_for_status()
+        response.raise_for_status()
 
         return _parse_response(response)
 
-    def get_authenticated_session(self, access_token, access_token_secret,
-            header_auth=False):
-        '''Returns an authenticated Requests session utilizing the hook.
+    def request(self, http_method, url, access_token, access_token_secret,
+            header_auth=False, **params):
+        '''Makes a request using :class:`_construct_session`.
 
+        :param http_method: A string representation of the HTTP method to be
+        used.
+        :param url: The resource to be requested.
         :param access_token: The access token as returned by
-        :class:`get_access_token`
+        :class:`get_access_token`.
         :param access_token_secret: The access token secret as returned by
-        :class:`get_access_token`
+        :class:`get_access_token`.
         :param header_auth: Authenication via header, defauls to False.
+        :param **params: Additional arguments to be added to the request
+        querystring.
         '''
-        return self._construct_session(access_token=access_token,
-                                       access_token_secret=access_token_secret,
-                                       header_auth=header_auth)
+        auth_session = \
+            self._construct_session(access_token=access_token,
+                                    access_token_secret=access_token_secret,
+                                    header_auth=header_auth)
+
+        response = auth_session.request(http_method, url, params=params)
+
+        response.raise_for_status()
+
+        return _parse_response(response)

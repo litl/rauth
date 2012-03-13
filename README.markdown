@@ -43,7 +43,7 @@ application an access token can be obtained:
 
     # the code should be returned upon the redirect from the authorize step,
     # be sure to use it here
-    token = service.get_access_token(code=foobar)
+    token = service.get_access_token(code='foobar')
 
 Here is an example using the OAuth 1.0/a service wrapper:
 

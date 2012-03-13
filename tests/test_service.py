@@ -27,15 +27,17 @@ class OAuth2ServiceTestCase(WebauthTestCase):
                 authorize_url='http://example.com/authorize')
         self.service = service
 
-        def raise_for_status(*args, **kwargs):
+        def raise_for_status():
             raise Exception('Response not OK!')
+
+        self.raise_for_status = raise_for_status
 
         # mock response for testing
         response = Mock()
         response.content = 'access_token=321'
         response.ok = True
         response.status_code = 200
-        response.raise_for_status = lambda *args, **kwargs: raise_for_status()
+        response.raise_for_status = lambda: None
         self.response = response
 
     def test_init_with_access_token(self):
@@ -69,6 +71,7 @@ class OAuth2ServiceTestCase(WebauthTestCase):
     @patch.object(requests.Session, 'request')
     def test_get_access_token_bad_response(self, mock_request):
         self.response.ok = False
+        self.response.raise_for_status = self.raise_for_status
         mock_request.return_value = self.response
         try:
             self.service.get_access_token(code='4242')
@@ -99,6 +102,7 @@ class OAuth2ServiceTestCase(WebauthTestCase):
     @patch.object(requests.Session, 'request')
     def test_request_bad_response(self, mock_request):
         self.response.ok = False
+        self.response.raise_for_status = self.raise_for_status
         mock_request.return_value = self.response
         try:
             self.service.request('GET',
@@ -134,11 +138,13 @@ class OAuth1ServiceTestCase(WebauthTestCase):
         def raise_for_status(*args, **kwargs):
             raise Exception('Response not OK!')
 
+        self.raise_for_status = raise_for_status
+
         # mock response for testing
         response = Mock()
         response.content = 'oauth_token=123&oauth_token_secret=456'
         response.ok = True
-        response.raise_for_status = lambda *args, **kwargs: raise_for_status()
+        response.raise_for_status = lambda: None
         self.response = response
 
     @patch.object(requests.Session, 'request')
@@ -172,6 +178,7 @@ class OAuth1ServiceTestCase(WebauthTestCase):
     @patch.object(requests.Session, 'request')
     def test_get_request_token_bad_response(self, mock_request):
         self.response.ok = False
+        self.response.raise_for_status = self.raise_for_status
         mock_request.return_value = self.response
 
         try:
@@ -207,6 +214,7 @@ class OAuth1ServiceTestCase(WebauthTestCase):
     @patch.object(requests.Session, 'request')
     def test_get_access_token_bad_response(self, mock_request):
         self.response.ok = False
+        self.response.raise_for_status = self.raise_for_status
         mock_request.return_value = self.response
 
         try:
@@ -218,11 +226,18 @@ class OAuth1ServiceTestCase(WebauthTestCase):
                           self.service.get_access_token,
                           ('123','456', 'GET'))
 
-    def test_get_authenticated_session(self):
-        auth_session = \
-            self.service.get_authenticated_session(access_token='123',
-                                                   access_token_secret='456')
-        self.assertTrue(auth_session is not None)
+    @patch.object(requests.Session, 'request')
+    def test_request_get(self, mock_request):
+        mock_request.return_value = self.response
+
+        response = \
+            self.service.request('GET',
+                                 'http://example.com/some/method',
+                                 access_token='123',
+                                 access_token_secret='456')
+        self.assertTrue(response is not None)
+        self.assertEqual('123', response['oauth_token'])
+        self.assertEqual('456', response['oauth_token_secret'])
 
     @patch.object(requests.Session, 'request')
     def test_json_response(self, mock_request):
