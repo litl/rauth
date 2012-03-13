@@ -7,11 +7,13 @@
 
 import requests
 import json
+import hashlib
 
 from webauth.hook import OAuth1Hook
 
 from urllib import quote, urlencode
-from urlparse import parse_qsl
+from urlparse import parse_qsl, urlsplit
+from datetime import datetime
 
 
 def _parse_response(response):
@@ -30,11 +32,134 @@ def _parse_response(response):
     return response.content
 
 
+class OflyService(object):
+    '''An Ofly Service container.
+
+    This class wraps an Ofly service. Most commonly, Shutterfly. The process
+    is similar to that of OAuth 1.0 but simplified. Here we use Requests
+    directly rather than relying on a hook.
+
+    You might intialize :class:`OflyService` something like this::
+
+        service = OflyService(name='example',
+                              consumer_key='123',
+                              consumer_secret='456',
+                              authorize_url='http://example.com/authorize')
+
+    A signed authorize URL is then produced via calling
+    `service.get_authorize_url`. Once this has been visited by the client and
+    assuming the client authorizes the request, subsequent API calls may be
+    made through `service.request`.
+
+    :param name: The service name.
+    :param consumer_key: Client consumer key.
+    :param consumer_secret: Client consumer secret.
+    :param authorize_url: Authorize endpoint.
+    '''
+    TIMESTAMP_FORMAT = '%Y-%m-%dT%H:%M:%S.{0}Z'
+    MICRO_TO_MILLISECONDS = 1000
+
+    def __init__(self, name, consumer_key, consumer_secret, authorize_url):
+        self.name = name
+
+        self.consumer_key = consumer_key
+        self.consumer_secret = consumer_secret
+
+        self.authorize_url = authorize_url
+
+    def _milliseconds(self):
+        return int(datetime.utcnow().strftime('%f')) \
+                / self.MICRO_TO_MILLISECONDS
+
+    def _sort_params(self, params):
+        def sorting():
+            for k in sorted(params.keys()):
+                yield '='.join((k, params[k]))
+        return '&'.join(sorting())
+
+    def _sha1_sign_params(self, url, header_auth=False, **params):
+        time_format = self.TIMESTAMP_FORMAT.format(self._milliseconds())
+        ofly_params = \
+                {'oflyAppId': self.consumer_key,
+                 'oflyHashMeth': 'SHA1',
+                 'oflyTimestamp': datetime.utcnow().strftime(time_format)}
+
+        # select only the path for signing
+        uri = urlsplit(url).path
+
+        signature_base_string = self.consumer_secret \
+                                + uri \
+                                + '?' \
+                                + self._sort_params(params) \
+                                + '&' \
+                                + self._sort_params(ofly_params)
+
+        params['oflyApiSig'] = hashlib.sha1(signature_base_string).hexdigest()
+
+        if not header_auth:
+            # don't use header authentication
+            params = dict(params.items() + ofly_params.items())
+            return self._sort_params(params)
+        else:
+            # return the raw ofly_params for use in the header
+            return self._sort_params(params), ofly_params
+
+    def get_authorize_url(self, remote_user=None, redirect_uri=None, **params):
+        '''Returns a proper authorize URL.
+
+        :param remote_user: This is the oflyRemoteUser param. Defaults to None.
+        :param redirect_uri: This is the oflyCallbackUrl. Defaults to None.
+        :param **params: Additional arguments to be added to the request
+        querystring.
+        '''
+        if remote_user is not None:
+            params.update({'oflyRemoteUser': remote_user})
+
+        if redirect_uri is not None:
+            params.update({'oflyCallbackUrl': redirect_uri})
+
+        params = '?' + self._sha1_sign_params(self.authorize_url, **params)
+        return self.authorize_url + params
+
+    def request(self, http_method, url, header_auth=False, **params):
+        '''Sends a request to an Ofly endpoint, properly wrapped around
+        requests.
+
+        The first time an access token is provided it will be saved on the
+        object for convenience.
+
+        :param http_method: A string representation of the HTTP method to be
+        used.
+        :param url: The resource to be requested.
+        :param header_auth: Authenication via header, defaults to False.
+        :param **params: Additional arguments to be added to the request
+        querystring.
+        '''
+        if header_auth:
+            params, headers = self._sha1_sign_params(url,
+                                                     header_auth=True,
+                                                     **params)
+
+            response = requests.request(http_method,
+                                        url + '?' + params,
+                                        headers=headers)
+        else:
+            params = self._sha1_sign_params(url, **params)
+
+            response = requests.request(http_method, url + '?' + params)
+
+        response.raise_for_status()
+
+        _response = _parse_response(response)
+        _response['_unparsed_response'] = response
+        return _response
+
+
 class OAuth2Service(object):
     '''An OAuth 2.0 Service container.
 
     This class is similar in nature to the OAuth1Service container but does
-    not make use of a request's hook. Instead the OAuth 2.0 spec is currently
+    not make use of a request hook. Instead the OAuth 2.0 spec is currently
     simple enough that we can wrap it around requests directly.
 
     You might intialize :class:`OAuth2Service` something like this::
@@ -87,9 +212,8 @@ class OAuth2Service(object):
         :param **params: Additional arguments to be added to the request
         querystring.
         '''
-        params.update({'response_type': response_type})
-
-        params.update({'client_id': self.consumer_key})
+        params.update({'client_id': self.consumer_key,
+                       'response_type': response_type})
         params = '?' + urlencode(params)
         return self.authorize_url + params
 
@@ -137,7 +261,9 @@ class OAuth2Service(object):
 
         response.raise_for_status()
 
-        return _parse_response(response)
+        _response = _parse_response(response)
+        _response['_unparsed_response'] = response
+        return _response
 
 
 class OAuth1Service(object):
@@ -188,7 +314,7 @@ class OAuth1Service(object):
     :param request_token_url: Request token endpoint.
     :param access_token_url: Access token endpoint.
     :param authorize_url: Authorize endpoint.
-    :param header_auth: Authenication via header, defauls to False.
+    :param header_auth: Authenication via header, defaults to False.
     '''
     def __init__(self, name, consumer_key, consumer_secret, request_token_url,
             access_token_url, authorize_url, header_auth=False):
@@ -317,4 +443,6 @@ class OAuth1Service(object):
 
         response.raise_for_status()
 
-        return _parse_response(response)
+        _response = _parse_response(response)
+        _response['_unparsed_response'] = response
+        return _response

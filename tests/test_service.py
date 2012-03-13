@@ -6,12 +6,77 @@
 '''
 
 from base import WebauthTestCase
-from webauth.service import OAuth1Service, OAuth2Service
+from webauth.service import OAuth1Service, OAuth2Service, OflyService
 
 from mock import Mock, patch
 
 import requests
 import json
+
+
+class OflyServiceTestCase(WebauthTestCase):
+    def setUp(self):
+        WebauthTestCase.setUp(self)
+
+        # mock service for testing
+        service = OflyService(
+                'example',
+                consumer_key='123',
+                consumer_secret='456',
+                authorize_url='http://example.com/authorize')
+        self.service = service
+
+        def raise_for_status():
+            raise Exception('Response not OK!')
+
+        self.raise_for_status = raise_for_status
+
+        # mock response for testing
+        response = Mock()
+        response.content = 'access_token=321'
+        response.ok = True
+        response.status_code = 200
+        response.raise_for_status = lambda: None
+        self.response = response
+
+    def test_get_authorize_url(self):
+        url = self.service.get_authorize_url(
+                remote_user='foobar',
+                redirect_uri='http://example.com/redirect')
+        self.assertTrue('ApiSig=' in url)
+        self.assertTrue('oflyAppId=123' in url)
+        self.assertTrue('oflyCallbackUrl=http://example.com/redirect' in url)
+        self.assertTrue('oflyHashMeth=SHA1' in url)
+        self.assertTrue('oflyRemoteUser=foobar' in url)
+        self.assertTrue('oflyTimestamp=' in url)
+
+    @patch.object(requests.Session, 'request')
+    def test_request(self, mock_request):
+        self.response.content = json.dumps({'status': 'ok'})
+        mock_request.return_value = self.response
+        response = self.service.request('GET',
+                                        'http://example.com/endpoint')
+        self.assertEqual(response['status'], 'ok')
+
+    @patch.object(requests.Session, 'request')
+    def test_request_header_auth(self, mock_request):
+        self.response.content = json.dumps({'status': 'ok'})
+        mock_request.return_value = self.response
+        response = self.service.request('GET',
+                                        'http://example.com/endpoint',
+                                        header_auth=True)
+        self.assertEqual(response['status'], 'ok')
+
+    @patch.object(requests.Session, 'request')
+    def test_request_bad_response(self, mock_request):
+        self.response.ok = False
+        self.response.raise_for_status = self.raise_for_status
+        mock_request.return_value = self.response
+        try:
+            self.service.request('GET',
+                                 'http://example.com/endpoint')
+        except Exception, e:
+            self.assertEqual('Response not OK!', str(e))
 
 
 class OAuth2ServiceTestCase(WebauthTestCase):
