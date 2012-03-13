@@ -5,7 +5,9 @@ import webauth
 from setuptools import setup, find_packages
 
 if sys.argv[-1] == 'test':
-    os.system('nosetests --with-coverage --cover-package=webauth')
+    os.system('pyflakes webauth; '
+              'pep8 webauth && '
+              'nosetests --with-coverage --cover-package=webauth')
     sys.exit()
 
 setup(
