@@ -51,6 +51,13 @@ class OflyService(object):
     assuming the client authorizes the request, subsequent API calls may be
     made through `service.request`.
 
+    .. admonition:: Additional Signing Options
+
+        The signing process here only supports SHA1 although the specification
+        allows for RSA as well. This could be implemented in the future. For
+        more information please see:
+        http://www.shutterfly.com/documentation/OflyCallSignature.sfly
+
     :param name: The service name.
     :param consumer_key: Client consumer key.
     :param consumer_secret: Client consumer secret.
@@ -67,8 +74,9 @@ class OflyService(object):
 
         self.authorize_url = authorize_url
 
-    def _milliseconds(self, dt):
-        return int(dt.microsecond / self.MICRO_TO_MILLISECONDS)
+    def _milliseconds(self):
+        return int(datetime.utcnow().strftime('%f')) \
+                / self.MICRO_TO_MILLISECONDS
 
     def _sort_params(self, params):
         def sorting():
@@ -77,20 +85,17 @@ class OflyService(object):
         return '&'.join(sorting())
 
     def _sha1_sign_params(self, url, header_auth=False, **params):
-        # signing method described here:
-        # http://www.shutterfly.com/documentation/OflyCallSignature.sfly
-        now = datetime.utcnow()
-        time_format = self.TIMESTAMP_FORMAT.format(self._milliseconds(now))
+        time_format = self.TIMESTAMP_FORMAT.format(self._milliseconds())
         ofly_params = \
                 {'oflyAppId': self.consumer_key,
                  'oflyHashMeth': 'SHA1',
-                 'oflyTimestamp': now.strftime(time_format)}
+                 'oflyTimestamp': datetime.utcnow().strftime(time_format)}
 
         # select only the path for signing
-        uri_path = urlsplit(url).path
+        url_path = urlsplit(url).path
 
         signature_base_string = self.consumer_secret \
-                                + uri_path \
+                                + url_path \
                                 + '?' \
                                 + self._sort_params(params) \
                                 + '&' \
