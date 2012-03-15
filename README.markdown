@@ -62,30 +62,6 @@ Now it's possible to obtain request tokens via
 `service.get_authorization_url(request_token)`, and finally obtain access
 tokens `service.get_access_token(request_token, request_token_secret, 'GET')`.
 
-Additionally, an authenticated session, wrapped with the necessary OAuth data
-can be returned via `service.get_authenticated_session(access_token,
-access_token_secret)`. Bind this to a variables and then call it to make
-authenticated requests to service endpoints.
-
-The OAuth hook object is also available if the service wrapper is not needed or
-wanted. It can be used as follows:
-
-    from webauth import OAuthHook
-    import requests
-    
-    # setup the OAuth Hook
-    oauth = OAuthHook(consumer_key='123', consumer_secret='456')
-    # attach it to a pre-request hook
-    oauth_requests = requests.session(hooks={'prehook': oauth})
-
-    # begin by getting a request token
-    oauth_requests.get('http://example.com/request_token').content
-
-Once the request token is acquired you'll want to update the OAuth Hook and
-request session accordingly, providing the `token` and `token_key` parameters
-to `OAuthHook`.
-
-
 ## Documentation
 
 The Sphinx-compiled documentation is available here: (not yet!)
