@@ -109,8 +109,8 @@ class OflyService(object):
 
         :param remote_user: This is the oflyRemoteUser param. Defaults to None.
         :param redirect_uri: This is the oflyCallbackUrl. Defaults to None.
-        :param **params: Additional arguments to be added to the request
-        querystring.
+        :param params: Additional keyworded arguments to be added to the
+            request querystring.
         '''
         if remote_user is not None:
             params.update({'oflyRemoteUser': remote_user})
@@ -129,11 +129,11 @@ class OflyService(object):
         object for convenience.
 
         :param http_method: A string representation of the HTTP method to be
-        used.
+            used.
         :param url: The resource to be requested.
         :param header_auth: Authenication via header, defaults to False.
-        :param **params: Additional arguments to be added to the request
-        querystring.
+        :param params: Additional keyworded arguments to be added to the
+            request querystring.
         '''
         if header_auth:
             params, headers = self._sha1_sign_params(url,
@@ -184,6 +184,7 @@ class OAuth2Service(object):
         token = service.get_access_token(code='foobar',
                                          grant_type='authorization_code',
                                          redirect_uri='http://example.com/')
+
     :param name: The service name.
     :param consumer_key: Client consumer key.
     :param consumer_secret: Client consumer secret.
@@ -209,8 +210,8 @@ class OAuth2Service(object):
         '''Returns a proper authorize URL.
 
         :param reponse_type: The response type. Defaults to 'code'.
-        :param **params: Additional arguments to be added to the request
-        querystring.
+        :param params: Additional keyworded arguments to be added to the
+            request querystring.
         '''
         params.update({'client_id': self.consumer_key,
                        'response_type': response_type})
@@ -221,7 +222,8 @@ class OAuth2Service(object):
         '''Retrieves the access token.
 
         :param grant_type: The grant type. Deaults to 'authorization_code'.
-        :param **data: Arguments to be passed in the body of the request.
+        :param data: Keyworded arguments to be passed in the body of the
+            request.
         '''
         data.update({'grant_type': grant_type})
 
@@ -243,12 +245,12 @@ class OAuth2Service(object):
         object for convenience.
 
         :param http_method: A string representation of the HTTP method to be
-        used.
+            used.
         :param url: The resource to be requested.
         :param access_token: The access token as returned by
-        :class:`get_access_token`.
-        :param **params: Additional arguments to be added to the request
-        querystring.
+            :class:`get_access_token`.
+        :param params: Additional keyworded arguments to be added to the
+            request querystring.
         '''
         if access_token is None and self.access_token is None:
             raise ValueError('Access token must be set!')
@@ -335,8 +337,8 @@ class OAuth1Service(object):
         '''Construct the request session, supplying the consumer key and
         secret.
 
-        :param **kwargs: Extra arguments to be passed to the OAuth1Hook
-        constructor.
+        :param kwargs: Extra keyworded arguments to be passed to the OAuth1Hook
+            constructor.
         '''
         hook = OAuth1Hook(consumer_key=self.consumer_key,
                           consumer_secret=self.consumer_secret,
@@ -347,8 +349,9 @@ class OAuth1Service(object):
         '''Gets a request token from the request token endpoint.
 
         :param http_method: A string representation of the HTTP method to be
-        used.
-        :param **data: Arguments to be passed in the body of the request.
+            used.
+        :param data: Keyworded arguments to be passed in the body of the
+            request.
         '''
         auth_session = \
                 self._construct_session(header_auth=self.header_auth)
@@ -366,9 +369,9 @@ class OAuth1Service(object):
         '''Returns a proper authorize URL.
 
         :param request_token: The request token as returned by
-        :class:`get_request_token`.
-        :param **params: Additional arguments to be added to the request
-        querystring.
+            :class:`get_request_token`.
+        :param params: Additional keyworded arguments to be added to the
+            request querystring.
         '''
         params.update({'oauth_token': quote(request_token)})
         params = '?' + urlencode(params)
@@ -379,13 +382,13 @@ class OAuth1Service(object):
         '''Retrieves the access token.
 
         :param request_token: The request token as returned by
-        :class:`get_request_token`.
+            :class:`get_request_token`.
         :param request_token_secret: The request token secret as returned by
-        :class:`get_request_token`.
+            :class:`get_request_token`.
         :param http_method: A string representation of the HTTP method to be
-        used.
-        :param **params: Additional arguments to be added to the request
-        querystring.
+            used.
+        :param params: Additional keyworded arguments to be added to the
+            request querystring.
         '''
         auth_session = self._construct_session(
                                 access_token=request_token,
@@ -405,10 +408,10 @@ class OAuth1Service(object):
         '''Returns an authenticated Requests session utilizing the hook.
 
         :param access_token: The access token as returned by
-        :class:`get_access_token`
+            :class:`get_access_token`
         :param access_token_secret: The access token secret as returned by
-        :class:`get_access_token`
-        :param header_auth: Authenication via header, defauls to False.
+            :class:`get_access_token`
+        :param header_auth: Authenication via header, defaults to False.
         '''
         return self._construct_session(access_token=access_token,
                                        access_token_secret=access_token_secret,
@@ -419,15 +422,15 @@ class OAuth1Service(object):
         '''Makes a request using :class:`_construct_session`.
 
         :param http_method: A string representation of the HTTP method to be
-        used.
+            used.
         :param url: The resource to be requested.
         :param access_token: The access token as returned by
-        :class:`get_access_token`.
+            :class:`get_access_token`.
         :param access_token_secret: The access token secret as returned by
-        :class:`get_access_token`.
-        :param header_auth: Authenication via header, defauls to False.
+            :class:`get_access_token`.
+        :param header_auth: Authenication via header, defaults to False.
         :param params: Additional arguments to be added to the request
-        querystring.
+            querystring.
         :param data: Additional data to be included in the request body.
         '''
         auth_session = \
