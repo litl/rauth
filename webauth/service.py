@@ -116,7 +116,7 @@ class OflyService(object):
 
         :param remote_user: This is the oflyRemoteUser param. Defaults to None.
         :param redirect_uri: This is the oflyCallbackUrl. Defaults to None.
-        :param params: Additional keyworded arguments to be added to the
+        :param **params: Additional keyworded arguments to be added to the
             request querystring.
         '''
         if remote_user is not None:
@@ -128,20 +128,22 @@ class OflyService(object):
         params = '?' + self._sha1_sign_params(self.authorize_url, **params)
         return self.authorize_url + params
 
-    def request(self, http_method, url, header_auth=False, **params):
+    def request(self, http_method, url, header_auth=False, params=None,
+            data=None):
         '''Sends a request to an Ofly endpoint, properly wrapped around
         requests.
-
-        The first time an access token is provided it will be saved on the
-        object for convenience.
 
         :param http_method: A string representation of the HTTP method to be
             used.
         :param url: The resource to be requested.
         :param header_auth: Authenication via header, defaults to False.
-        :param params: Additional keyworded arguments to be added to the
-            request querystring.
+        :param params: Additional arguments to be added to the request
+            querystring.
+        :param data: Additional data to be included in the request body.
         '''
+        if params is None:
+            params = {}
+
         if header_auth:
             params, headers = self._sha1_sign_params(url,
                                                      header_auth=True,
@@ -153,7 +155,9 @@ class OflyService(object):
         else:
             params = self._sha1_sign_params(url, **params)
 
-            response = requests.request(http_method, url + '?' + params)
+            response = requests.request(http_method,
+                                        url + '?' + params,
+                                        data=data)
 
         response.raise_for_status()
 
@@ -217,7 +221,7 @@ class OAuth2Service(object):
         '''Returns a proper authorize URL.
 
         :param reponse_type: The response type. Defaults to 'code'.
-        :param params: Additional keyworded arguments to be added to the
+        :param **params: Additional keyworded arguments to be added to the
             request querystring.
         '''
         params.update({'client_id': self.consumer_key,
@@ -229,7 +233,7 @@ class OAuth2Service(object):
         '''Retrieves the access token.
 
         :param grant_type: The grant type. Deaults to 'authorization_code'.
-        :param data: Keyworded arguments to be passed in the body of the
+        :param **data: Keyworded arguments to be passed in the body of the
             request.
         '''
         data.update({'grant_type': grant_type})
@@ -244,7 +248,8 @@ class OAuth2Service(object):
 
         return _parse_response(response)
 
-    def request(self, http_method, url, access_token=None, **params):
+    def request(self, http_method, url, access_token=None, params=None,
+            data=None):
         '''Sends a request to an OAuth 2.0 endpoint, properly wrapped around
         requests.
 
@@ -256,17 +261,21 @@ class OAuth2Service(object):
         :param url: The resource to be requested.
         :param access_token: The access token as returned by
             :class:`get_access_token`.
-        :param params: Additional keyworded arguments to be added to the
-            request querystring.
+        :param params: Additional arguments to be added to the request
+            querystring.
+        :param data: Additional data to be included in the request body.
         '''
         if access_token is None and self.access_token is None:
             raise ValueError('Access token must be set!')
         elif access_token is not None:
             self.access_token = access_token
 
+        if params is None:
+            params = {}
+
         params.update({'access_token': self.access_token})
 
-        response = requests.request(http_method, url, params=params)
+        response = requests.request(http_method, url, params=params, data=data)
 
         response.raise_for_status()
 
@@ -344,8 +353,8 @@ class OAuth1Service(object):
         '''Construct the request session, supplying the consumer key and
         secret.
 
-        :param kwargs: Extra keyworded arguments to be passed to the OAuth1Hook
-            constructor.
+        :param **kwargs: Extra keyworded arguments to be passed to the
+            OAuth1Hook constructor.
         '''
         hook = OAuth1Hook(consumer_key=self.consumer_key,
                           consumer_secret=self.consumer_secret,
@@ -357,7 +366,7 @@ class OAuth1Service(object):
 
         :param http_method: A string representation of the HTTP method to be
             used.
-        :param data: Keyworded arguments to be passed in the body of the
+        :param **data: Keyworded arguments to be passed in the body of the
             request.
         '''
         auth_session = \
@@ -377,7 +386,7 @@ class OAuth1Service(object):
 
         :param request_token: The request token as returned by
             :class:`get_request_token`.
-        :param params: Additional keyworded arguments to be added to the
+        :param **params: Additional keyworded arguments to be added to the
             request querystring.
         '''
         params.update({'oauth_token': quote(request_token)})
@@ -394,7 +403,7 @@ class OAuth1Service(object):
             :class:`get_request_token`.
         :param http_method: A string representation of the HTTP method to be
             used.
-        :param params: Additional keyworded arguments to be added to the
+        :param **params: Additional keyworded arguments to be added to the
             request querystring.
         '''
         auth_session = self._construct_session(
