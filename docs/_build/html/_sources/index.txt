@@ -111,3 +111,6 @@ API
 
 .. autoclass:: webauth.service.OAuth1Service
     :members:
+
+.. autoclass:: webauth.hook.OAuth1Hook
+    :members:

@@ -116,7 +116,7 @@ class OflyService(object):
 
         :param remote_user: This is the oflyRemoteUser param. Defaults to None.
         :param redirect_uri: This is the oflyCallbackUrl. Defaults to None.
-        :param **params: Additional keyworded arguments to be added to the
+        :param params: Additional keyworded arguments to be added to the
             request querystring.
         '''
         if remote_user is not None:
@@ -221,7 +221,7 @@ class OAuth2Service(object):
         '''Returns a proper authorize URL.
 
         :param reponse_type: The response type. Defaults to 'code'.
-        :param **params: Additional keyworded arguments to be added to the
+        :param params: Additional keyworded arguments to be added to the
             request querystring.
         '''
         params.update({'client_id': self.consumer_key,
@@ -233,7 +233,7 @@ class OAuth2Service(object):
         '''Retrieves the access token.
 
         :param grant_type: The grant type. Deaults to 'authorization_code'.
-        :param **data: Keyworded arguments to be passed in the body of the
+        :param data: Keyworded arguments to be passed in the body of the
             request.
         '''
         data.update({'grant_type': grant_type})
@@ -353,7 +353,7 @@ class OAuth1Service(object):
         '''Construct the request session, supplying the consumer key and
         secret.
 
-        :param **kwargs: Extra keyworded arguments to be passed to the
+        :param kwargs: Extra keyworded arguments to be passed to the
             OAuth1Hook constructor.
         '''
         hook = OAuth1Hook(consumer_key=self.consumer_key,
@@ -366,7 +366,7 @@ class OAuth1Service(object):
 
         :param http_method: A string representation of the HTTP method to be
             used.
-        :param **data: Keyworded arguments to be passed in the body of the
+        :param data: Keyworded arguments to be passed in the body of the
             request.
         '''
         auth_session = \
@@ -386,7 +386,7 @@ class OAuth1Service(object):
 
         :param request_token: The request token as returned by
             :class:`get_request_token`.
-        :param **params: Additional keyworded arguments to be added to the
+        :param params: Additional keyworded arguments to be added to the
             request querystring.
         '''
         params.update({'oauth_token': quote(request_token)})
@@ -403,7 +403,7 @@ class OAuth1Service(object):
             :class:`get_request_token`.
         :param http_method: A string representation of the HTTP method to be
             used.
-        :param **params: Additional keyworded arguments to be added to the
+        :param params: Additional keyworded arguments to be added to the
             request querystring.
         '''
         auth_session = self._construct_session(
