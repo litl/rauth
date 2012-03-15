@@ -15,52 +15,70 @@ or
     $ pip install webauth (not yet!)
 
 
-## Usage
+## Example Usage
 
 Using the package is quite simple. Ensure that Python Requests is installed.
 Import the relavent module and start utilizing OAuth endpoints!
 
-The easiest way to get started is by setting up a service wrapper. To do so
-simply import the service container object:
+Let's get a user's Twitter timeline.  Start by creating a service
+container object:
 
-    from webauth import OAuth2Service
+    from webauth.service import OAuth1Service
 
-    service = OAuth2Service(
-               name='example',
-               consumer_key='123',
-               consumer_secret='456',
-               access_token_url='http://example.com/token',
-               authorize_url='http://example.com/authorize')
+    # Get a real consumer key & secret from https://dev.twitter.com/apps/new
+    twitter = OAuth1Service(
+        name='twitter',
+        consumer_key='YOUR_CONSUMER_KEY',
+        consumer_secret='YOUR_CONSUMER_SECRET',
+        request_token_url='https://api.twitter.com/oauth/request_token',
+        access_token_url='https://api.twitter.com/oauth/access_token',
+        authorize_url='https://api.twitter.com/oauth/authorize',
+        header_auth=True)
 
-Using the service wrapper API we can obtain an access token after the
-authorization URL has been visited by the client. First generate the
-authorization URL:
+Then get an OAuth 1.0 request token:
 
-    url = service.get_authorize_url()
+    request_token, request_token_secret = \
+        twitter.get_request_token(http_method='GET')
 
-Once this URL has been visited and (presumably) the client authorizes the
-application an access token can be obtained:
+Go through the authentication flow.  Since our example is a simple console
+application, Twitter will give you a PIN to enter.
 
-    # the code should be returned upon the redirect from the authorize step,
-    # be sure to use it here
-    token = service.get_access_token(code='foobar')
+    authorize_url = twitter.get_authorize_url(request_token)
 
-Here is an example using the OAuth 1.0/a service wrapper:
+    print 'Visit this URL in your browser: ' + authorize_url
+    pin = raw_input('Enter PIN from browser: ')
 
-    from webauth import OAuth1Service
+Exchange the authorized request token for an access token:
 
-    service = OAuth1Service(
-                    'example',
-                    consumer_key='123',
-                    consumer_secret='456',
-                    request_token_url='http://example.com/request_token',
-                    access_token_url='http://example.com/access_token',
-                    authorize_url='http://example.com/authorize')
+    response = twitter.get_access_token(request_token,
+                                        request_token_secret,
+                                        http_method='GET',
+                                        oauth_verifier=pin)
+    data = response.content
 
-Now it's possible to obtain request tokens via 
-`service.get_request_token('GET')`, generate authorization URIs 
-`service.get_authorization_url(request_token)`, and finally obtain access
-tokens `service.get_access_token(request_token, request_token_secret, 'GET')`.
+    access_token = data['oauth_token']
+    access_token_secret = data['oauth_token_secret']
+
+And now we can fetch our Twitter timeline!
+
+    params = {'include_rts': 1,  # Include retweets
+              'count': 10}       # 10 tweets
+
+    response = twitter.request(
+        'GET',
+        'https://api.twitter.com/1/statuses/home_timeline.json',
+        access_token,
+        access_token_secret,
+        header_auth=True,
+        params=params)
+
+    for i, tweet in enumerate(response.content, 1):
+        handle = tweet['user']['screen_name'].encode('utf-8')
+        text = tweet['text'].encode('utf-8')
+        print '{0}. @{1} - {2}'.format(i, handle, text)
+
+The full example is in examples/twitter-timeline.py.
+
 
 ## Documentation
 
