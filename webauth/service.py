@@ -77,6 +77,8 @@ class OflyService(object):
         return '&'.join(sorting())
 
     def _sha1_sign_params(self, url, header_auth=False, **params):
+        # signing method described here:
+        # http://www.shutterfly.com/documentation/OflyCallSignature.sfly
         now = datetime.utcnow()
         time_format = self.TIMESTAMP_FORMAT.format(self._milliseconds(now))
         ofly_params = \
@@ -85,10 +87,10 @@ class OflyService(object):
                  'oflyTimestamp': now.strftime(time_format)}
 
         # select only the path for signing
-        uri = urlsplit(url).path
+        uri_path = urlsplit(url).path
 
         signature_base_string = self.consumer_secret \
-                                + uri \
+                                + uri_path \
                                 + '?' \
                                 + self._sort_params(params) \
                                 + '&' \
