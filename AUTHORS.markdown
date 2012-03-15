@@ -2,7 +2,7 @@
 
 ##Primary Contributors
 
-* [Max Countryman](https://github.com/maxcountryman)
+* [Max Countryman](https://github.com/maxcountryman) (maintainer)
 * [Joe Shaw](https://github.com/joeshaw)
 * [Peter Teichman](http://github.com/pteichman)
 
