@@ -1,4 +1,6 @@
-#Developed at Litl by awesome engineers
+#Developed by Litl
+
+##Primary Contributors
 
 * [Max Countryman](https://github.com/maxcountryman)
 * [Joe Shaw](https://github.com/joeshaw)
