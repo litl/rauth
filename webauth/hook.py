@@ -106,6 +106,8 @@ class OAuth1Hook(object):
 
         if self.header_auth:
             # authenticate in the header
+            #
+            # TODO: implement the real parameter
             request.headers['Authorization'] = \
                     self.generate_authorization_header(request.data_and_params)
         elif request.method == 'POST':
