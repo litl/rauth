@@ -9,6 +9,6 @@
 
 ##Patches and Suggestions
 
-Add yourself as a contributor! :cake:
+Add yourself as a contributor!
 
 * (your name here)
