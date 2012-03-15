@@ -1,6 +1,6 @@
-# Webauth: OAuth 1.0/a and 2.0 for Python
+# Webauth: OAuth 1.0/a, 2.0, and Ofly for Python
 
-Webauth is a package providing OAuth 1.0/a and 2.0 consumer support. The
+Webauth is a package providing OAuth 1.0/a, 2.0, and Ofly consumer support. The
 package is wrapped around the superb Python Requests.
 
 

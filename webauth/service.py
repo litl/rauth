@@ -2,7 +2,7 @@
     webauth.service
     ---------------
 
-    Provides OAuth 1.0/a and 2.0 service containers.
+    Provides OAuth 1.0/a, 2.0 and Ofly service containers.
 '''
 
 import requests
