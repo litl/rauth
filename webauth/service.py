@@ -67,9 +67,8 @@ class OflyService(object):
 
         self.authorize_url = authorize_url
 
-    def _milliseconds(self):
-        return int(datetime.utcnow().strftime('%f')) \
-                / self.MICRO_TO_MILLISECONDS
+    def _milliseconds(self, dt):
+        return int(dt.microsecond / self.MICRO_TO_MILLISECONDS)
 
     def _sort_params(self, params):
         def sorting():
@@ -78,11 +77,12 @@ class OflyService(object):
         return '&'.join(sorting())
 
     def _sha1_sign_params(self, url, header_auth=False, **params):
-        time_format = self.TIMESTAMP_FORMAT.format(self._milliseconds())
+        now = datetime.utcnow()
+        time_format = self.TIMESTAMP_FORMAT.format(self._milliseconds(now))
         ofly_params = \
                 {'oflyAppId': self.consumer_key,
                  'oflyHashMeth': 'SHA1',
-                 'oflyTimestamp': datetime.utcnow().strftime(time_format)}
+                 'oflyTimestamp': now.strftime(time_format)}
 
         # select only the path for signing
         uri = urlsplit(url).path
