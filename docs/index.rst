@@ -103,14 +103,33 @@ to `OAuthHook`.
 
 API
 ---
+
+The API is split up into service wrappers which provide convenient methods for
+interacting with various service providers.
+
+Ofly Services
+-------------
+
 .. autoclass:: webauth.service.OflyService
     :members:
+
+OAuth2 Services
+---------------
 
 .. autoclass:: webauth.service.OAuth2Service
     :members:
 
+OAuth1 Services
+---------------
+
 .. autoclass:: webauth.service.OAuth1Service
     :members:
+
+OAuth1 Hook
+-----------
+
+Additionally, for OAuth 1.0/a services, a Requests hook is available for direct
+use.
 
 .. autoclass:: webauth.hook.OAuth1Hook
     :members:

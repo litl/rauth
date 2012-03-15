@@ -119,6 +119,11 @@ to <cite>OAuthHook</cite>.</p>
 </div>
 <div class="section" id="api">
 <h2>API<a class="headerlink" href="#api" title="Permalink to this headline">¶</a></h2>
+<p>The API is split up into service wrappers which provide convenient methods for
+interacting with various service providers.</p>
+</div>
+<div class="section" id="ofly-services">
+<h2>Ofly Services<a class="headerlink" href="#ofly-services" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="webauth.service.OflyService">
 <em class="property">class </em><tt class="descclassname">webauth.service.</tt><tt class="descname">OflyService</tt><big>(</big><em>name</em>, <em>consumer_key</em>, <em>consumer_secret</em>, <em>authorize_url</em><big>)</big><a class="headerlink" href="#webauth.service.OflyService" title="Permalink to this definition">¶</a></dt>
@@ -204,6 +209,9 @@ querystring.</li>
 
 </dd></dl>
 
+</div>
+<div class="section" id="oauth2-services">
+<h2>OAuth2 Services<a class="headerlink" href="#oauth2-services" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="webauth.service.OAuth2Service">
 <em class="property">class </em><tt class="descclassname">webauth.service.</tt><tt class="descname">OAuth2Service</tt><big>(</big><em>name</em>, <em>consumer_key</em>, <em>consumer_secret</em>, <em>access_token_url</em>, <em>authorize_url</em>, <em>access_token=None</em><big>)</big><a class="headerlink" href="#webauth.service.OAuth2Service" title="Permalink to this definition">¶</a></dt>
@@ -317,6 +325,9 @@ querystring.</li>
 
 </dd></dl>
 
+</div>
+<div class="section" id="oauth1-services">
+<h2>OAuth1 Services<a class="headerlink" href="#oauth1-services" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="webauth.service.OAuth1Service">
 <em class="property">class </em><tt class="descclassname">webauth.service.</tt><tt class="descname">OAuth1Service</tt><big>(</big><em>name</em>, <em>consumer_key</em>, <em>consumer_secret</em>, <em>request_token_url</em>, <em>access_token_url</em>, <em>authorize_url</em>, <em>header_auth=False</em><big>)</big><a class="headerlink" href="#webauth.service.OAuth1Service" title="Permalink to this definition">¶</a></dt>
@@ -489,6 +500,11 @@ querystring.</li>
 
 </dd></dl>
 
+</div>
+<div class="section" id="oauth1-hook">
+<h2>OAuth1 Hook<a class="headerlink" href="#oauth1-hook" title="Permalink to this headline">¶</a></h2>
+<p>Additionally, for OAuth 1.0/a services, a Requests hook is available for direct
+use.</p>
 <dl class="class">
 <dt id="webauth.hook.OAuth1Hook">
 <em class="property">class </em><tt class="descclassname">webauth.hook.</tt><tt class="descname">OAuth1Hook</tt><big>(</big><em>consumer_key</em>, <em>consumer_secret</em>, <em>access_token=None</em>, <em>access_token_secret=None</em>, <em>header_auth=False</em>, <em>signature=None</em><big>)</big><a class="headerlink" href="#webauth.hook.OAuth1Hook" title="Permalink to this definition">¶</a></dt>
@@ -533,14 +549,14 @@ provided by passing <tt class="xref py py-class docutils literal"><span class="p
 <li><strong>access_token</strong> &#8211; Access token key.</li>
 <li><strong>access_token_secret</strong> &#8211; Access token secret.</li>
 <li><strong>header_auth</strong> &#8211; Authenication via header, defauls to False.</li>
-<li><strong>signature</strong> &#8211; A signature method used to sign request parameters.</li>
+<li><strong>signature</strong> &#8211; A signature method used to sign request parameters.
+Defaults to None. If None the <cite>HmacSha1Signature</cite> method is used as
+default.</li>
 </ul>
 </td>
 </tr>
 </tbody>
 </table>
-<p>Defaults to None. If None the <cite>HmacSha1Signature</cite> method is used as
-default.</p>
 <dl class="method">
 <dt id="webauth.hook.OAuth1Hook.generate_authorization_header">
 <tt class="descname">generate_authorization_header</tt><big>(</big><em>oauth_params</em>, <em>realm=None</em><big>)</big><a class="headerlink" href="#webauth.hook.OAuth1Hook.generate_authorization_header" title="Permalink to this definition">¶</a></dt>

@@ -58,8 +58,8 @@ class OAuth1Hook(object):
     :param access_token_secret: Access token secret.
     :param header_auth: Authenication via header, defauls to False.
     :param signature: A signature method used to sign request parameters.
-    Defaults to None. If None the `HmacSha1Signature` method is used as
-    default.
+        Defaults to None. If None the `HmacSha1Signature` method is used as
+        default.
     '''
     OAUTH_VERSION = '1.0'
 
