@@ -89,3 +89,9 @@ to `OAuthHook`.
 ## Documentation
 
 The Sphinx-compiled documentation is available here: (not yet!)
+
+
+## Copyright and License
+
+Webauth is Copyright (c) 2012 litl, LLC and licensed under the MIT license.
+See the LICENSE file for full details.
