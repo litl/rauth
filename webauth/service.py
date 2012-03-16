@@ -80,7 +80,7 @@ class OflyService(object):
 
         self.authorize_url = authorize_url
 
-    def _milliseconds(self, microseconds):
+    def _micro_to_milliseconds(self, microseconds):
         return microseconds / self.MICRO_MILLISECONDS_DELTA
 
     def _sort_params(self, params):
@@ -91,8 +91,8 @@ class OflyService(object):
 
     def _sha1_sign_params(self, url, header_auth=False, **params):
         now = datetime.utcnow()
-        time_format = \
-            self.TIMESTAMP_FORMAT.format(self._milliseconds(now.microsecond))
+        milliseconds = self._micro_to_milliseconds(now.microsecond)
+        time_format = self.TIMESTAMP_FORMAT.format(milliseconds)
         ofly_params = \
                 {'oflyAppId': self.consumer_key,
                  'oflyHashMeth': 'SHA1',
