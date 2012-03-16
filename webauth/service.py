@@ -60,7 +60,7 @@ class OflyService(object):
     .. admonition:: Additional Signing Options
 
         The signing process here only supports SHA1 although the specification
-        allows for RSA as well. This could be implemented in the future. For
+        allows for RSA1 as well. This could be implemented in the future. For
         more information please see:
         http://www.shutterfly.com/documentation/OflyCallSignature.sfly
 
@@ -70,7 +70,7 @@ class OflyService(object):
     :param authorize_url: Authorize endpoint.
     '''
     TIMESTAMP_FORMAT = '%Y-%m-%dT%H:%M:%S.{0}Z'
-    MICRO_TO_MILLISECONDS = 1000
+    MICRO_MILLISECONDS_DELTA = 1000
 
     def __init__(self, name, consumer_key, consumer_secret, authorize_url):
         self.name = name
@@ -80,8 +80,8 @@ class OflyService(object):
 
         self.authorize_url = authorize_url
 
-    def _milliseconds(self, dt):
-        return int(dt.microsecond / self.MICRO_TO_MILLISECONDS)
+    def _milliseconds(self, microseconds):
+        return microseconds / self.MICRO_MILLISECONDS_DELTA
 
     def _sort_params(self, params):
         def sorting():
@@ -91,7 +91,8 @@ class OflyService(object):
 
     def _sha1_sign_params(self, url, header_auth=False, **params):
         now = datetime.utcnow()
-        time_format = self.TIMESTAMP_FORMAT.format(self._milliseconds(now))
+        time_format = \
+            self.TIMESTAMP_FORMAT.format(self._milliseconds(now.microsecond))
         ofly_params = \
                 {'oflyAppId': self.consumer_key,
                  'oflyHashMeth': 'SHA1',

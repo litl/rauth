@@ -8,6 +8,7 @@
 from base import WebauthTestCase
 from webauth.service import OAuth1Service, OAuth2Service, OflyService
 
+from datetime import datetime
 from mock import Mock, patch
 
 import requests
@@ -77,6 +78,11 @@ class OflyServiceTestCase(WebauthTestCase):
                                  'http://example.com/endpoint')
         except Exception, e:
             self.assertEqual('Response not OK!', str(e))
+
+    def test_micro_to_milliseconds(self):
+        microseconds = datetime.utcnow().microsecond
+        milliseconds = self.service._milliseconds(microseconds)
+        self.assertEqual(len(str(milliseconds)), 3)
 
 
 class OAuth2ServiceTestCase(WebauthTestCase):
