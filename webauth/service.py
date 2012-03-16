@@ -17,7 +17,7 @@ from datetime import datetime
 
 
 def _parse_response(response):
-    '''Attempts to coerce response.content into a dictionary.
+    '''Attempts to parse response.content. Returns a `Response` object.
 
     :param response: A Requests response object.
     '''
@@ -26,10 +26,16 @@ def _parse_response(response):
             content = json.loads(response.content)
         except ValueError:
             content = dict(parse_qsl(response.content))
-        return content
-    # TODO: rather than returning the content in the case of receiving
-    # something we can't parse we should probably raise an error
-    return response.content
+    else:
+        content = response.content
+    return Response(content=content, response=response)
+
+
+class Response(object):
+    '''A service response container.'''
+    def __init__(self, content, response):
+        self.content = content
+        self.response = response
 
 
 class OflyService(object):
@@ -161,9 +167,7 @@ class OflyService(object):
 
         response.raise_for_status()
 
-        _response = _parse_response(response)
-        _response['_unparsed_response'] = response
-        return _response
+        return _parse_response(response)
 
 
 class OAuth2Service(object):
@@ -279,9 +283,7 @@ class OAuth2Service(object):
 
         response.raise_for_status()
 
-        _response = _parse_response(response)
-        _response['_unparsed_response'] = response
-        return _response
+        return _parse_response(response)
 
 
 class OAuth1Service(object):
@@ -462,6 +464,4 @@ class OAuth1Service(object):
 
         response.raise_for_status()
 
-        _response = _parse_response(response)
-        _response['_unparsed_response'] = response
-        return _response
+        return _parse_response(response)

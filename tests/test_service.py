@@ -55,7 +55,7 @@ class OflyServiceTestCase(WebauthTestCase):
         self.response.content = json.dumps({'status': 'ok'})
         mock_request.return_value = self.response
         response = self.service.request('GET',
-                                        'http://example.com/endpoint')
+                                        'http://example.com/endpoint').content
         self.assertEqual(response['status'], 'ok')
 
     @patch.object(requests.Session, 'request')
@@ -64,7 +64,7 @@ class OflyServiceTestCase(WebauthTestCase):
         mock_request.return_value = self.response
         response = self.service.request('GET',
                                         'http://example.com/endpoint',
-                                        header_auth=True)
+                                        header_auth=True).content
         self.assertEqual(response['status'], 'ok')
 
     @patch.object(requests.Session, 'request')
@@ -130,7 +130,7 @@ class OAuth2ServiceTestCase(WebauthTestCase):
     @patch.object(requests.Session, 'request')
     def test_get_access_token(self, mock_request):
         mock_request.return_value = self.response
-        response = self.service.get_access_token(code='4242')
+        response = self.service.get_access_token(code='4242').content
         self.assertEqual(response['access_token'], '321')
 
     @patch.object(requests.Session, 'request')
@@ -146,8 +146,9 @@ class OAuth2ServiceTestCase(WebauthTestCase):
     @patch.object(requests.Session, 'request')
     def test_get_access_token_grant_type(self, mock_request):
         mock_request.return_value = self.response
-        response = self.service.get_access_token(code='4242',
-                                                grant_type='refresh_token')
+        response = \
+            self.service.get_access_token(code='4242',
+                                          grant_type='refresh_token').content
         self.assertEqual(response['access_token'], '321')
 
     @patch.object(requests.Session, 'request')
@@ -156,12 +157,12 @@ class OAuth2ServiceTestCase(WebauthTestCase):
         mock_request.return_value = self.response
         response = self.service.request('GET',
                                         'http://example.com/endpoint',
-                                         access_token='321')
+                                         access_token='321').content
         self.assertEqual(response['status'], 'ok')
 
         # test here again to make sure the access token was set
         response = self.service.request('GET',
-                                        'http://example.com/endpoint')
+                                        'http://example.com/endpoint').content
         self.assertEqual(response['status'], 'ok')
 
     @patch.object(requests.Session, 'request')
@@ -272,7 +273,7 @@ class OAuth1ServiceTestCase(WebauthTestCase):
 
         access_resp = self.service.get_access_token(request_token='123',
                                                     request_token_secret='456',
-                                                    http_method='GET')
+                                                    http_method='GET').content
         self.assertEqual(access_resp['oauth_token'], '123')
         self.assertEqual(access_resp['oauth_token_secret'], '456')
 
@@ -317,7 +318,7 @@ class OAuth1ServiceTestCase(WebauthTestCase):
             self.service.request('GET',
                                  'http://example.com/some/method',
                                  access_token='123',
-                                 access_token_secret='456')
+                                 access_token_secret='456').content
         self.assertTrue(response is not None)
         self.assertEqual('123', response['oauth_token'])
         self.assertEqual('456', response['oauth_token_secret'])
@@ -328,7 +329,7 @@ class OAuth1ServiceTestCase(WebauthTestCase):
 
         self.response.content = json.dumps({'a': 'b'})
         access_resp = self.service.get_access_token('123', '456', 'GET')
-        self.assertEqual({'a': 'b'}, access_resp)
+        self.assertEqual({'a': 'b'}, access_resp.content)
 
     @patch.object(requests.Session, 'request')
     def test_other_response(self, mock_request):
@@ -336,4 +337,4 @@ class OAuth1ServiceTestCase(WebauthTestCase):
 
         self.response.content = {'a': 'b'}
         access_resp = self.service.get_access_token('123', '456', 'GET')
-        self.assertEqual({'a': 'b'}, access_resp)
+        self.assertEqual({'a': 'b'}, access_resp.content)
