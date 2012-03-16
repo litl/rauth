@@ -331,6 +331,11 @@ class OAuth1ServiceTestCase(WebauthTestCase):
         access_resp = self.service.get_access_token('123', '456', 'GET')
         self.assertEqual({'a': 'b'}, access_resp.content)
 
+        # test the case of a non-list, non-dict
+        self.response.content = json.dumps(42)
+        access_resp = self.service.get_access_token('123', '456', 'GET')
+        self.assertEqual(42, access_resp.content)
+
     @patch.object(requests.Session, 'request')
     def test_other_response(self, mock_request):
         mock_request.return_value = self.response

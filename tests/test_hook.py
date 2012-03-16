@@ -55,10 +55,32 @@ class OAuthHookTestCase(WebauthTestCase):
         # call the instance (this would be a GET)
         oauth(self.request)
         self.assertTrue('oauth_timestamp' in self.request.url)
+        self.assertEqual(self.request.url.count('oauth_timestamp'), 1)
+        self.assertTrue('oauth_consumer_key' in self.request.url)
+        self.assertEqual(self.request.url.count('oauth_consumer_key'), 1)
+        self.assertTrue('oauth_nonce' in self.request.url)
+        self.assertEqual(self.request.url.count('oauth_nonce'), 1)
+        self.assertTrue('oauth_version=1.0' in self.request.url)
+        self.assertEqual(self.request.url.count('oauth_version=1.0'), 1)
+        self.assertTrue('oauth_signature_method=HMAC-SHA1' in self.request.url)
+        self.assertEqual(
+                self.request.url.count('oauth_signature_method=HMAC-SHA1'), 1)
+
+    def test_oauth_get_with_params(self):
+        oauth = OAuth1Hook('123', '345')
+
+        self.request.params['foo'] = 'bar'
+        self.request.params['a'] = 'b'
+        oauth(self.request)
+        self.assertTrue('oauth_timestamp' in self.request.url)
         self.assertTrue('oauth_consumer_key' in self.request.url)
         self.assertTrue('oauth_nonce' in self.request.url)
         self.assertTrue('oauth_version=1.0' in self.request.url)
         self.assertTrue('oauth_signature_method=HMAC-SHA1' in self.request.url)
+        self.assertTrue('foo=bar' in self.request.url)
+        self.assertTrue('a=b' in self.request.url)
+        self.assertEqual(self.request.url.count('foo=bar'), 1)
+        self.assertEqual(self.request.url.count('a=b'), 1)
 
     def test_oauth_callback(self):
         oauth = OAuth1Hook('123', '345')
