@@ -7,6 +7,7 @@ this project sane.
 
 ##Litl Contributors
 
+* [Johan Bilien](https://github.com/jobi) (the boss of it all)
 * [Max Countryman](https://github.com/maxcountryman) (author, maintainer)
 * [Joe Shaw](https://github.com/joeshaw)
 * [Peter Teichman](http://github.com/pteichman)
