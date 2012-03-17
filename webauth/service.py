@@ -32,7 +32,11 @@ def _parse_response(response):
 
 
 class Response(object):
-    '''A service response container.'''
+    '''A service response container.
+
+    :param content: The possibly parsed content from a request.
+    :param response: The unaltered response object from Requests.
+    '''
     def __init__(self, content, response):
         self.content = content
         self.response = response
