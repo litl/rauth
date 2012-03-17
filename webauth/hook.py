@@ -10,7 +10,7 @@ import time
 import random
 
 from hashlib import sha1
-from urllib import quote, urlencode
+from urllib import quote
 
 from webauth.oauth import HmacSha1Signature, Token, Consumer
 
@@ -111,14 +111,19 @@ class OAuth1Hook(object):
             request.headers['Authorization'] = \
                     self.generate_authorization_header(request.data_and_params)
         elif request.method == 'POST':
-            # add data_and_params to the body of the POST
+            # HACK: override the param encoding process
+            #
+            # BUG: body can't be recalculated in a pre-request hook; this is a
+            # known issue: https://github.com/kennethreitz/requests/issues/445
+            #request.data, request._enc_data = \
+            #        request._encode_params(request.data_and_params)
             request.data = request.data_and_params
             request.headers['content-type'] = \
                     'application/x-www-form-urlencoded'
         else:
-            # add data_and_params to the URL parameters
-            request.url = request.url + '?' + \
-                    urlencode(request.data_and_params)
+            # HACK: override the param encoding process
+            request.params, request._enc_params = \
+                    request._encode_params(request.data_and_params)
 
         # we're done with these now
         del request.data_and_params

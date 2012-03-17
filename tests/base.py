@@ -8,12 +8,13 @@
 import unittest
 
 from mock import Mock
+from requests import Request
 
 
 class WebauthTestCase(unittest.TestCase):
     def setUp(self):
         # mock request object
-        request = Mock()
+        request = Request()
         request.method = 'GET'
         request.url = 'http://example.com/'
         request.headers = {}
