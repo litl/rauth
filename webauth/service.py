@@ -170,8 +170,6 @@ class OflyService(object):
                                         url + '?' + params,
                                         data=data)
 
-        response.raise_for_status()
-
         return _parse_response(response)
 
 
@@ -253,8 +251,6 @@ class OAuth2Service(object):
         response = requests.post(self.access_token_url,
                                  data=data)
 
-        response.raise_for_status()
-
         return _parse_response(response)
 
     def request(self, http_method, url, access_token=None, params=None,
@@ -285,8 +281,6 @@ class OAuth2Service(object):
         params.update({'access_token': self.access_token})
 
         response = requests.request(http_method, url, params=params, data=data)
-
-        response.raise_for_status()
 
         return _parse_response(response)
 
@@ -422,8 +416,6 @@ class OAuth1Service(object):
                                         self.access_token_url,
                                         params=params)
 
-        response.raise_for_status()
-
         return _parse_response(response)
 
     def get_authenticated_session(self, access_token, access_token_secret,
@@ -466,7 +458,5 @@ class OAuth1Service(object):
                                         params=params,
                                         data=data,
                                         allow_redirects=True)
-
-        response.raise_for_status()
 
         return _parse_response(response)
