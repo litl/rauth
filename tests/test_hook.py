@@ -35,20 +35,25 @@ class OAuthHookTestCase(WebauthTestCase):
         self.assertTrue('oauth_version="1.0"' in auth_header)
         self.assertTrue('oauth_signature_method="HMAC-SHA1"' in auth_header)
 
+    @expectedFailure
     def test_oauth_post(self):
+        # this indicates we can override the request body
+        self.assertTrue(hasattr(self.request, 'body'))
+
         oauth = OAuth1Hook('123', '345')
 
         # call the instance (this would be a POST)
         self.request.method = 'POST'
         oauth(self.request)
-        self.assertTrue('oauth_timestamp' in self.request.data)
-        self.assertEqual('123', self.request.data['oauth_consumer_key'])
-        self.assertTrue('oauth_nonce' in self.request.data)
-        self.assertTrue('oauth_version' in self.request.data)
-        self.assertEqual('1.0', self.request.data['oauth_version'])
-        self.assertTrue('oauth_signature_method' in self.request.data)
-        self.assertEqual('HMAC-SHA1',
-                         self.request.data['oauth_signature_method'])
+        self.assertTrue('oauth_timestamp' in self.request.body)
+        self.assertTrue(
+            ('oauth_consumer_key', '123') in self.request.data)
+        self.assertTrue('oauth_nonce' in self.request.body)
+        self.assertTrue('oauth_version' in self.request.body)
+        self.assertTrue(('oauth_version', '1.0') in self.request.data)
+        self.assertTrue('oauth_signature_method' in self.request.body)
+        self.assertTrue(
+            ('oauth_signature_method', 'HMAC-SHA1') in self.request.data)
 
     def test_oauth_get(self):
         oauth = OAuth1Hook('123', '345')
@@ -128,12 +133,10 @@ class OAuthHookTestCase(WebauthTestCase):
         self.assertTrue(isinstance(self.request.data, list))
         oauth(self.request)
         self.assertTrue(isinstance(self.request.params, list))
-        # BUG: this is mentioned in the module
-        #self.assertTrue(isinstance(self.request.data, list))
+        # data isn't altered unless we have a POST
+        self.assertTrue(isinstance(self.request.data, dict))
         self.assertTrue(('foo', 'bar') in self.request.params)
-        #self.assertTrue(('foo', 'bar') in self.request.data)
 
-    @expectedFailure
     def test_params_or_data_as_strings(self):
         oauth = OAuth1Hook('123', '345')
         self.request.params = 'foo=bar'
@@ -142,7 +145,31 @@ class OAuthHookTestCase(WebauthTestCase):
         self.assertTrue(isinstance(self.request.data, str))
         oauth(self.request)
         self.assertTrue(isinstance(self.request.params, list))
+        # data isn't altered unless we have a POST
+        self.assertTrue(isinstance(self.request.data, str))
+        self.assertTrue(('foo', 'bar') in self.request.params)
+
+    def test_params_or_data_as_lists_post(self):
+        self.request.method = 'POST'
+        oauth = OAuth1Hook('123', '345')
+        self.request.params = [('foo', 'bar')]
+        self.request.data = [('foo', 'bar')]
+        self.assertTrue(isinstance(self.request.params, list))
         self.assertTrue(isinstance(self.request.data, list))
+        oauth(self.request)
+        self.assertTrue(isinstance(self.request.data, list))
+        self.assertTrue(('foo', 'bar') in self.request.data)
+
+    def test_params_or_data_as_strings_post(self):
+        self.request.method = 'POST'
+        oauth = OAuth1Hook('123', '345')
+        self.request.params = 'foo=bar'
+        self.request.data = 'foo=bar'
+        self.assertTrue(isinstance(self.request.params, str))
+        self.assertTrue(isinstance(self.request.data, str))
+        oauth(self.request)
+        self.assertTrue(isinstance(self.request.data, list))
+        self.assertTrue(('foo', 'bar') in self.request.data)
 
     def test_custom_signature_object(self):
         some_signature = Mock()
