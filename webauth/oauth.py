@@ -82,11 +82,11 @@ class SignatureMethod(object):
             # if neither params nor data are a string, i.e. both are dicts
 
             # we concatenate the respective dicts
-            data_and_params = \
-                    dict(request.data.items() + request.params.items())
+            params_and_data = \
+                    dict(request.params.items() + request.data.items())
 
             normalized = []
-            for k, v in data_and_params.items():
+            for k, v in params_and_data.items():
                 normalized += [(k, v)]
         elif type(request.params) == str and type(request.data) == str:
             # if both params and data are strings
@@ -114,11 +114,11 @@ class SignatureMethod(object):
             k, v = t
 
             # save key/value pairs to the request and our list
-            request.data_and_params[k] = v
+            request.params_and_data[k] = v
             all_normalized += [(k, v)]
 
         # add in the params from data_and_params for signing
-        for k, v in request.data_and_params.items():
+        for k, v in request.params_and_data.items():
             if (k, v) in all_normalized:
                 continue
             all_normalized += [(k, v)]
@@ -165,7 +165,7 @@ class HmacSha1Signature(SignatureMethod):
         hashed = hmac.new(key, signature_base_string, sha1)
 
         # add the signature to the request
-        request.data_and_params['oauth_signature'] = \
+        request.params_and_data['oauth_signature'] = \
                 base64.b64encode(hashed.digest())
 
 

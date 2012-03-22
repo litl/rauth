@@ -88,7 +88,7 @@ class OAuth1Hook(object):
             request.data = dict(request.data)
 
         # generate the necessary request params
-        request.oauth_params = self.generate_oauth_params()
+        request.oauth_params = self.oauth_params
 
         # here we append an oauth_callback parameter if any
         if 'oauth_callback' in request.data:
@@ -99,7 +99,7 @@ class OAuth1Hook(object):
                     request.params.pop('oauth_callback')
 
         # this is used in the Normalize Request Parameters step
-        request.data_and_params = request.oauth_params.copy()
+        request.params_and_data = request.oauth_params.copy()
 
         # sign and add the signature to the request params
         self.signature.sign(request, self.consumer, self.token)
@@ -109,26 +109,27 @@ class OAuth1Hook(object):
             #
             # TODO: implement the realm parameter
             request.headers['Authorization'] = \
-                    self.generate_authorization_header(request.data_and_params)
+                    self.auth_header(request.params_and_data)
         elif request.method == 'POST':
             # HACK: override the param encoding process
             #
             # BUG: body can't be recalculated in a pre-request hook; this is a
             # known issue: https://github.com/kennethreitz/requests/issues/445
             request.data, request._enc_data = \
-                    request._encode_params(request.data_and_params)
+                    request._encode_params(request.params_and_data)
             request.body = request._enc_data
             request.headers['Content-Type'] = \
                     'application/x-www-form-urlencoded'
         else:
             # HACK: override the param encoding process
             request.params, request._enc_params = \
-                    request._encode_params(request.data_and_params)
+                    request._encode_params(request.params_and_data)
 
         # we're done with these now
-        del request.data_and_params
+        del request.params_and_data
 
-    def generate_oauth_params(self):
+    @property
+    def oauth_params(self):
         '''This method handles generating the necessary URL parameters the
         OAuth provider will expect.'''
         oauth_params = {}
@@ -146,7 +147,7 @@ class OAuth1Hook(object):
         oauth_params['oauth_signature_method'] = self.signature.NAME
         return oauth_params
 
-    def generate_authorization_header(self, oauth_params, realm=None):
+    def auth_header(self, oauth_params, realm=None):
         '''This method constructs an authorization header.
 
         :param oauth_params: The OAuth parameters to be added to the header.

@@ -16,8 +16,9 @@ class OAuthTestHmacSha1Case(WebauthTestCase):
     def test_hamcsha1_signature(self):
         self.request.params = {'foo': 'bar'}
         HmacSha1Signature().sign(self.request, self.consumer, self.token)
-        oauth_signature = self.request.data_and_params['oauth_signature']
+        oauth_signature = self.request.params_and_data['oauth_signature']
         self.assertTrue(oauth_signature is not None)
+        self.assertTrue(isinstance(oauth_signature, str))
 
     def test_normalize_request_parameters_params(self):
         # params as a dict
@@ -27,7 +28,7 @@ class OAuthTestHmacSha1Case(WebauthTestCase):
         self.assertEqual('foo=bar',  normalized)
 
         # params as a dict with URL encodable chars
-        self.request.data_and_params = {}
+        self.request.params_and_data = {}
         self.request.params = {'foo+bar': 'baz'}
         normalized = \
                 HmacSha1Signature()._normalize_request_parameters(self.request)
@@ -35,14 +36,14 @@ class OAuthTestHmacSha1Case(WebauthTestCase):
         self.assertTrue('+' not in normalized)
 
         # params as a string
-        self.request.data_and_params = {}
+        self.request.params_and_data = {}
         self.request.params = urlencode({'foo': 'bar'})
         normalized = \
                 HmacSha1Signature()._normalize_request_parameters(self.request)
         self.assertEqual('foo=bar',  normalized)
 
         # params as a string with URL encodable chars
-        self.request.data_and_params = {}
+        self.request.params_and_data = {}
         self.request.params = urlencode({'foo+bar': 'baz'})
         normalized = \
                 HmacSha1Signature()._normalize_request_parameters(self.request)
@@ -50,7 +51,7 @@ class OAuthTestHmacSha1Case(WebauthTestCase):
         self.assertTrue('+' not in normalized)
 
         # params and dict as dicts
-        self.request.data_and_params = {}
+        self.request.params_and_data = {}
         self.request.params = {'a': 'b'}
         self.request.data = {'foo': 'bar'}
         normalized = \
@@ -65,7 +66,7 @@ class OAuthTestHmacSha1Case(WebauthTestCase):
         self.assertEqual('foo=bar',  normalized)
 
         # data as a dict with URL encodable chars
-        self.request.data_and_params = {}
+        self.request.params_and_data = {}
         self.request.data = {'foo+bar': 'baz'}
         normalized = \
                 HmacSha1Signature()._normalize_request_parameters(self.request)

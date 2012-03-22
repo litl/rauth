@@ -20,7 +20,7 @@ class WebauthTestCase(unittest.TestCase):
         request.headers = {}
         request.params = {}
         request.data = {}
-        request.data_and_params = {}
+        request.params_and_data = {}
         self.request = request
 
         # mock consumer object
