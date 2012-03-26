@@ -98,7 +98,7 @@ wanted. It can be used as follows:
 
 Once the request token is acquired you'll want to update the OAuth Hook and
 request session accordingly, providing the `token` and `token_key` parameters
-to `OAuthHook`.
+to `OAuth1Hook`.
 
 
 API
@@ -107,22 +107,22 @@ API
 The API is split up into service wrappers which provide convenient methods for
 interacting with various service providers.
 
-Ofly Services
--------------
-
-.. autoclass:: webauth.service.OflyService
-    :members:
-
-OAuth2 Services
----------------
+OAuth 2.0 Services
+------------------
 
 .. autoclass:: webauth.service.OAuth2Service
     :members:
 
-OAuth1 Services
----------------
+OAuth 1.0/1.0a Services
+-----------------------
 
 .. autoclass:: webauth.service.OAuth1Service
+    :members:
+
+Ofly Services
+-------------
+
+.. autoclass:: webauth.service.OflyService
     :members:
 
 OAuth1 Hook
