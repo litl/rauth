@@ -82,7 +82,7 @@ class OflyServiceTestCase(WebauthTestCase):
     def test_micro_to_milliseconds(self):
         microseconds = datetime.utcnow().microsecond
         milliseconds = self.service._micro_to_milliseconds(microseconds)
-        self.assertEqual(len(str(milliseconds)), 3)
+        self.assertTrue(len(str(milliseconds)) < 4)
 
 
 class OAuth2ServiceTestCase(WebauthTestCase):
