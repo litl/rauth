@@ -77,7 +77,7 @@ And now we can fetch our Twitter timeline!
         text = tweet['text'].encode('utf-8')
         print '{0}. @{1} - {2}'.format(i, handle, text)
 
-The full example is in examples/twitter-timeline.py.
+The full example is in [examples/twitter-timeline.py]('https://github.com/litl/webauth/blob/master/examples/twitter-timeline.py').
 
 
 ## Documentation
