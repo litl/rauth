@@ -18,7 +18,7 @@ or
 ## Example Usage
 
 Using the package is quite simple. Ensure that Python Requests is installed.
-Import the relavent module and start utilizing OAuth endpoints!
+Import the relevant module and start utilizing OAuth endpoints!
 
 Let's get a user's Twitter timeline. Start by creating a service container 
 object:
