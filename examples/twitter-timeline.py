@@ -1,4 +1,4 @@
-from webauth.service import OAuth1Service
+from rauth.service import OAuth1Service
 
 # Get a real consumer key & secret from https://dev.twitter.com/apps/new
 twitter = OAuth1Service(
@@ -43,4 +43,3 @@ for i, tweet in enumerate(response.content, 1):
     handle = tweet['user']['screen_name'].encode('utf-8')
     text = tweet['text'].encode('utf-8')
     print '{0}. @{1} - {2}'.format(i, handle, text)
-
