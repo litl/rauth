@@ -1,6 +1,6 @@
-# Webauth: OAuth 1.0/a, 2.0, and Ofly for Python
+# Rauth: OAuth 1.0/a, 2.0, and Ofly for Python
 
-Webauth is a package providing OAuth 1.0/a, 2.0, and Ofly consumer support. The
+This package provides OAuth 1.0/a, 2.0, and Ofly consumer support. The
 package is wrapped around the superb Python Requests.
 
 
@@ -8,11 +8,11 @@ package is wrapped around the superb Python Requests.
 
 Install the package with one of the following commands:
 
-    $ python setup.py install
+    $ easy_install rauth
 
 or
 
-    $ pip install webauth (not yet!)
+    $ pip install rauth
 
 
 ## Example Usage
@@ -20,10 +20,10 @@ or
 Using the package is quite simple. Ensure that Python Requests is installed.
 Import the relavent module and start utilizing OAuth endpoints!
 
-Let's get a user's Twitter timeline.  Start by creating a service
-container object:
+Let's get a user's Twitter timeline. Start by creating a service container 
+object:
 
-    from webauth.service import OAuth1Service
+    from rauth.service import OAuth1Service
 
     # Get a real consumer key & secret from https://dev.twitter.com/apps/new
     twitter = OAuth1Service(
@@ -77,7 +77,7 @@ And now we can fetch our Twitter timeline!
         text = tweet['text'].encode('utf-8')
         print '{0}. @{1} - {2}'.format(i, handle, text)
 
-The full example is in [examples/twitter-timeline.py](https://github.com/litl/webauth/blob/master/examples/twitter-timeline.py).
+The full example is in [examples/twitter-timeline.py](https://github.com/litl/rauth/blob/master/examples/twitter-timeline.py).
 
 
 ## Documentation
@@ -87,5 +87,5 @@ The Sphinx-compiled documentation is available here: (not yet!)
 
 ## Copyright and License
 
-Webauth is Copyright (c) 2012 litl, LLC and licensed under the MIT license.
+Rauth is Copyright (c) 2012 litl, LLC and licensed under the MIT license.
 See the LICENSE file for full details.
