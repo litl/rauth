@@ -3,7 +3,11 @@
 This project was concieved of with the help of the full software team at Litl.
 
 Special thanks to Kenneth Reitz for the amazing [Requests](https://github.com/kennethreitz/requests) library. It made
-this project sane.
+this project sane. 
+
+Also kudos to Miguel Araujo for utilizing the pre-request hook of Requests in his OAuth 1.0/a library 
+[requests-oauth](https://github.com/maraujop/requests-oauth) which is used as a model herein for parts of the 
+OAuth 1.0/a hook; thanks Miguel!
 
 
 ##Litl Dev Team

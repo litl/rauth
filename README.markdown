@@ -18,7 +18,7 @@ or
 ## Example Usage
 
 Using the package is quite simple. Ensure that Python Requests is installed.
-Import the relavent module and start utilizing OAuth endpoints!
+Import the relevant module and start utilizing OAuth endpoints!
 
 Let's get a user's Twitter timeline. Start by creating a service container 
 object:
@@ -82,7 +82,7 @@ The full example is in [examples/twitter-timeline.py](https://github.com/litl/ra
 
 ## Documentation
 
-The Sphinx-compiled documentation is available here: (not yet!)
+The Sphinx-compiled documentation is available here: [http://packages.python.org/rauth/](http://packages.python.org/rauth/)
 
 
 ## Copyright and License
