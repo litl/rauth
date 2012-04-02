@@ -15,6 +15,14 @@ or
     $ pip install rauth
 
 
+## Features
+
+* Built on [Requests](https://github.com/kennethreitz/requests)
+* Supports OAuth 1.0, 1.0a, 2.0 and [Ofly](http://www.shutterfly.com/documentation/start.sfly)
+* Service wrappers for convenient connection initialization
+* Well tested (100% coverage)
+
+
 ## Example Usage
 
 Using the package is quite simple. Ensure that Python Requests is installed.
@@ -78,13 +86,6 @@ And now we can fetch our Twitter timeline!
         print '{0}. @{1} - {2}'.format(i, handle, text)
 
 The full example is in [examples/twitter-timeline.py](https://github.com/litl/rauth/blob/master/examples/twitter-timeline.py).
-
-## Features
-
-* Built on [Requests](https://github.com/kennethreitz/requests)
-* Supports OAuth 1.0, 1.0a, 2.0 and [Ofly](http://www.shutterfly.com/documentation/start.sfly)
-* Service wrappers for convenient connection initialization
-* Well tested (100% coverage)
 
 
 ## Documentation
