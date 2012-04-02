@@ -1,18 +1,18 @@
 '''
-    webauth.test_oauth
+    rauth.test_oauth
     ------------------
 
-    Test suite for webauth.oauth.
+    Test suite for rauth.oauth.
 '''
 
-from base import WebauthTestCase
-from webauth.oauth import (HmacSha1Signature, RsaSha1Signature,
+from base import RauthTestCase
+from rauth.oauth import (HmacSha1Signature, RsaSha1Signature,
         PlaintextSignature)
 
 from urllib import urlencode
 
 
-class OAuthTestHmacSha1Case(WebauthTestCase):
+class OAuthTestHmacSha1Case(RauthTestCase):
     def test_hamcsha1_signature(self):
         self.request.params = {'foo': 'bar'}
         HmacSha1Signature().sign(self.request, self.consumer, self.token)
@@ -119,11 +119,11 @@ class OAuthTestHmacSha1Case(WebauthTestCase):
         self.assertEqual('http://example.com/', signable_url)
 
 
-class OAuthTestRsaSha1Case(WebauthTestCase):
+class OAuthTestRsaSha1Case(RauthTestCase):
     def test_rsasha1_notimplemented(self):
         self.assertRaises(NotImplementedError, RsaSha1Signature)
 
 
-class OAuthTestPlaintextCase(WebauthTestCase):
+class OAuthTestPlaintextCase(RauthTestCase):
     def test_plaintext_notimplemented(self):
         self.assertRaises(NotImplementedError, PlaintextSignature)

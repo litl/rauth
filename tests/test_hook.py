@@ -1,18 +1,18 @@
 '''
-    webauth.test_hook
-    -----------------
+    rauth.test_hook
+    ---------------
 
-    Test suite for webauth.hook.
+    Test suite for rauth.hook.
 '''
 
-from base import WebauthTestCase
-from webauth.hook import OAuth1Hook
+from base import RauthTestCase
+from rauth.hook import OAuth1Hook
 
 from mock import Mock
 from unittest import expectedFailure
 
 
-class OAuthHookTestCase(WebauthTestCase):
+class OAuthHookTestCase(RauthTestCase):
     def test_intialize_oauthhook(self):
         # without token
         oauth = OAuth1Hook('123', '345')

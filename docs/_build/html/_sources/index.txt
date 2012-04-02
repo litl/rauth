@@ -1,12 +1,12 @@
-Webauth
+Rauth
 =======
 
-.. module:: webauth
+.. module:: rauth
 
-Webauth is a package that delivers client support for OAuth 1.0/a, 2.0, and
+Rauth is a package that delivers client support for OAuth 1.0/a, 2.0, and
 Ofly. It is built on top of the superb Python Requests.
 
-.. _Webauth: https://github.com/litl/webauth
+.. _rauth: https://github.com/litl/rauth
 .. _Requests: https://github.com/kennethreitz/requests
 
 
@@ -14,11 +14,11 @@ Installation
 ------------
 Install the extension with one of the following commands::
 
-    $ easy_install webauth
+    $ easy_install rauth
 
 or alternatively if you have pip installed::
 
-    $ pip install webauth
+    $ pip install rauth
 
 
 Usage
@@ -32,7 +32,7 @@ simply import the service container object:
 
 .. code-block:: python
     
-    from webauth import OAuth2Service
+    from rauth import OAuth2Service
 
     service = OAuth2Service(
                name='example',
@@ -60,7 +60,7 @@ Here is an example using the OAuth 1.0/a service wrapper:
 
 .. code-block:: python
 
-    from webauth import OAuth1Service
+    from rauth import OAuth1Service
 
     service = OAuth1Service(
                     'example',
@@ -85,7 +85,7 @@ wanted. It can be used as follows:
 
 .. code-block:: python
 
-    from webauth import OAuthHook
+    from rauth import OAuthHook
     import requests
     
     # setup the OAuth Hook
@@ -110,19 +110,19 @@ interacting with various service providers.
 OAuth 2.0 Services
 ------------------
 
-.. autoclass:: webauth.service.OAuth2Service
+.. autoclass:: rauth.service.OAuth2Service
     :members:
 
 OAuth 1.0/1.0a Services
 -----------------------
 
-.. autoclass:: webauth.service.OAuth1Service
+.. autoclass:: rauth.service.OAuth1Service
     :members:
 
 Ofly Services
 -------------
 
-.. autoclass:: webauth.service.OflyService
+.. autoclass:: rauth.service.OflyService
     :members:
 
 OAuth1 Hook
@@ -131,5 +131,5 @@ OAuth1 Hook
 Additionally, for OAuth 1.0/a services, a Requests hook is available for direct
 use.
 
-.. autoclass:: webauth.hook.OAuth1Hook
+.. autoclass:: rauth.hook.OAuth1Hook
     :members:

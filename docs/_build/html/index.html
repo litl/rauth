@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Webauth &mdash; Webauth 0.2.2 documentation</title>
+    <title>Rauth &mdash; rauth 0.2.3 documentation</title>
     
     <link rel="stylesheet" href="_static/flasky.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '0.2.2',
+        VERSION:     '0.2.3',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="Webauth 0.2.2 documentation" href="#" /> 
+    <link rel="top" title="rauth 0.2.3 documentation" href="#" /> 
   </head>
   <body>
   
@@ -38,17 +38,17 @@
         <div class="bodywrapper">
           <div class="body">
             
-  <div class="section" id="module-webauth">
-<span id="webauth"></span><h1>Webauth<a class="headerlink" href="#module-webauth" title="Permalink to this headline">¶</a></h1>
-<p>Webauth is a package that delivers client support for OAuth 1.0/a, 2.0, and
+  <div class="section" id="module-rauth">
+<span id="rauth"></span><h1>Rauth<a class="headerlink" href="#module-rauth" title="Permalink to this headline">¶</a></h1>
+<p>Rauth is a package that delivers client support for OAuth 1.0/a, 2.0, and
 Ofly. It is built on top of the superb Python Requests.</p>
 <div class="section" id="installation">
 <h2>Installation<a class="headerlink" href="#installation" title="Permalink to this headline">¶</a></h2>
 <p>Install the extension with one of the following commands:</p>
-<div class="highlight-python"><pre>$ easy_install webauth</pre>
+<div class="highlight-python"><pre>$ easy_install rauth</pre>
 </div>
 <p>or alternatively if you have pip installed:</p>
-<div class="highlight-python"><pre>$ pip install webauth</pre>
+<div class="highlight-python"><pre>$ pip install rauth</pre>
 </div>
 </div>
 <div class="section" id="usage">
@@ -57,7 +57,7 @@ Ofly. It is built on top of the superb Python Requests.</p>
 Import the relavent module and start utilizing OAuth endpoints!</p>
 <p>The easiest way to get started is by setting up a service wrapper. To do so
 simply import the service container object:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">webauth</span> <span class="kn">import</span> <span class="n">OAuth2Service</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">rauth</span> <span class="kn">import</span> <span class="n">OAuth2Service</span>
 
 <span class="n">service</span> <span class="o">=</span> <span class="n">OAuth2Service</span><span class="p">(</span>
            <span class="n">name</span><span class="o">=</span><span class="s">&#39;example&#39;</span><span class="p">,</span>
@@ -80,7 +80,7 @@ application an access token can be obtained:</p>
 # be sure to use it here
 token = service.get_access_token(code=&#8217;foobar&#8217;)</div></blockquote>
 <p>Here is an example using the OAuth 1.0/a service wrapper:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">webauth</span> <span class="kn">import</span> <span class="n">OAuth1Service</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">rauth</span> <span class="kn">import</span> <span class="n">OAuth1Service</span>
 
 <span class="n">service</span> <span class="o">=</span> <span class="n">OAuth1Service</span><span class="p">(</span>
                 <span class="s">&#39;example&#39;</span><span class="p">,</span>
@@ -101,7 +101,7 @@ access_token_secret)</cite>. Bind this to a variables and then call it to make
 authenticated requests to service endpoints.</p>
 <p>The OAuth hook object is also available if the service wrapper is not needed or
 wanted. It can be used as follows:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">webauth</span> <span class="kn">import</span> <span class="n">OAuthHook</span>
+<div class="highlight-python"><div class="highlight"><pre><span class="kn">from</span> <span class="nn">rauth</span> <span class="kn">import</span> <span class="n">OAuthHook</span>
 <span class="kn">import</span> <span class="nn">requests</span>
 
 <span class="c"># setup the OAuth Hook</span>
@@ -125,8 +125,8 @@ interacting with various service providers.</p>
 <div class="section" id="oauth-2-0-services">
 <h2>OAuth 2.0 Services<a class="headerlink" href="#oauth-2-0-services" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
-<dt id="webauth.service.OAuth2Service">
-<em class="property">class </em><tt class="descclassname">webauth.service.</tt><tt class="descname">OAuth2Service</tt><big>(</big><em>name</em>, <em>consumer_key</em>, <em>consumer_secret</em>, <em>access_token_url</em>, <em>authorize_url</em>, <em>access_token=None</em><big>)</big><a class="headerlink" href="#webauth.service.OAuth2Service" title="Permalink to this definition">¶</a></dt>
+<dt id="rauth.service.OAuth2Service">
+<em class="property">class </em><tt class="descclassname">rauth.service.</tt><tt class="descname">OAuth2Service</tt><big>(</big><em>name</em>, <em>consumer_key</em>, <em>consumer_secret</em>, <em>access_token_url</em>, <em>authorize_url</em>, <em>access_token=None</em><big>)</big><a class="headerlink" href="#rauth.service.OAuth2Service" title="Permalink to this definition">¶</a></dt>
 <dd><p>An OAuth 2.0 Service container.</p>
 <p>This class is similar in nature to the OAuth1Service container but does
 not make use of a request hook. Instead the OAuth 2.0 spec is currently
@@ -171,8 +171,8 @@ retrieve an access token in two steps:</p>
 </tbody>
 </table>
 <dl class="method">
-<dt id="webauth.service.OAuth2Service.get_access_token">
-<tt class="descname">get_access_token</tt><big>(</big><em>grant_type='authorization_code'</em>, <em>**data</em><big>)</big><a class="headerlink" href="#webauth.service.OAuth2Service.get_access_token" title="Permalink to this definition">¶</a></dt>
+<dt id="rauth.service.OAuth2Service.get_access_token">
+<tt class="descname">get_access_token</tt><big>(</big><em>grant_type='authorization_code'</em>, <em>**data</em><big>)</big><a class="headerlink" href="#rauth.service.OAuth2Service.get_access_token" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieves the access token.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -190,8 +190,8 @@ request.</li>
 </dd></dl>
 
 <dl class="method">
-<dt id="webauth.service.OAuth2Service.get_authorize_url">
-<tt class="descname">get_authorize_url</tt><big>(</big><em>response_type='code'</em>, <em>**params</em><big>)</big><a class="headerlink" href="#webauth.service.OAuth2Service.get_authorize_url" title="Permalink to this definition">¶</a></dt>
+<dt id="rauth.service.OAuth2Service.get_authorize_url">
+<tt class="descname">get_authorize_url</tt><big>(</big><em>response_type='code'</em>, <em>**params</em><big>)</big><a class="headerlink" href="#rauth.service.OAuth2Service.get_authorize_url" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a proper authorize URL.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -209,8 +209,8 @@ request querystring.</li>
 </dd></dl>
 
 <dl class="method">
-<dt id="webauth.service.OAuth2Service.request">
-<tt class="descname">request</tt><big>(</big><em>http_method</em>, <em>url</em>, <em>access_token=None</em>, <em>params=None</em>, <em>data=None</em><big>)</big><a class="headerlink" href="#webauth.service.OAuth2Service.request" title="Permalink to this definition">¶</a></dt>
+<dt id="rauth.service.OAuth2Service.request">
+<tt class="descname">request</tt><big>(</big><em>http_method</em>, <em>url</em>, <em>access_token=None</em>, <em>params=None</em>, <em>data=None</em><big>)</big><a class="headerlink" href="#rauth.service.OAuth2Service.request" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sends a request to an OAuth 2.0 endpoint, properly wrapped around
 requests.</p>
 <p>The first time an access token is provided it will be saved on the
@@ -241,8 +241,8 @@ querystring.</li>
 <div class="section" id="oauth-1-0-1-0a-services">
 <h2>OAuth 1.0/1.0a Services<a class="headerlink" href="#oauth-1-0-1-0a-services" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
-<dt id="webauth.service.OAuth1Service">
-<em class="property">class </em><tt class="descclassname">webauth.service.</tt><tt class="descname">OAuth1Service</tt><big>(</big><em>name</em>, <em>consumer_key</em>, <em>consumer_secret</em>, <em>request_token_url</em>, <em>access_token_url</em>, <em>authorize_url</em>, <em>header_auth=False</em><big>)</big><a class="headerlink" href="#webauth.service.OAuth1Service" title="Permalink to this definition">¶</a></dt>
+<dt id="rauth.service.OAuth1Service">
+<em class="property">class </em><tt class="descclassname">rauth.service.</tt><tt class="descname">OAuth1Service</tt><big>(</big><em>name</em>, <em>consumer_key</em>, <em>consumer_secret</em>, <em>request_token_url</em>, <em>access_token_url</em>, <em>authorize_url</em>, <em>header_auth=False</em><big>)</big><a class="headerlink" href="#rauth.service.OAuth1Service" title="Permalink to this definition">¶</a></dt>
 <dd><p>An OAuth 1.0/a Service container.</p>
 <p>This class provides a container for an OAuth Service provider. It utilizes
 the OAuthHook object which in turn is hooked into Python Requests. This
@@ -299,8 +299,8 @@ This provides simple access to the providers endpoints.</p>
 </tbody>
 </table>
 <dl class="method">
-<dt id="webauth.service.OAuth1Service.get_access_token">
-<tt class="descname">get_access_token</tt><big>(</big><em>request_token</em>, <em>request_token_secret</em>, <em>http_method</em>, <em>**params</em><big>)</big><a class="headerlink" href="#webauth.service.OAuth1Service.get_access_token" title="Permalink to this definition">¶</a></dt>
+<dt id="rauth.service.OAuth1Service.get_access_token">
+<tt class="descname">get_access_token</tt><big>(</big><em>request_token</em>, <em>request_token_secret</em>, <em>http_method</em>, <em>**params</em><big>)</big><a class="headerlink" href="#rauth.service.OAuth1Service.get_access_token" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieves the access token.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -323,8 +323,8 @@ request querystring.</li>
 </dd></dl>
 
 <dl class="method">
-<dt id="webauth.service.OAuth1Service.get_authenticated_session">
-<tt class="descname">get_authenticated_session</tt><big>(</big><em>access_token</em>, <em>access_token_secret</em>, <em>header_auth=False</em><big>)</big><a class="headerlink" href="#webauth.service.OAuth1Service.get_authenticated_session" title="Permalink to this definition">¶</a></dt>
+<dt id="rauth.service.OAuth1Service.get_authenticated_session">
+<tt class="descname">get_authenticated_session</tt><big>(</big><em>access_token</em>, <em>access_token_secret</em>, <em>header_auth=False</em><big>)</big><a class="headerlink" href="#rauth.service.OAuth1Service.get_authenticated_session" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns an authenticated Requests session utilizing the hook.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -344,8 +344,8 @@ request querystring.</li>
 </dd></dl>
 
 <dl class="method">
-<dt id="webauth.service.OAuth1Service.get_authorize_url">
-<tt class="descname">get_authorize_url</tt><big>(</big><em>request_token</em>, <em>**params</em><big>)</big><a class="headerlink" href="#webauth.service.OAuth1Service.get_authorize_url" title="Permalink to this definition">¶</a></dt>
+<dt id="rauth.service.OAuth1Service.get_authorize_url">
+<tt class="descname">get_authorize_url</tt><big>(</big><em>request_token</em>, <em>**params</em><big>)</big><a class="headerlink" href="#rauth.service.OAuth1Service.get_authorize_url" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a proper authorize URL.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -364,8 +364,8 @@ request querystring.</li>
 </dd></dl>
 
 <dl class="method">
-<dt id="webauth.service.OAuth1Service.get_request_token">
-<tt class="descname">get_request_token</tt><big>(</big><em>http_method</em>, <em>**data</em><big>)</big><a class="headerlink" href="#webauth.service.OAuth1Service.get_request_token" title="Permalink to this definition">¶</a></dt>
+<dt id="rauth.service.OAuth1Service.get_request_token">
+<tt class="descname">get_request_token</tt><big>(</big><em>http_method</em>, <em>**data</em><big>)</big><a class="headerlink" href="#rauth.service.OAuth1Service.get_request_token" title="Permalink to this definition">¶</a></dt>
 <dd><p>Gets a request token from the request token endpoint.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -384,8 +384,8 @@ request.</li>
 </dd></dl>
 
 <dl class="method">
-<dt id="webauth.service.OAuth1Service.request">
-<tt class="descname">request</tt><big>(</big><em>http_method</em>, <em>url</em>, <em>access_token</em>, <em>access_token_secret</em>, <em>header_auth=False</em>, <em>params=None</em>, <em>data=None</em><big>)</big><a class="headerlink" href="#webauth.service.OAuth1Service.request" title="Permalink to this definition">¶</a></dt>
+<dt id="rauth.service.OAuth1Service.request">
+<tt class="descname">request</tt><big>(</big><em>http_method</em>, <em>url</em>, <em>access_token</em>, <em>access_token_secret</em>, <em>header_auth=False</em>, <em>params=None</em>, <em>data=None</em><big>)</big><a class="headerlink" href="#rauth.service.OAuth1Service.request" title="Permalink to this definition">¶</a></dt>
 <dd><p>Makes a request using <tt class="xref py py-class docutils literal"><span class="pre">_construct_session</span></tt>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -416,8 +416,8 @@ querystring.</li>
 <div class="section" id="ofly-services">
 <h2>Ofly Services<a class="headerlink" href="#ofly-services" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
-<dt id="webauth.service.OflyService">
-<em class="property">class </em><tt class="descclassname">webauth.service.</tt><tt class="descname">OflyService</tt><big>(</big><em>name</em>, <em>consumer_key</em>, <em>consumer_secret</em>, <em>authorize_url</em><big>)</big><a class="headerlink" href="#webauth.service.OflyService" title="Permalink to this definition">¶</a></dt>
+<dt id="rauth.service.OflyService">
+<em class="property">class </em><tt class="descclassname">rauth.service.</tt><tt class="descname">OflyService</tt><big>(</big><em>name</em>, <em>consumer_key</em>, <em>consumer_secret</em>, <em>authorize_url</em><big>)</big><a class="headerlink" href="#rauth.service.OflyService" title="Permalink to this definition">¶</a></dt>
 <dd><p>An Ofly Service container.</p>
 <p>This class wraps an Ofly service. Most commonly, Shutterfly. The process
 is similar to that of OAuth 1.0 but simplified. Here we use Requests
@@ -455,8 +455,8 @@ more information please see:
 </tbody>
 </table>
 <dl class="method">
-<dt id="webauth.service.OflyService.get_authorize_url">
-<tt class="descname">get_authorize_url</tt><big>(</big><em>remote_user=None</em>, <em>redirect_uri=None</em>, <em>**params</em><big>)</big><a class="headerlink" href="#webauth.service.OflyService.get_authorize_url" title="Permalink to this definition">¶</a></dt>
+<dt id="rauth.service.OflyService.get_authorize_url">
+<tt class="descname">get_authorize_url</tt><big>(</big><em>remote_user=None</em>, <em>redirect_uri=None</em>, <em>**params</em><big>)</big><a class="headerlink" href="#rauth.service.OflyService.get_authorize_url" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns a proper authorize URL.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -475,8 +475,8 @@ request querystring.</li>
 </dd></dl>
 
 <dl class="method">
-<dt id="webauth.service.OflyService.request">
-<tt class="descname">request</tt><big>(</big><em>http_method</em>, <em>url</em>, <em>header_auth=False</em>, <em>params=None</em>, <em>data=None</em><big>)</big><a class="headerlink" href="#webauth.service.OflyService.request" title="Permalink to this definition">¶</a></dt>
+<dt id="rauth.service.OflyService.request">
+<tt class="descname">request</tt><big>(</big><em>http_method</em>, <em>url</em>, <em>header_auth=False</em>, <em>params=None</em>, <em>data=None</em><big>)</big><a class="headerlink" href="#rauth.service.OflyService.request" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sends a request to an Ofly endpoint, properly wrapped around
 requests.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -506,8 +506,8 @@ querystring.</li>
 <p>Additionally, for OAuth 1.0/a services, a Requests hook is available for direct
 use.</p>
 <dl class="class">
-<dt id="webauth.hook.OAuth1Hook">
-<em class="property">class </em><tt class="descclassname">webauth.hook.</tt><tt class="descname">OAuth1Hook</tt><big>(</big><em>consumer_key</em>, <em>consumer_secret</em>, <em>access_token=None</em>, <em>access_token_secret=None</em>, <em>header_auth=False</em>, <em>signature=None</em><big>)</big><a class="headerlink" href="#webauth.hook.OAuth1Hook" title="Permalink to this definition">¶</a></dt>
+<dt id="rauth.hook.OAuth1Hook">
+<em class="property">class </em><tt class="descclassname">rauth.hook.</tt><tt class="descname">OAuth1Hook</tt><big>(</big><em>consumer_key</em>, <em>consumer_secret</em>, <em>access_token=None</em>, <em>access_token_secret=None</em>, <em>header_auth=False</em>, <em>signature=None</em><big>)</big><a class="headerlink" href="#rauth.hook.OAuth1Hook" title="Permalink to this definition">¶</a></dt>
 <dd><p>Provides a pre-request hook into requests for OAuth 1.0/a services.</p>
 <p>This package is built on the excellent Python Requests package. It
 functions by &#8220;hooking&#8221; into a request and appending various attributes to
@@ -558,8 +558,8 @@ default.</li>
 </tbody>
 </table>
 <dl class="method">
-<dt id="webauth.hook.OAuth1Hook.auth_header">
-<tt class="descname">auth_header</tt><big>(</big><em>oauth_params</em>, <em>realm=None</em><big>)</big><a class="headerlink" href="#webauth.hook.OAuth1Hook.auth_header" title="Permalink to this definition">¶</a></dt>
+<dt id="rauth.hook.OAuth1Hook.auth_header">
+<tt class="descname">auth_header</tt><big>(</big><em>oauth_params</em>, <em>realm=None</em><big>)</big><a class="headerlink" href="#rauth.hook.OAuth1Hook.auth_header" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method constructs an authorization header.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -576,8 +576,8 @@ default.</li>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="webauth.hook.OAuth1Hook.oauth_params">
-<tt class="descname">oauth_params</tt><a class="headerlink" href="#webauth.hook.OAuth1Hook.oauth_params" title="Permalink to this definition">¶</a></dt>
+<dt id="rauth.hook.OAuth1Hook.oauth_params">
+<tt class="descname">oauth_params</tt><a class="headerlink" href="#rauth.hook.OAuth1Hook.oauth_params" title="Permalink to this definition">¶</a></dt>
 <dd><p>This method handles generating the necessary URL parameters the
 OAuth provider will expect.</p>
 </dd></dl>
@@ -594,7 +594,7 @@ OAuth provider will expect.</p>
       <div class="clearer"></div>
     </div>
   
-    <a href="http://github.com/litl/webauth"><img style="position: fixed; top: 0; right: 0; border: 0;"
+    <a href="http://github.com/litl/rauth"><img style="position: fixed; top: 0; right: 0; border: 0;"
     src="http://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png" alt="Fork me on GitHub" /></a>
   
 

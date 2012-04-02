@@ -16,29 +16,30 @@ from urlparse import parse_qsl, urlsplit
 from datetime import datetime
 
 
+def _parse_response(response):
+    '''Attempts to parse response.content. Returns a `Response` object.
+
+    :param response: A Requests response object.
+    '''
+    if isinstance(response.content, str):
+        try:
+            content = json.loads(response.content)
+        except ValueError:
+            content = dict(parse_qsl(response.content))
+    else:
+        content = response.content
+    return Response(content=content, response=response)
+
+
 class Response(object):
     '''A service response container.
 
-    :param content: The parsed response.content else unparsed.
+    :param content: The possibly parsed content from a request.
     :param response: The unaltered response object from Requests.
     '''
-    def __init__(self, response):
+    def __init__(self, content, response):
+        self.content = content
         self.response = response
-
-    @property
-    def content(self):
-        # NOTE: it would be nice to use content-type here however we can't
-        # trust services to be honest with this header so for now the
-        # following is more robust and less prone to fragility when the header
-        # isn't set properly
-        if isinstance(self.response.content, str):
-            try:
-                content = json.loads(self.response.content)
-            except ValueError:
-                content = dict(parse_qsl(self.response.content))
-        else:
-            content = self.response.content
-        return content
 
 
 class OflyService(object):
@@ -169,7 +170,7 @@ class OflyService(object):
                                         url + '?' + params,
                                         data=data)
 
-        return Response(response)
+        return _parse_response(response)
 
 
 class OAuth2Service(object):
@@ -250,7 +251,7 @@ class OAuth2Service(object):
         response = requests.post(self.access_token_url,
                                  data=data)
 
-        return Response(response)
+        return _parse_response(response)
 
     def request(self, http_method, url, access_token=None, params=None,
             data=None):
@@ -281,7 +282,7 @@ class OAuth2Service(object):
 
         response = requests.request(http_method, url, params=params, data=data)
 
-        return Response(response)
+        return _parse_response(response)
 
 
 class OAuth1Service(object):
@@ -415,7 +416,7 @@ class OAuth1Service(object):
                                         self.access_token_url,
                                         params=params)
 
-        return Response(response)
+        return _parse_response(response)
 
     def get_authenticated_session(self, access_token, access_token_secret,
             header_auth=False):
@@ -458,4 +459,4 @@ class OAuth1Service(object):
                                         data=data,
                                         allow_redirects=True)
 
-        return Response(response)
+        return _parse_response(response)

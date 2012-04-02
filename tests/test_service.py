@@ -1,23 +1,23 @@
 '''
-    webauth.test_oauth
-    ------------------
+    rauth.test_oauth
+    ----------------
 
-    Test suite for webauth.service.
+    Test suite for rauth.service.
 '''
 
-from base import WebauthTestCase
-from webauth.service import OAuth1Service, OAuth2Service, OflyService
+from base import RauthTestCase
+from rauth.service import OAuth1Service, OAuth2Service, OflyService
 
 from datetime import datetime
-from mock import Mock, patch
+from mock import patch
 
 import requests
 import json
 
 
-class OflyServiceTestCase(WebauthTestCase):
+class OflyServiceTestCase(RauthTestCase):
     def setUp(self):
-        WebauthTestCase.setUp(self)
+        RauthTestCase.setUp(self)
 
         # mock service for testing
         service = OflyService(
@@ -26,19 +26,6 @@ class OflyServiceTestCase(WebauthTestCase):
                 consumer_secret='456',
                 authorize_url='http://example.com/authorize')
         self.service = service
-
-        def raise_for_status():
-            raise Exception('Response not OK!')
-
-        self.raise_for_status = raise_for_status
-
-        # mock response for testing
-        response = Mock()
-        response.content = 'access_token=321'
-        response.ok = True
-        response.status_code = 200
-        response.raise_for_status = lambda: None
-        self.response = response
 
     def test_get_authorize_url(self):
         url = self.service.get_authorize_url(
@@ -54,6 +41,7 @@ class OflyServiceTestCase(WebauthTestCase):
     @patch.object(requests.Session, 'request')
     def test_request(self, mock_request):
         self.response.content = json.dumps({'status': 'ok'})
+        self.response.headers['content-type'] = 'json'
         mock_request.return_value = self.response
         response = self.service.request('GET',
                                         'http://example.com/endpoint').content
@@ -62,10 +50,12 @@ class OflyServiceTestCase(WebauthTestCase):
     @patch.object(requests.Session, 'request')
     def test_request_header_auth(self, mock_request):
         self.response.content = json.dumps({'status': 'ok'})
+        self.response.headers['content-type'] = 'json'
         mock_request.return_value = self.response
         response = self.service.request('GET',
                                         'http://example.com/endpoint',
                                         header_auth=True).content
+        print response
         self.assertEqual(response['status'], 'ok')
 
     @patch.object(requests.Session, 'request')
@@ -85,9 +75,9 @@ class OflyServiceTestCase(WebauthTestCase):
         self.assertTrue(len(str(milliseconds)) < 4)
 
 
-class OAuth2ServiceTestCase(WebauthTestCase):
+class OAuth2ServiceTestCase(RauthTestCase):
     def setUp(self):
-        WebauthTestCase.setUp(self)
+        RauthTestCase.setUp(self)
 
         # mock service for testing
         service = OAuth2Service(
@@ -97,19 +87,6 @@ class OAuth2ServiceTestCase(WebauthTestCase):
                 access_token_url='http://example.com/access_token',
                 authorize_url='http://example.com/authorize')
         self.service = service
-
-        def raise_for_status():
-            raise Exception('Response not OK!')
-
-        self.raise_for_status = raise_for_status
-
-        # mock response for testing
-        response = Mock()
-        response.content = 'access_token=321'
-        response.ok = True
-        response.status_code = 200
-        response.raise_for_status = lambda: None
-        self.response = response
 
     def test_init_with_access_token(self):
         service = OAuth2Service(
@@ -160,6 +137,7 @@ class OAuth2ServiceTestCase(WebauthTestCase):
     @patch.object(requests.Session, 'request')
     def test_request(self, mock_request):
         self.response.content = json.dumps({'status': 'ok'})
+        self.response.headers['content-type'] = 'json'
         mock_request.return_value = self.response
         response = self.service.request('GET',
                                         'http://example.com/endpoint',
@@ -193,9 +171,9 @@ class OAuth2ServiceTestCase(WebauthTestCase):
             self.assertEqual('Access token must be set!', str(e))
 
 
-class OAuth1ServiceTestCase(WebauthTestCase):
+class OAuth1ServiceTestCase(RauthTestCase):
     def setUp(self):
-        WebauthTestCase.setUp(self)
+        RauthTestCase.setUp(self)
 
         # mock service for testing
         service = OAuth1Service(
@@ -207,17 +185,8 @@ class OAuth1ServiceTestCase(WebauthTestCase):
                 authorize_url='http://example.com/authorize')
         self.service = service
 
-        def raise_for_status(*args, **kwargs):
-            raise Exception('Response not OK!')
-
-        self.raise_for_status = raise_for_status
-
-        # mock response for testing
-        response = Mock()
-        response.content = 'oauth_token=123&oauth_token_secret=456'
-        response.ok = True
-        response.raise_for_status = lambda: None
-        self.response = response
+        # mock response content
+        self.response.content = 'oauth_token=123&oauth_token_secret=456'
 
     @patch.object(requests.Session, 'request')
     def test_get_request_token(self, mock_request):
@@ -331,6 +300,7 @@ class OAuth1ServiceTestCase(WebauthTestCase):
 
     @patch.object(requests.Session, 'request')
     def test_json_response(self, mock_request):
+        self.response.headers['content-type'] = 'json'
         mock_request.return_value = self.response
 
         self.response.content = json.dumps({'a': 'b'})
