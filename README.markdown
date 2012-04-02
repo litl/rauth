@@ -79,6 +79,13 @@ And now we can fetch our Twitter timeline!
 
 The full example is in [examples/twitter-timeline.py](https://github.com/litl/rauth/blob/master/examples/twitter-timeline.py).
 
+## Features
+
+* Built on [Requests](https://github.com/kennethreitz/requests)
+* Supports OAuth 1.0, 1.0a, 2.0 and [Ofly](http://www.shutterfly.com/documentation/start.sfly)
+* Service wrappers for convenient connection initialization
+* Well tested (100% coverage)
+
 
 ## Documentation
 
