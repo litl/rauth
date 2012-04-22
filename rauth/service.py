@@ -311,7 +311,7 @@ class OAuth1Service(object):
 
         authorize_url = service.get_authorize_url(request_token)
 
-    Once the client has authorized the request it is not possible to retrieve
+    Once the client has authorized the request it is now possible to retrieve
     an access token. Do so as follows::
 
         response = service.get_access_token(request_token,
