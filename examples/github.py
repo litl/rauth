@@ -11,8 +11,9 @@ github = OAuth2Service(
 
 print 'Visit this URL in your browser: ' +  github.get_authorize_url()
 
-# This is a bit cumbersome, but you need to copy the code=something out of the
-# URL that's redirected to AFTER you login and authorize the demo application
+# This is a bit cumbersome, but you need to copy the code=something (just the 
+# `something` part) out of the URL that's redirected to AFTER you login and
+# authorize the demo application
 code = raw_input('Enter code parameter (code=something) from URL: ')
 
 # create a dictionary for the data we'll post on the get_access_token request
