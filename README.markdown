@@ -46,7 +46,7 @@ object:
 Then get an OAuth 1.0 request token:
 
     request_token, request_token_secret = \
-        twitter.get_request_token(http_method='GET')
+        twitter.get_request_token(method='GET')
 
 Go through the authentication flow.  Since our example is a simple console
 application, Twitter will give you a PIN to enter.
@@ -58,10 +58,10 @@ application, Twitter will give you a PIN to enter.
 
 Exchange the authorized request token for an access token:
 
-    response = twitter.get_access_token(request_token,
-                                        request_token_secret,
-                                        http_method='GET',
-                                        oauth_verifier=pin)
+    response = twitter.get_access_token('GET',
+                                        request_token=request_token,
+                                        request_token_secret=request_token_secret,
+                                        params={'oauth_verifier': pin})
     data = response.content
 
     access_token = data['oauth_token']
@@ -72,13 +72,11 @@ And now we can fetch our Twitter timeline!
     params = {'include_rts': 1,  # Include retweets
               'count': 10}       # 10 tweets
 
-    response = twitter.request(
-        'GET',
-        'https://api.twitter.com/1/statuses/home_timeline.json',
-        access_token,
-        access_token_secret,
-        header_auth=True,
-        params=params)
+    response = twitter.get('https://api.twitter.com/1/statuses/home_timeline.json',
+                           params=params,
+                           access_token=access_token,
+                           access_token_secret=access_token_secret,
+                           header_auth=True)
 
     for i, tweet in enumerate(response.content, 1):
         handle = tweet['user']['screen_name'].encode('utf-8')

@@ -16,6 +16,41 @@ from urlparse import parse_qsl, urlsplit
 from datetime import datetime
 
 
+class Request(object):
+    '''A container for common HTTP request methods.'''
+    def get(self, url, **kwargs):
+        '''Sends a GET request. Returns :class:`Response` object.
+
+        :param url: The resource to be requested.
+        :param \*\*kwargs: Optional arguments that ``request`` takes.
+        '''
+        return self.request('GET', url, **kwargs)
+
+    def post(self, url, **kwargs):
+        '''Sends a POST request. Returns :class:`Response` object.
+
+        :param url: The resource to be requested.
+        :param \*\*kwargs: Optional arguments that ``request`` takes.
+        '''
+        return self.request('POST', url, **kwargs)
+
+    def put(self, url, **kwargs):
+        '''Sends a PUT request. Returns :class:`Response` object.
+
+        :param url: The resource to be requested.
+        :param \*\*kwargs: Optional arguments that ``request`` takes.
+        '''
+        return self.request('PUT', url, **kwargs)
+
+    def delete(self, url, **kwargs):
+        '''Sends a DELETE request. Returns :class:`Response` object.
+
+        :param url: The resource to be requested.
+        :param \*\*kwargs: Optional arguments that ``request`` takes.
+        '''
+        return self.request('DELETE', url, **kwargs)
+
+
 class Response(object):
     '''A service response container.
 
@@ -41,7 +76,7 @@ class Response(object):
         return content
 
 
-class OflyService(object):
+class OflyService(Request):
     '''An Ofly Service container.
 
     This class wraps an Ofly service. Most commonly, Shutterfly. The process
@@ -126,7 +161,7 @@ class OflyService(object):
 
         :param remote_user: This is the oflyRemoteUser param. Defaults to None.
         :param redirect_uri: This is the oflyCallbackUrl. Defaults to None.
-        :param params: Additional keyworded arguments to be added to the
+        :param \*\*params: Additional keyworded arguments to be added to the
             request querystring.
         '''
         if remote_user is not None:
@@ -138,41 +173,43 @@ class OflyService(object):
         params = '?' + self._sha1_sign_params(self.authorize_url, **params)
         return self.authorize_url + params
 
-    def request(self, http_method, url, header_auth=False, params=None,
-            data=None):
+    def request(self, method, url, **kwargs):
         '''Sends a request to an Ofly endpoint, properly wrapped around
         requests.
 
-        :param http_method: A string representation of the HTTP method to be
+        :param method: A string representation of the HTTP method to be
             used.
         :param url: The resource to be requested.
         :param header_auth: Authenication via header, defaults to False.
-        :param params: Additional arguments to be added to the request
-            querystring.
-        :param data: Additional data to be included in the request body.
+        :param \*\*kwargs: Optional arguments. Same as Requests.
         '''
+        params = kwargs.get('params')
+        data = kwargs.get('data')
+
         if params is None:
             params = {}
 
+        header_auth = kwargs.get('header_auth', False)
         if header_auth:
-            params, headers = self._sha1_sign_params(url,
-                                                     header_auth=True,
-                                                     **params)
+            params, headers = \
+                    self._sha1_sign_params(url,
+                                           header_auth,
+                                           **params)
 
-            response = requests.request(http_method,
+            response = requests.request(method,
                                         url + '?' + params,
                                         headers=headers)
         else:
             params = self._sha1_sign_params(url, **params)
 
-            response = requests.request(http_method,
+            response = requests.request(method,
                                         url + '?' + params,
                                         data=data)
 
         return Response(response)
 
 
-class OAuth2Service(object):
+class OAuth2Service(Request):
     '''An OAuth 2.0 Service container.
 
     This class is similar in nature to the OAuth1Service container but does
@@ -198,9 +235,10 @@ class OAuth2Service(object):
         # once the above URL is consumed by a client we can ask for an access
         # token. note that the code is retrieved from the redirect URL above,
         # as set by the provider
-        token = service.get_access_token(code='foobar',
-                                         grant_type='authorization_code',
-                                         redirect_uri='http://example.com/')
+        data = dict(code='foobar',
+                    grant_type='authorization_code',
+                    redirect_uri='http://example.com/')
+        token = service.get_access_token('POST', data=data)
 
     :param name: The service name.
     :param consumer_key: Client consumer key.
@@ -227,7 +265,7 @@ class OAuth2Service(object):
         '''Returns a proper authorize URL.
 
         :param reponse_type: The response type. Defaults to 'code'.
-        :param params: Additional keyworded arguments to be added to the
+        :param \*\*params: Additional keyworded arguments to be added to the
             request querystring.
         '''
         params.update({'client_id': self.consumer_key,
@@ -235,56 +273,47 @@ class OAuth2Service(object):
         params = '?' + urlencode(params)
         return self.authorize_url + params
 
-    def get_access_token(self, grant_type='authorization_code', **data):
+    def get_access_token(self, method='POST', **kwargs):
         '''Retrieves the access token.
 
+        :param method: A string representation of the HTTP method to be used.
+            Defaults to 'POST'.
         :param grant_type: The grant type. Deaults to 'authorization_code'.
-        :param data: Keyworded arguments to be passed in the body of the
-            request.
+        :param \*\*kwargs: Optional arguments. Same as Requests.
         '''
-        data.update({'grant_type': grant_type})
+        # populate either data or params with our credentials
+        key = None
+        if 'data' in kwargs:
+            key = 'data'
+        elif 'params' in kwargs:
+            key = 'params'
+        else:
+            # raise an error because credentials must be sent in this method
+            raise ValueError('Either params or data dict missing.')
 
-        data.update(dict(client_id=self.consumer_key,
-                         client_secret=self.consumer_secret))
+        if key is not None:
+            grant_type = kwargs[key].get('grant_type', 'authorization_code')
+            kwargs[key].update(client_id=self.consumer_key,
+                               client_secret=self.consumer_secret,
+                               grant_type=grant_type)
 
-        response = requests.post(self.access_token_url,
-                                 data=data)
+        response = requests.request(method, self.access_token_url, **kwargs)
 
         return Response(response)
 
-    def request(self, http_method, url, access_token=None, params=None,
-            data=None):
+    def request(self, method, url, **kwargs):
         '''Sends a request to an OAuth 2.0 endpoint, properly wrapped around
         requests.
 
-        The first time an access token is provided it will be saved on the
-        object for convenience.
-
-        :param http_method: A string representation of the HTTP method to be
-            used.
+        :param method: A string representation of the HTTP method to be used.
         :param url: The resource to be requested.
-        :param access_token: The access token as returned by
-            :class:`get_access_token`.
-        :param params: Additional arguments to be added to the request
-            querystring.
-        :param data: Additional data to be included in the request body.
+        :param \*\*kwargs: Optional arguments. Same as Requests.
         '''
-        if access_token is None and self.access_token is None:
-            raise ValueError('Access token must be set!')
-        elif access_token is not None:
-            self.access_token = access_token
-
-        if params is None:
-            params = {}
-
-        params.update({'access_token': self.access_token})
-
-        response = requests.request(http_method, url, params=params, data=data)
-
+        response = requests.request(method, url, **kwargs)
         return Response(response)
 
 
-class OAuth1Service(object):
+class OAuth1Service(Request):
     '''An OAuth 1.0/a Service container.
 
     This class provides a container for an OAuth Service provider. It utilizes
@@ -311,12 +340,13 @@ class OAuth1Service(object):
 
         authorize_url = service.get_authorize_url(request_token)
 
-    Once the client has authorized the request it is not possible to retrieve
+    Once the client has authorized the request it is now possible to retrieve
     an access token. Do so as follows::
 
-        response = service.get_access_token(request_token,
-                                            request_token_secret,
-                                            http_method='GET')
+        response = \
+            service.get_access_token(method='GET'
+                                     request_token=request_token,
+                                     request_token_secret=request_token_secret)
 
         # access tokens are returned in the response dictionary
         response['oauth_token']
@@ -353,7 +383,7 @@ class OAuth1Service(object):
         '''Construct the request session, supplying the consumer key and
         secret.
 
-        :param kwargs: Extra keyworded arguments to be passed to the
+        :param \*\*kwargs: Extra keyworded arguments to be passed to the
             OAuth1Hook constructor.
         '''
         hook = OAuth1Hook(consumer_key=self.consumer_key,
@@ -361,20 +391,18 @@ class OAuth1Service(object):
                           **kwargs)
         return requests.session(hooks={'pre_request': hook})
 
-    def get_request_token(self, http_method, **data):
+    def get_request_token(self, method='GET', **kwargs):
         '''Gets a request token from the request token endpoint.
 
-        :param http_method: A string representation of the HTTP method to be
-            used.
-        :param data: Keyworded arguments to be passed in the body of the
-            request.
+        :param method: A string representation of the HTTP method to be used.
+        :param \*\*kwargs: Optional arguments. Same as Requests.
         '''
         auth_session = \
                 self._construct_session(header_auth=self.header_auth)
 
-        response = auth_session.request(http_method,
+        response = auth_session.request(method,
                                         self.request_token_url,
-                                        data=data)
+                                        **kwargs)
 
         response.raise_for_status()
 
@@ -386,34 +414,36 @@ class OAuth1Service(object):
 
         :param request_token: The request token as returned by
             :class:`get_request_token`.
-        :param params: Additional keyworded arguments to be added to the
+        :param \*\*params: Additional keyworded arguments to be added to the
             request querystring.
         '''
         params.update({'oauth_token': quote(request_token)})
         params = '?' + urlencode(params)
         return self.authorize_url + params
 
-    def get_access_token(self, request_token, request_token_secret,
-                         http_method, **params):
+    def get_access_token(self, method='GET', **kwargs):
         '''Retrieves the access token.
 
+        :param method: A string representation of the HTTP method to be
+            used.
         :param request_token: The request token as returned by
             :class:`get_request_token`.
         :param request_token_secret: The request token secret as returned by
             :class:`get_request_token`.
-        :param http_method: A string representation of the HTTP method to be
-            used.
-        :param params: Additional keyworded arguments to be added to the
-            request querystring.
+        :param \*\*kwargs: Optional arguments. Same as Requests.
         '''
+
+        request_token = kwargs.pop('request_token')
+        request_token_secret = kwargs.pop('request_token_secret')
+
         auth_session = self._construct_session(
                                 access_token=request_token,
                                 access_token_secret=request_token_secret,
                                 header_auth=self.header_auth)
 
-        response = auth_session.request(http_method,
+        response = auth_session.request(method,
                                         self.access_token_url,
-                                        params=params)
+                                        **kwargs)
 
         return Response(response)
 
@@ -431,11 +461,10 @@ class OAuth1Service(object):
                                        access_token_secret=access_token_secret,
                                        header_auth=header_auth)
 
-    def request(self, http_method, url, access_token, access_token_secret,
-            header_auth=False, params=None, data=None):
+    def request(self, method, url, **kwargs):
         '''Makes a request using :class:`_construct_session`.
 
-        :param http_method: A string representation of the HTTP method to be
+        :param method: A string representation of the HTTP method to be
             used.
         :param url: The resource to be requested.
         :param access_token: The access token as returned by
@@ -443,19 +472,21 @@ class OAuth1Service(object):
         :param access_token_secret: The access token secret as returned by
             :class:`get_access_token`.
         :param header_auth: Authenication via header, defaults to False.
-        :param params: Additional arguments to be added to the request
-            querystring.
-        :param data: Additional data to be included in the request body.
+        :param allow_redirects: Allows a request to redirect, defaults to True.
+        :param \*\*kwargs: Optional arguments. Same as Requests.
         '''
+        access_token = kwargs.pop('access_token')
+        access_token_secret = kwargs.pop('access_token_secret')
+        header_auth = kwargs.pop('header_auth', False)
+        allow_redirects = kwargs.pop('allow_redirects', True)
         auth_session = \
             self._construct_session(access_token=access_token,
                                     access_token_secret=access_token_secret,
                                     header_auth=header_auth)
 
-        response = auth_session.request(http_method,
+        response = auth_session.request(method,
                                         url,
-                                        params=params,
-                                        data=data,
-                                        allow_redirects=True)
+                                        allow_redirects=allow_redirects,
+                                        **kwargs)
 
         return Response(response)

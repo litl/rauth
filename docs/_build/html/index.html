@@ -7,7 +7,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Rauth &mdash; rauth 0.2.3 documentation</title>
+    <title>Rauth &mdash; rauth 0.3.0 documentation</title>
     
     <link rel="stylesheet" href="_static/flasky.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -15,7 +15,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '0.2.3',
+        VERSION:     '0.3.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -24,7 +24,7 @@
     <script type="text/javascript" src="_static/jquery.js"></script>
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
-    <link rel="top" title="rauth 0.2.3 documentation" href="#" /> 
+    <link rel="top" title="rauth 0.3.0 documentation" href="#" /> 
   </head>
   <body>
   
@@ -149,9 +149,10 @@ retrieve an access token in two steps:</p>
 <span class="c"># once the above URL is consumed by a client we can ask for an access</span>
 <span class="c"># token. note that the code is retrieved from the redirect URL above,</span>
 <span class="c"># as set by the provider</span>
-<span class="n">token</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">get_access_token</span><span class="p">(</span><span class="n">code</span><span class="o">=</span><span class="s">&#39;foobar&#39;</span><span class="p">,</span>
-                                 <span class="n">grant_type</span><span class="o">=</span><span class="s">&#39;authorization_code&#39;</span><span class="p">,</span>
-                                 <span class="n">redirect_uri</span><span class="o">=</span><span class="s">&#39;http://example.com/&#39;</span><span class="p">)</span>
+<span class="n">data</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">code</span><span class="o">=</span><span class="s">&#39;foobar&#39;</span><span class="p">,</span>
+            <span class="n">grant_type</span><span class="o">=</span><span class="s">&#39;authorization_code&#39;</span><span class="p">,</span>
+            <span class="n">redirect_uri</span><span class="o">=</span><span class="s">&#39;http://example.com/&#39;</span><span class="p">)</span>
+<span class="n">token</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">get_access_token</span><span class="p">(</span><span class="s">&#39;POST&#39;</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
 </pre></div>
 </div>
 <table class="docutils field-list" frame="void" rules="none">
@@ -172,16 +173,17 @@ retrieve an access token in two steps:</p>
 </table>
 <dl class="method">
 <dt id="rauth.service.OAuth2Service.get_access_token">
-<tt class="descname">get_access_token</tt><big>(</big><em>grant_type='authorization_code'</em>, <em>**data</em><big>)</big><a class="headerlink" href="#rauth.service.OAuth2Service.get_access_token" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_access_token</tt><big>(</big><em>method='POST'</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#rauth.service.OAuth2Service.get_access_token" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieves the access token.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>method</strong> &#8211; A string representation of the HTTP method to be used.
+Defaults to &#8216;POST&#8217;.</li>
 <li><strong>grant_type</strong> &#8211; The grant type. Deaults to &#8216;authorization_code&#8217;.</li>
-<li><strong>data</strong> &#8211; Keyworded arguments to be passed in the body of the
-request.</li>
+<li><strong>**kwargs</strong> &#8211; Optional arguments. Same as Requests.</li>
 </ul>
 </td>
 </tr>
@@ -199,7 +201,7 @@ request.</li>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>reponse_type</strong> &#8211; The response type. Defaults to &#8216;code&#8217;.</li>
-<li><strong>params</strong> &#8211; Additional keyworded arguments to be added to the
+<li><strong>**params</strong> &#8211; Additional keyworded arguments to be added to the
 request querystring.</li>
 </ul>
 </td>
@@ -210,24 +212,17 @@ request querystring.</li>
 
 <dl class="method">
 <dt id="rauth.service.OAuth2Service.request">
-<tt class="descname">request</tt><big>(</big><em>http_method</em>, <em>url</em>, <em>access_token=None</em>, <em>params=None</em>, <em>data=None</em><big>)</big><a class="headerlink" href="#rauth.service.OAuth2Service.request" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">request</tt><big>(</big><em>method</em>, <em>url</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#rauth.service.OAuth2Service.request" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sends a request to an OAuth 2.0 endpoint, properly wrapped around
 requests.</p>
-<p>The first time an access token is provided it will be saved on the
-object for convenience.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>http_method</strong> &#8211; A string representation of the HTTP method to be
-used.</li>
+<li><strong>method</strong> &#8211; A string representation of the HTTP method to be used.</li>
 <li><strong>url</strong> &#8211; The resource to be requested.</li>
-<li><strong>access_token</strong> &#8211; The access token as returned by
-<tt class="xref py py-class docutils literal"><span class="pre">get_access_token</span></tt>.</li>
-<li><strong>params</strong> &#8211; Additional arguments to be added to the request
-querystring.</li>
-<li><strong>data</strong> &#8211; Additional data to be included in the request body.</li>
+<li><strong>**kwargs</strong> &#8211; Optional arguments. Same as Requests.</li>
 </ul>
 </td>
 </tr>
@@ -267,16 +262,15 @@ authorize URI. This URI is retrieved as follows:</p>
 <div class="highlight-python"><div class="highlight"><pre><span class="n">authorize_url</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">get_authorize_url</span><span class="p">(</span><span class="n">request_token</span><span class="p">)</span>
 </pre></div>
 </div>
-<p>Once the client has authorized the request it is not possible to retrieve
+<p>Once the client has authorized the request it is now possible to retrieve
 an access token. Do so as follows:</p>
-<div class="highlight-python"><div class="highlight"><pre><span class="n">response</span> <span class="o">=</span> <span class="n">service</span><span class="o">.</span><span class="n">get_access_token</span><span class="p">(</span><span class="n">request_token</span><span class="p">,</span>
-                                    <span class="n">request_token_secret</span><span class="p">,</span>
-                                    <span class="n">http_method</span><span class="o">=</span><span class="s">&#39;GET&#39;</span><span class="p">)</span>
+<div class="highlight-python"><pre>response =             service.get_access_token(method='GET'
+                             request_token=request_token,
+                             request_token_secret=request_token_secret)
 
-<span class="c"># access tokens are returned in the response dictionary</span>
-<span class="n">response</span><span class="p">[</span><span class="s">&#39;oauth_token&#39;</span><span class="p">]</span>
-<span class="n">response</span><span class="p">[</span><span class="s">&#39;oauth_key&#39;</span><span class="p">]</span>
-</pre></div>
+# access tokens are returned in the response dictionary
+response['oauth_token']
+response['oauth_key']</pre>
 </div>
 <p>Finally the <tt class="xref py py-class docutils literal"><span class="pre">get_authenticated_session</span></tt> method returns a wrapped
 session and can be used once the access token has been made available.
@@ -300,21 +294,20 @@ This provides simple access to the providers endpoints.</p>
 </table>
 <dl class="method">
 <dt id="rauth.service.OAuth1Service.get_access_token">
-<tt class="descname">get_access_token</tt><big>(</big><em>request_token</em>, <em>request_token_secret</em>, <em>http_method</em>, <em>**params</em><big>)</big><a class="headerlink" href="#rauth.service.OAuth1Service.get_access_token" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_access_token</tt><big>(</big><em>method='GET'</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#rauth.service.OAuth1Service.get_access_token" title="Permalink to this definition">¶</a></dt>
 <dd><p>Retrieves the access token.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>method</strong> &#8211; A string representation of the HTTP method to be
+used.</li>
 <li><strong>request_token</strong> &#8211; The request token as returned by
 <tt class="xref py py-class docutils literal"><span class="pre">get_request_token</span></tt>.</li>
 <li><strong>request_token_secret</strong> &#8211; The request token secret as returned by
 <tt class="xref py py-class docutils literal"><span class="pre">get_request_token</span></tt>.</li>
-<li><strong>http_method</strong> &#8211; A string representation of the HTTP method to be
-used.</li>
-<li><strong>params</strong> &#8211; Additional keyworded arguments to be added to the
-request querystring.</li>
+<li><strong>**kwargs</strong> &#8211; Optional arguments. Same as Requests.</li>
 </ul>
 </td>
 </tr>
@@ -354,7 +347,7 @@ request querystring.</li>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>request_token</strong> &#8211; The request token as returned by
 <tt class="xref py py-class docutils literal"><span class="pre">get_request_token</span></tt>.</li>
-<li><strong>params</strong> &#8211; Additional keyworded arguments to be added to the
+<li><strong>**params</strong> &#8211; Additional keyworded arguments to be added to the
 request querystring.</li>
 </ul>
 </td>
@@ -365,17 +358,15 @@ request querystring.</li>
 
 <dl class="method">
 <dt id="rauth.service.OAuth1Service.get_request_token">
-<tt class="descname">get_request_token</tt><big>(</big><em>http_method</em>, <em>**data</em><big>)</big><a class="headerlink" href="#rauth.service.OAuth1Service.get_request_token" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">get_request_token</tt><big>(</big><em>method='GET'</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#rauth.service.OAuth1Service.get_request_token" title="Permalink to this definition">¶</a></dt>
 <dd><p>Gets a request token from the request token endpoint.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>http_method</strong> &#8211; A string representation of the HTTP method to be
-used.</li>
-<li><strong>data</strong> &#8211; Keyworded arguments to be passed in the body of the
-request.</li>
+<li><strong>method</strong> &#8211; A string representation of the HTTP method to be used.</li>
+<li><strong>**kwargs</strong> &#8211; Optional arguments. Same as Requests.</li>
 </ul>
 </td>
 </tr>
@@ -385,14 +376,14 @@ request.</li>
 
 <dl class="method">
 <dt id="rauth.service.OAuth1Service.request">
-<tt class="descname">request</tt><big>(</big><em>http_method</em>, <em>url</em>, <em>access_token</em>, <em>access_token_secret</em>, <em>header_auth=False</em>, <em>params=None</em>, <em>data=None</em><big>)</big><a class="headerlink" href="#rauth.service.OAuth1Service.request" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">request</tt><big>(</big><em>method</em>, <em>url</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#rauth.service.OAuth1Service.request" title="Permalink to this definition">¶</a></dt>
 <dd><p>Makes a request using <tt class="xref py py-class docutils literal"><span class="pre">_construct_session</span></tt>.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>http_method</strong> &#8211; A string representation of the HTTP method to be
+<li><strong>method</strong> &#8211; A string representation of the HTTP method to be
 used.</li>
 <li><strong>url</strong> &#8211; The resource to be requested.</li>
 <li><strong>access_token</strong> &#8211; The access token as returned by
@@ -400,9 +391,8 @@ used.</li>
 <li><strong>access_token_secret</strong> &#8211; The access token secret as returned by
 <tt class="xref py py-class docutils literal"><span class="pre">get_access_token</span></tt>.</li>
 <li><strong>header_auth</strong> &#8211; Authenication via header, defaults to False.</li>
-<li><strong>params</strong> &#8211; Additional arguments to be added to the request
-querystring.</li>
-<li><strong>data</strong> &#8211; Additional data to be included in the request body.</li>
+<li><strong>allow_redirects</strong> &#8211; Allows a request to redirect, defaults to True.</li>
+<li><strong>**kwargs</strong> &#8211; Optional arguments. Same as Requests.</li>
 </ul>
 </td>
 </tr>
@@ -465,7 +455,7 @@ more information please see:
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>remote_user</strong> &#8211; This is the oflyRemoteUser param. Defaults to None.</li>
 <li><strong>redirect_uri</strong> &#8211; This is the oflyCallbackUrl. Defaults to None.</li>
-<li><strong>params</strong> &#8211; Additional keyworded arguments to be added to the
+<li><strong>**params</strong> &#8211; Additional keyworded arguments to be added to the
 request querystring.</li>
 </ul>
 </td>
@@ -476,7 +466,7 @@ request querystring.</li>
 
 <dl class="method">
 <dt id="rauth.service.OflyService.request">
-<tt class="descname">request</tt><big>(</big><em>http_method</em>, <em>url</em>, <em>header_auth=False</em>, <em>params=None</em>, <em>data=None</em><big>)</big><a class="headerlink" href="#rauth.service.OflyService.request" title="Permalink to this definition">¶</a></dt>
+<tt class="descname">request</tt><big>(</big><em>method</em>, <em>url</em>, <em>**kwargs</em><big>)</big><a class="headerlink" href="#rauth.service.OflyService.request" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sends a request to an Ofly endpoint, properly wrapped around
 requests.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -484,13 +474,11 @@ requests.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>http_method</strong> &#8211; A string representation of the HTTP method to be
+<li><strong>method</strong> &#8211; A string representation of the HTTP method to be
 used.</li>
 <li><strong>url</strong> &#8211; The resource to be requested.</li>
 <li><strong>header_auth</strong> &#8211; Authenication via header, defaults to False.</li>
-<li><strong>params</strong> &#8211; Additional arguments to be added to the request
-querystring.</li>
-<li><strong>data</strong> &#8211; Additional data to be included in the request body.</li>
+<li><strong>**kwargs</strong> &#8211; Optional arguments. Same as Requests.</li>
 </ul>
 </td>
 </tr>
