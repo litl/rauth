@@ -115,11 +115,15 @@ class OAuth1Hook(object):
             #
             # BUG: body can't be recalculated in a pre-request hook; this is a
             # known issue: https://github.com/kennethreitz/requests/issues/445
-            request.data, request._enc_data = \
-                    request._encode_params(request.params_and_data)
-            request.body = request._enc_data
-            request.headers['Content-Type'] = \
-                    'application/x-www-form-urlencoded'
+            #request.data, request._enc_data = \
+            #        request._encode_params(request.params_and_data)
+            #request.body = request._enc_data
+            #request.headers['Content-Type'] = \
+            #        'application/x-www-form-urlencoded'
+            sig = request.params_and_data['oauth_signature']
+            request.oauth_params.update(oauth_signature=sig)
+            request.params, request._enc_params = \
+                    request._encode_params(request.oauth_params)
         else:
             # HACK: override the param encoding process
             request.params, request._enc_params = \

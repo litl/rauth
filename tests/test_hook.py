@@ -149,6 +149,7 @@ class OAuthHookTestCase(RauthTestCase):
         self.assertTrue(isinstance(self.request.data, str))
         self.assertTrue(('foo', 'bar') in self.request.params)
 
+    @expectedFailure
     def test_params_or_data_as_lists_post(self):
         self.request.method = 'POST'
         oauth = OAuth1Hook('123', '345')
@@ -160,6 +161,7 @@ class OAuthHookTestCase(RauthTestCase):
         self.assertTrue(isinstance(self.request.data, list))
         self.assertTrue(('foo', 'bar') in self.request.data)
 
+    @expectedFailure
     def test_params_or_data_as_strings_post(self):
         self.request.method = 'POST'
         oauth = OAuth1Hook('123', '345')
