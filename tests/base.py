@@ -17,7 +17,6 @@ class RauthTestCase(unittest.TestCase):
         request = Request()
         request.method = 'GET'
         request.url = 'http://example.com/'
-        request.headers = {}
         request.params = {}
         request.data = {}
         request.params_and_data = {}

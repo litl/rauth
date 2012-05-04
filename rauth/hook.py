@@ -11,6 +11,7 @@ import random
 
 from hashlib import sha1
 from urllib import quote
+from urlparse import urlsplit, urlunsplit
 
 from rauth.oauth import HmacSha1Signature, Token, Consumer
 
@@ -104,30 +105,25 @@ class OAuth1Hook(object):
         # sign and add the signature to the request params
         self.signature.sign(request, self.consumer, self.token)
 
+        # set the content-type if unset
+        form_urlencoded = 'application/x-www-form-urlencoded'
+        request.headers['content-type'] = \
+                request.headers.get('content-type', form_urlencoded)
+
+        # detect content-type encoding to handle POST data properly
+        is_form_urlencoded = request.headers['content-type'] == form_urlencoded
+
         if self.header_auth:
-            # authenticate in the header
-            #
-            # TODO: implement the realm parameter
+            # extract the domain for use as the realm
+            scheme, netloc, _, _, _ = urlsplit(request.url)
+            realm = urlunsplit((scheme, netloc, '/', '', ''))
+
             request.headers['Authorization'] = \
-                    self.auth_header(request.params_and_data)
-        elif request.method == 'POST':
-            # HACK: override the param encoding process
-            #
-            # BUG: body can't be recalculated in a pre-request hook; this is a
-            # known issue: https://github.com/kennethreitz/requests/issues/445
-            #request.data, request._enc_data = \
-            #        request._encode_params(request.params_and_data)
-            #request.body = request._enc_data
-            #request.headers['Content-Type'] = \
-            #        'application/x-www-form-urlencoded'
-            sig = request.params_and_data['oauth_signature']
-            request.oauth_params.update(oauth_signature=sig)
-            request.params, request._enc_params = \
-                    request._encode_params(request.oauth_params)
+                    self.auth_header(request.params_and_data, realm=realm)
+        elif request.method == 'POST' and is_form_urlencoded:
+            request.data = request.params_and_data
         else:
-            # HACK: override the param encoding process
-            request.params, request._enc_params = \
-                    request._encode_params(request.params_and_data)
+            request.params = request.params_and_data
 
         # we're done with these now
         del request.params_and_data
