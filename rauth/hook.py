@@ -10,8 +10,8 @@ import time
 import random
 
 from hashlib import sha1
+from urlparse import parse_qsl, urlsplit, urlunsplit
 from urllib import quote
-from urlparse import urlsplit, urlunsplit
 
 from rauth.oauth import HmacSha1Signature, Token, Consumer
 
@@ -63,6 +63,7 @@ class OAuth1Hook(object):
         default.
     '''
     OAUTH_VERSION = '1.0'
+    verifier = None
 
     def __init__(self, consumer_key, consumer_secret, access_token=None,
             access_token_secret=None, header_auth=False, signature=None):
@@ -88,16 +89,31 @@ class OAuth1Hook(object):
         if isinstance(request.data, list):
             request.data = dict(request.data)
 
+        # ad hoc determination of parameters datatype: we need to convert to a
+        # dict when dealing with proper querystrings
+        str_or_bytes = map(lambda x: type(x) in (str, bytes),
+                           [request.params, request.data])
+        is_querystring = False not in str_or_bytes
+
+        # prepare a dictionary of both params and data
+        if is_querystring:
+            params_and_data = \
+                    parse_qsl(request.params) + parse_qsl(request.data)
+            params_and_data = dict(params_and_data)
+        else:
+            params_and_data = dict(request.params, **request.data)
+
+        # set the verifier if we've been provided one
+        if 'oauth_verifier' in params_and_data.keys():
+            self.verifier = params_and_data['oauth_verifier']
+
         # generate the necessary request params
         request.oauth_params = self.oauth_params
 
         # here we append an oauth_callback parameter if any
-        if 'oauth_callback' in request.data:
+        if 'oauth_callback' in params_and_data.keys():
             request.oauth_params['oauth_callback'] = \
-                    request.data.pop('oauth_callback')
-        if 'oauth_callback' in request.params:
-            request.oauth_params['oauth_callback'] = \
-                    request.params.pop('oauth_callback')
+                    params_and_data['oauth_callback']
 
         # this is used in the Normalize Request Parameters step
         request.params_and_data = request.oauth_params.copy()
@@ -139,10 +155,11 @@ class OAuth1Hook(object):
         oauth_params['oauth_nonce'] = sha1(str(random.random())).hexdigest()
         oauth_params['oauth_version'] = self.OAUTH_VERSION
 
-        if self.token:
+        if self.token is not None:
             oauth_params['oauth_token'] = self.token.key
-            # this must be set upon recieving a verifier
-            oauth_params['oauth_verifier'] = self.token.verifier or ''
+
+        if self.verifier is not None:
+            oauth_params['oauth_verifier'] = self.verifier
 
         oauth_params['oauth_signature_method'] = self.signature.NAME
         return oauth_params

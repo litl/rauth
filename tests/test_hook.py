@@ -102,13 +102,6 @@ class OAuthHookTestCase(RauthTestCase):
         self.assertTrue(oauth.token.key is not None)
         self.assertTrue('oauth_token' in full_url)
         self.assertEqual('321', self.request.oauth_params['oauth_token'])
-        self.assertTrue('oauth_verifier' in full_url)
-        self.assertEqual('', self.request.oauth_params['oauth_verifier'])
-
-        # test with a verifier
-        oauth.token.verifier = '4242'
-        oauth(self.request)
-        self.assertEqual('4242', self.request.oauth_params['oauth_verifier'])
 
     def test_unique_nonce(self):
         oauth = OAuth1Hook('123', '345')
@@ -173,3 +166,10 @@ class OAuthHookTestCase(RauthTestCase):
         oauth(self.request)
         self.assertTrue('OAuth realm="http://example.com/' in
                         self.request.headers['Authorization'])
+
+    def test_oauth_verifier(self):
+        oauth = OAuth1Hook('123', '345', '321', '654')
+        self.request.params = {'oauth_verifier': 'fake_verifier'}
+        oauth(self.request)
+        self.assertEqual(oauth.verifier, 'fake_verifier')
+        self.assertTrue('oauth_verifier' in self.request.full_url)

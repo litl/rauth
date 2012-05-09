@@ -15,8 +15,6 @@ from urllib import quote, urlencode
 
 class OAuthObject(object):
     '''A base class for OAuth token objects.'''
-    verifier = None
-
     def __init__(self, key, secret):
         self.key = key
         self.secret = secret
