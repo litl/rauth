@@ -7,8 +7,7 @@ twitter = OAuth1Service(
     consumer_secret='7WAscbSy65GmiVOvMU5EBYn5z80fhQkcFWSLMJJu4',
     request_token_url='https://api.twitter.com/oauth/request_token',
     access_token_url='https://api.twitter.com/oauth/access_token',
-    authorize_url='https://api.twitter.com/oauth/authorize',
-    header_auth=True)
+    authorize_url='https://api.twitter.com/oauth/authorize')
 
 request_token, request_token_secret = \
     twitter.get_request_token(method='GET')
@@ -18,10 +17,10 @@ authorize_url = twitter.get_authorize_url(request_token)
 print 'Visit this URL in your browser: ' + authorize_url
 pin = raw_input('Enter PIN from browser: ')
 
-response = twitter.get_access_token('GET',
+response = twitter.get_access_token('POST',
                                     request_token=request_token,
                                     request_token_secret=request_token_secret,
-                                    params={'oauth_verifier': pin})
+                                    data={'oauth_verifier': pin})
 data = response.content
 
 access_token = data['oauth_token']

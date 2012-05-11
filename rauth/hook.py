@@ -11,9 +11,9 @@ import random
 
 from hashlib import sha1
 from urlparse import parse_qsl, urlsplit, urlunsplit
-from urllib import quote
+from urllib import quote, urlencode
 
-from rauth.oauth import HmacSha1Signature, Token, Consumer
+from rauth.oauth import HmacSha1Signature
 
 
 class OAuth1Hook(object):
@@ -63,16 +63,19 @@ class OAuth1Hook(object):
         default.
     '''
     OAUTH_VERSION = '1.0'
-    verifier = None
+
+    oauth_callback = None
+    oauth_verifier = None
 
     def __init__(self, consumer_key, consumer_secret, access_token=None,
             access_token_secret=None, header_auth=False, signature=None):
-        self.consumer = Consumer(consumer_key, consumer_secret)
+        # consumer credentials
+        self.consumer_key = consumer_key
+        self.consumer_secret = consumer_secret
 
-        # intitialize the token and then set it if possible
-        self.token = None
-        if not None in (access_token, access_token_secret):
-            self.token = Token(access_token, access_token_secret)
+        # access token credentials
+        self.access_token = access_token
+        self.access_token_secret = access_token_secret
 
         self.header_auth = header_auth
 
@@ -89,45 +92,24 @@ class OAuth1Hook(object):
         if isinstance(request.data, list):
             request.data = dict(request.data)
 
-        # ad hoc determination of parameters datatype: we need to convert to a
-        # dict when dealing with proper querystrings
-        str_or_bytes = map(lambda x: type(x) in (str, bytes),
-                           [request.params, request.data])
-        is_querystring = False not in str_or_bytes
-
-        # prepare a dictionary of both params and data
-        if is_querystring:
-            params_and_data = \
-                    parse_qsl(request.params) + parse_qsl(request.data)
-            params_and_data = dict(params_and_data)
-        else:
-            params_and_data = dict(request.params, **request.data)
-
-        # set the verifier if we've been provided one
-        if 'oauth_verifier' in params_and_data.keys():
-            self.verifier = params_and_data['oauth_verifier']
+        # parse optional oauth parameters
+        for param in ('oauth_callback', 'oauth_verifier'):
+            self._parse_optional_param(param, request)
 
         # generate the necessary request params
         request.oauth_params = self.oauth_params
-
-        # here we append an oauth_callback parameter if any
-        if 'oauth_callback' in params_and_data.keys():
-            request.oauth_params['oauth_callback'] = \
-                    params_and_data['oauth_callback']
 
         # this is used in the Normalize Request Parameters step
         request.params_and_data = request.oauth_params.copy()
 
         # sign and add the signature to the request params
-        self.signature.sign(request, self.consumer, self.token)
+        request.oauth_params['oauth_signature'] = \
+                self.signature.sign(request,
+                                    self.consumer_secret,
+                                    self.access_token_secret)
 
-        # set the content-type if unset
-        form_urlencoded = 'application/x-www-form-urlencoded'
-        request.headers['content-type'] = \
-                request.headers.get('content-type', form_urlencoded)
-
-        # detect content-type encoding to handle POST data properly
-        is_form_urlencoded = request.headers['content-type'] == form_urlencoded
+        request.params_and_data['oauth_signature'] = \
+                request.oauth_params['oauth_signature']
 
         if self.header_auth:
             # extract the domain for use as the realm
@@ -135,8 +117,10 @@ class OAuth1Hook(object):
             realm = urlunsplit((scheme, netloc, '/', '', ''))
 
             request.headers['Authorization'] = \
-                    self.auth_header(request.params_and_data, realm=realm)
-        elif request.method == 'POST' and is_form_urlencoded:
+                    self.auth_header(request.oauth_params, realm=realm)
+        elif request.method == 'POST':
+            content_type = 'application/x-www-form-urlencoded'
+            request.headers['content-type'] = content_type
             request.data = request.params_and_data
         else:
             request.params = request.params_and_data
@@ -144,22 +128,56 @@ class OAuth1Hook(object):
         # we're done with these now
         del request.params_and_data
 
+    def _parse_optional_param(self, oauth_param, request):
+        '''Parses and sets optional oauth parameters on a request.
+
+        :param oauth_param: The OAuth parameter to parse.
+        :param request: The Request object.
+        '''
+        params_is_string = type(request.params) == str
+        data_is_string = type(request.data) == str
+        params = request.params
+        data = request.data
+
+        # special handling if we're handed a string
+        if params_is_string:
+            params = dict(parse_qsl(request.params))
+        if data_is_string:
+            data = dict(parse_qsl(request.data))
+
+        # remove any oauth parameters and set them as attributes
+        if oauth_param in params.keys():
+            setattr(self, oauth_param, params.pop(oauth_param))
+        if oauth_param in data.keys():
+            setattr(self, oauth_param, data.pop(oauth_param))
+
+        # re-encode the params or data if they were a string, without any oauth
+        # params
+        if params_is_string:
+            request.params = urlencode(params)
+
+        if data_is_string:
+            request.data = urlencode(data)
+
     @property
     def oauth_params(self):
         '''This method handles generating the necessary URL parameters the
         OAuth provider will expect.'''
         oauth_params = {}
 
-        oauth_params['oauth_consumer_key'] = self.consumer.key
+        oauth_params['oauth_consumer_key'] = self.consumer_key
         oauth_params['oauth_timestamp'] = int(time.time())
         oauth_params['oauth_nonce'] = sha1(str(random.random())).hexdigest()
         oauth_params['oauth_version'] = self.OAUTH_VERSION
 
-        if self.token is not None:
-            oauth_params['oauth_token'] = self.token.key
+        if self.access_token is not None:
+            oauth_params['oauth_token'] = self.access_token
 
-        if self.verifier is not None:
-            oauth_params['oauth_verifier'] = self.verifier
+        if self.oauth_verifier is not None:
+            oauth_params['oauth_verifier'] = self.oauth_verifier
+
+        if self.oauth_callback is not None:
+            oauth_params['oauth_callback'] = self.oauth_callback
 
         oauth_params['oauth_signature_method'] = self.signature.NAME
         return oauth_params

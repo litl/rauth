@@ -9,18 +9,26 @@ from base import RauthTestCase
 from rauth.hook import OAuth1Hook
 
 from mock import Mock
+from urllib import urlencode
 
 
 class OAuthHookTestCase(RauthTestCase):
     def test_intialize_oauthhook(self):
         # without token
         oauth = OAuth1Hook('123', '345')
-        self.assertTrue(hasattr(oauth, 'consumer'))
+        self.assertTrue(hasattr(oauth, 'consumer_key'))
+        self.assertTrue(hasattr(oauth, 'consumer_secret'))
 
         # with token
         oauth = OAuth1Hook('123', '345', '321', '654')
-        self.assertTrue(hasattr(oauth, 'consumer'))
-        self.assertTrue(oauth.token is not None)
+        self.assertTrue(hasattr(oauth, 'consumer_key'))
+        self.assertTrue(hasattr(oauth, 'consumer_secret'))
+        self.assertTrue(hasattr(oauth, 'access_token'))
+        self.assertTrue(hasattr(oauth, 'access_token_secret'))
+        self.assertTrue(oauth.consumer_key, '123')
+        self.assertTrue(oauth.consumer_secret, '345')
+        self.assertTrue(oauth.access_token, '321')
+        self.assertTrue(oauth.access_token_secret, '654')
 
     def test_oauth_header_auth(self):
         oauth = OAuth1Hook('123', '345', header_auth=True)
@@ -36,17 +44,31 @@ class OAuthHookTestCase(RauthTestCase):
 
     def test_oauth_post(self):
         oauth = OAuth1Hook('123', '345')
-
-        # call the instance (this would be a POST)
         self.request.method = 'POST'
+        self.request.data = {'foo': 'bar'}
         oauth(self.request)
         self.assertTrue('oauth_timestamp' in self.request.data)
         self.assertTrue(('oauth_consumer_key', '123') in
-                        self.request.data.items())
-        self.assertTrue('oauth_nonce' in self.request.data)
-        self.assertTrue(('oauth_version', '1.0') in self.request.data.items())
+                        self.request.oauth_params.items())
+        self.assertTrue('oauth_nonce' in self.request.oauth_params)
+        self.assertTrue(('oauth_version', '1.0') in
+                        self.request.oauth_params.items())
         self.assertTrue(('oauth_signature_method', 'HMAC-SHA1') in
-                        self.request.data.items())
+                        self.request.oauth_params.items())
+
+    def test_oauth_post_with_data(self):
+        oauth = OAuth1Hook('123', '345')
+        self.request.method = 'POST'
+        self.request.data = {'foo': 'bar'}
+        oauth(self.request)
+        self.assertTrue(('foo', 'bar') in self.request.data.items())
+
+        # also try with a urlencoded data parameter
+        oauth = OAuth1Hook('123', '345')
+        self.request.method = 'POST'
+        self.request.data = urlencode({'foo': 'bar'})
+        oauth(self.request)
+        self.assertTrue(('foo', 'bar') in self.request.data.items())
 
     def test_oauth_get(self):
         oauth = OAuth1Hook('123', '345')
@@ -90,16 +112,21 @@ class OAuthHookTestCase(RauthTestCase):
         oauth_callback = self.request.oauth_params['oauth_callback']
         self.assertEqual('http://example.com/callback', oauth_callback)
 
+    def test_oauth_callback_as_data(self):
+        oauth = OAuth1Hook('123', '345')
+
         self.request.data = {'oauth_callback': 'http://example.com/callback'}
         oauth(self.request)
         oauth_callback = self.request.oauth_params['oauth_callback']
         self.assertEqual('http://example.com/callback', oauth_callback)
+        self.assertEqual('http://example.com/callback', oauth.oauth_callback)
 
-    def test_oauth_with_token(self):
+    def test_oauth_with_access_token(self):
         oauth = OAuth1Hook('123', '345', '321', '654')
         oauth(self.request)
         full_url = self.request.full_url
-        self.assertTrue(oauth.token.key is not None)
+        self.assertTrue(oauth.access_token is not None)
+        self.assertTrue(oauth.access_token_secret is not None)
         self.assertTrue('oauth_token' in full_url)
         self.assertEqual('321', self.request.oauth_params['oauth_token'])
 
@@ -130,7 +157,6 @@ class OAuthHookTestCase(RauthTestCase):
         self.assertTrue(isinstance(self.request.data, str))
         oauth(self.request)
         self.assertTrue(isinstance(self.request.params, dict))
-        # unaltered because we don't have a POST
         self.assertTrue(isinstance(self.request.data, str))
         self.assertTrue(('foo', 'bar') in self.request.params.items())
 
@@ -171,5 +197,14 @@ class OAuthHookTestCase(RauthTestCase):
         oauth = OAuth1Hook('123', '345', '321', '654')
         self.request.params = {'oauth_verifier': 'fake_verifier'}
         oauth(self.request)
-        self.assertEqual(oauth.verifier, 'fake_verifier')
+        self.assertEqual(oauth.oauth_verifier, 'fake_verifier')
         self.assertTrue('oauth_verifier' in self.request.full_url)
+
+    def test_oauth_verifier_as_data(self):
+        oauth = OAuth1Hook('123', '345', '321', '654')
+        self.request.nmethod = 'POST'
+        self.request.data = {'oauth_verifier': 'fake_verifier'}
+        oauth(self.request)
+        self.assertEqual(oauth.oauth_verifier, 'fake_verifier')
+        self.assertTrue(('oauth_verifier', 'fake_verifier') in
+                        self.request.oauth_params.items())

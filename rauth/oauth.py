@@ -13,23 +13,6 @@ from urlparse import parse_qsl, urlsplit, urlunsplit
 from urllib import quote, urlencode
 
 
-class OAuthObject(object):
-    '''A base class for OAuth token objects.'''
-    def __init__(self, key, secret):
-        self.key = key
-        self.secret = secret
-
-
-class Consumer(OAuthObject):
-    '''The consumer token object.'''
-    pass
-
-
-class Token(OAuthObject):
-    '''The access token object.'''
-    pass
-
-
 class SignatureMethod(object):
     '''A base class for signature methods providing a set of common methods.'''
     def _encode_utf8(self, s):
@@ -136,7 +119,7 @@ class HmacSha1Signature(SignatureMethod):
     '''
     NAME = 'HMAC-SHA1'
 
-    def sign(self, request, consumer, token=None):
+    def sign(self, request, consumer_secret, access_token_secret=None):
         '''Sign request parameters.
 
         :param request: The request to sign.
@@ -152,9 +135,9 @@ class HmacSha1Signature(SignatureMethod):
                       self._escape(params_and_data)]
 
         # set our key
-        key = self._escape(consumer.secret) + '&'
-        if token is not None:
-            key += self._escape(token.secret)
+        key = self._escape(consumer_secret) + '&'
+        if access_token_secret is not None:
+            key += self._escape(access_token_secret)
 
         # build a Signature Base String
         signature_base_string = '&'.join(parameters)
@@ -162,9 +145,8 @@ class HmacSha1Signature(SignatureMethod):
         # hash the string with HMAC-SHA1
         hashed = hmac.new(key, signature_base_string, sha1)
 
-        # add the signature to the request
-        request.params_and_data['oauth_signature'] = \
-                base64.b64encode(hashed.digest())
+        # return the signature
+        return base64.b64encode(hashed.digest())
 
 
 class RsaSha1Signature(SignatureMethod):

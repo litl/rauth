@@ -328,8 +328,8 @@ class OAuth1ServiceTestCase(RauthTestCase):
 
     def test_get_authenticated_session(self):
         auth_session = \
-            self.service.get_authenticated_session(access_token='123',
-                                                   access_token_secret='456')
+            self.service._get_session(access_token='123',
+                                      access_token_secret='456')
         self.assertIsNotNone(auth_session)
 
     @patch.object(requests.Session, 'request')
@@ -337,12 +337,16 @@ class OAuth1ServiceTestCase(RauthTestCase):
         mock_request.return_value = self.response
 
         auth_session = \
-            self.service.get_authenticated_session(access_token='123',
-                                                   access_token_secret='456')
+            self.service._get_session(access_token='123',
+                                      access_token_secret='456')
 
         response = auth_session.get('http://example.com/foobar').content
         self.assertIsNotNone(response)
         self.assertEqual('oauth_token=123&oauth_token_secret=456', response)
+        self.assertIsNotNone(self.service.hook.access_token)
+        self.assertIsNotNone(self.service.hook.access_token_secret)
+        self.assertEqual(self.service.hook.access_token, '123')
+        self.assertEqual(self.service.hook.access_token_secret, '456')
 
     @patch.object(requests.Session, 'request')
     def test_request(self, mock_request):

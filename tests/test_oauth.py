@@ -15,9 +15,10 @@ from urllib import urlencode
 class OAuthTestHmacSha1Case(RauthTestCase):
     def test_hamcsha1_signature(self):
         self.request.params = {'foo': 'bar'}
-        HmacSha1Signature().sign(self.request, self.consumer, self.token)
-        oauth_signature = self.request.params_and_data['oauth_signature']
-        self.assertTrue(oauth_signature is not None)
+        oauth_signature = HmacSha1Signature().sign(self.request,
+                                                   self.hook.consumer_key,
+                                                   self.hook.access_token)
+        self.assertIsNotNone(oauth_signature)
         self.assertTrue(isinstance(oauth_signature, str))
 
     def test_normalize_request_parameters_params(self):
@@ -120,7 +121,7 @@ class OAuthTestHmacSha1Case(RauthTestCase):
         # in the event a string is already UTF-8
         self.request.params = {u'foo': u'bar'}
         self.request.url = u'http://example.com/'
-        HmacSha1Signature().sign(self.request, self.consumer)
+        HmacSha1Signature().sign(self.request, self.hook.consumer_key)
         self.assertEqual({'foo': 'bar'},  self.request.params)
 
     def test_remove_query_string(self):
