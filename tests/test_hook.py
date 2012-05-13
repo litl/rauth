@@ -25,10 +25,10 @@ class OAuthHookTestCase(RauthTestCase):
         self.assertTrue(hasattr(oauth, 'consumer_secret'))
         self.assertTrue(hasattr(oauth, 'access_token'))
         self.assertTrue(hasattr(oauth, 'access_token_secret'))
-        self.assertTrue(oauth.consumer_key, '123')
-        self.assertTrue(oauth.consumer_secret, '345')
-        self.assertTrue(oauth.access_token, '321')
-        self.assertTrue(oauth.access_token_secret, '654')
+        self.assertEqual(oauth.consumer_key, '123')
+        self.assertEqual(oauth.consumer_secret, '345')
+        self.assertEqual(oauth.access_token, '321')
+        self.assertEqual(oauth.access_token_secret, '654')
 
     def test_oauth_header_auth(self):
         oauth = OAuth1Hook('123', '345', header_auth=True)
