@@ -379,8 +379,7 @@ class OAuth1Service(Request):
         # set to True to use header authentication for this service
         self.header_auth = header_auth
 
-        self.auth_session = \
-                self._construct_session(header_auth=self.header_auth)
+        self.auth_session = None
 
     def _construct_session(self, **kwargs):
         '''Construct the request session, supplying the consumer key and
@@ -403,6 +402,10 @@ class OAuth1Service(Request):
         access_token_secret = kwargs.get('access_token_secret')
         header_auth = kwargs.get('header_auth')
 
+        if self.auth_session is None:
+            self.auth_session = \
+                    self._construct_session(header_auth=self.header_auth)
+
         if access_token is not None:
             self.hook.access_token = access_token
         if access_token_secret is not None:
@@ -416,9 +419,10 @@ class OAuth1Service(Request):
         :param method: A string representation of the HTTP method to be used.
         :param \*\*kwargs: Optional arguments. Same as Requests.
         '''
-        response = self.auth_session.request(method,
-                                             self.request_token_url,
-                                             **kwargs)
+        auth_session = self._get_session()
+        response = auth_session.request(method,
+                                        self.request_token_url,
+                                        **kwargs)
         response.raise_for_status()
         data = dict(parse_qsl(response.content))
         return data['oauth_token'], data['oauth_token_secret']
@@ -450,13 +454,14 @@ class OAuth1Service(Request):
         request_token = kwargs.pop('request_token')
         request_token_secret = kwargs.pop('request_token_secret')
 
-        self.hook.access_token = request_token
-        self.hook.access_token_secret = request_token_secret
-        self.hook.header_auth = self.header_auth
+        auth_session = \
+            self._get_session(access_token=request_token,
+                              access_token_secret=request_token_secret,
+                              header_auth=self.header_auth)
 
-        response = self.auth_session.request(method,
-                                             self.access_token_url,
-                                             **kwargs)
+        response = auth_session.request(method,
+                                        self.access_token_url,
+                                        **kwargs)
 
         return Response(response)
 
