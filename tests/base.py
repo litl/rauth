@@ -7,6 +7,9 @@
 
 import unittest
 
+if not hasattr(unittest.TestCase, 'assertIsNotNone'):
+    import unittest2 as unittest
+
 from mock import Mock
 from requests import Request
 
