@@ -32,8 +32,7 @@ params = {'include_rts': 1,  # Include retweets
 response = twitter.get('https://api.twitter.com/1/statuses/home_timeline.json',
                        params=params,
                        access_token=access_token,
-                       access_token_secret=access_token_secret,
-                       header_auth=True)
+                       access_token_secret=access_token_secret)
 
 for i, tweet in enumerate(response.content, 1):
     handle = tweet['user']['screen_name'].encode('utf-8')
