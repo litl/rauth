@@ -379,8 +379,6 @@ class OAuth1Service(Request):
         # set to True to use header authentication for this service
         self.header_auth = header_auth
 
-        self.auth_session = None
-
     def _construct_session(self, **kwargs):
         '''Construct the request session, supplying the consumer key and
         secret.
@@ -388,30 +386,10 @@ class OAuth1Service(Request):
         :param \*\*kwargs: Extra keyworded arguments to be passed to the
             OAuth1Hook constructor.
         '''
-        self.hook = OAuth1Hook(consumer_key=self.consumer_key,
-                               consumer_secret=self.consumer_secret,
-                               **kwargs)
-        return requests.session(hooks={'pre_request': self.hook})
-
-    def _get_session(self, **kwargs):
-        '''Get the request session, update attributes on the hook instance.
-
-        :param \*\*kwargs: Updates for access_token, access_token_secret,
-            header_auth.'''
-        access_token = kwargs.get('access_token')
-        access_token_secret = kwargs.get('access_token_secret')
-        header_auth = kwargs.get('header_auth')
-
-        if self.auth_session is None:
-            self.auth_session = \
-                    self._construct_session(header_auth=self.header_auth)
-
-        if access_token is not None:
-            self.hook.access_token = access_token
-        if access_token_secret is not None:
-            self.hook.access_token_secret = access_token_secret
-        self.hook.header_auth = header_auth or self.header_auth
-        return self.auth_session
+        hook = OAuth1Hook(consumer_key=self.consumer_key,
+                          consumer_secret=self.consumer_secret,
+                          **kwargs)
+        return requests.session(hooks={'pre_request': hook})
 
     def get_request_token(self, method='GET', **kwargs):
         '''Gets a request token from the request token endpoint.
@@ -419,7 +397,7 @@ class OAuth1Service(Request):
         :param method: A string representation of the HTTP method to be used.
         :param \*\*kwargs: Optional arguments. Same as Requests.
         '''
-        auth_session = self._get_session()
+        auth_session = self._construct_session()
         response = auth_session.request(method,
                                         self.request_token_url,
                                         **kwargs)
@@ -455,9 +433,9 @@ class OAuth1Service(Request):
         request_token_secret = kwargs.pop('request_token_secret')
 
         auth_session = \
-            self._get_session(access_token=request_token,
-                              access_token_secret=request_token_secret,
-                              header_auth=self.header_auth)
+            self._construct_session(access_token=request_token,
+                                    access_token_secret=request_token_secret,
+                                    header_auth=self.header_auth)
 
         response = auth_session.request(method,
                                         self.access_token_url,
@@ -486,9 +464,9 @@ class OAuth1Service(Request):
 
         # grab session constructed on initialization
         auth_session = \
-            self._get_session(access_token=access_token,
-                              access_token_secret=access_token_secret,
-                              header_auth=header_auth)
+            self._construct_session(access_token=access_token,
+                                    access_token_secret=access_token_secret,
+                                    header_auth=header_auth)
 
         response = auth_session.request(method,
                                         url,
