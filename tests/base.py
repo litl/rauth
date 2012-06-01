@@ -8,7 +8,10 @@
 import unittest
 
 if not hasattr(unittest.TestCase, 'assertIsNotNone'):
-    import unittest2 as unittest
+    try:
+        import unittest2 as unittest
+    except ImportError:
+        raise Exception('unittest2 is required to run the rauth test suite')
 
 from mock import Mock
 from requests import Request
