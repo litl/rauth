@@ -477,7 +477,7 @@ class OAuth1Service(Request):
         '''
         access_token = kwargs.pop('access_token')
         access_token_secret = kwargs.pop('access_token_secret')
-        header_auth = kwargs.pop('header_auth', False)
+        header_auth = kwargs.pop('header_auth', self.header_auth)
         allow_redirects = kwargs.pop('allow_redirects', True)
         auth_session = \
             self._construct_session(access_token=access_token,
