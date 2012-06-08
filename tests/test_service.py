@@ -438,11 +438,12 @@ class OAuth1ServiceTestCase(RauthTestCase):
     def test_parse_utf8_qsl_non_unicode(self, mock_request):
         mock_request.return_value = self.response
 
-        self.response.content = {'ü': 'b'}
-        access_resp = self.service.get_access_token(method='GET',
-                                                    request_token='123',
-                                                    request_token_secret='456')
-        self.assertEqual({'ü': 'b'}, access_resp.content)
+        self.response.content = 'oauth_token=ö&oauth_token_secret=b'
+
+        request_token, request_token_secret = \
+                self.service.get_request_token('GET')
+        self.assertEqual(request_token, '\xc3\xb6')
+        self.assertEqual(request_token_secret, 'b')
 
     @patch.object(requests.Session, 'request')
     def test_parse_utf8_qsl_unicode(self, mock_request):
