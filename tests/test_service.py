@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
     rauth.test_oauth
     ----------------
@@ -432,3 +433,25 @@ class OAuth1ServiceTestCase(RauthTestCase):
                                                     request_token='123',
                                                     request_token_secret='456')
         self.assertEqual({'a': 'b'}, access_resp.content)
+
+    @patch.object(requests.Session, 'request')
+    def test_parse_utf8_qsl_non_unicode(self, mock_request):
+        mock_request.return_value = self.response
+
+        self.response.content = {'ü': 'b'}
+        access_resp = self.service.get_access_token(method='GET',
+                                                    request_token='123',
+                                                    request_token_secret='456')
+        self.assertEqual({'ü': 'b'}, access_resp.content)
+
+    @patch.object(requests.Session, 'request')
+    def test_parse_utf8_qsl_unicode(self, mock_request):
+        mock_request.return_value = self.response
+
+        self.response.content = unicode('oauth_token=a&oauth_token_secret=b',
+                                        'utf-8')
+
+        request_token, request_token_secret = \
+                self.service.get_request_token('GET')
+        self.assertEqual(request_token, 'a')
+        self.assertEqual(request_token_secret, 'b')

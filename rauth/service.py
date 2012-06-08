@@ -16,6 +16,14 @@ from urlparse import parse_qsl, urlsplit
 from datetime import datetime
 
 
+def parse_utf8_qsl(s):
+    if isinstance(s, unicode):
+        s = s.encode('utf-8')
+    else:
+        s = unicode(s, 'utf-8').encode('utf-8')
+    return parse_qsl(s)
+
+
 class Request(object):
     '''A container for common HTTP request methods.'''
     def get(self, url, **kwargs):
@@ -70,7 +78,7 @@ class Response(object):
             try:
                 content = json.loads(self.response.content)
             except ValueError:
-                content = dict(parse_qsl(self.response.content))
+                content = dict(parse_utf8_qsl(self.response.content))
         else:
             content = self.response.content
         return content
@@ -406,7 +414,9 @@ class OAuth1Service(Request):
 
         response.raise_for_status()
 
-        data = dict(parse_qsl(response.content))
+        encoded_content = response.content
+
+        data = dict(parse_utf8_qsl(encoded_content))
         return data['oauth_token'], data['oauth_token_secret']
 
     def get_authorize_url(self, request_token, **params):
