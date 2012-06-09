@@ -438,23 +438,33 @@ class OAuth1ServiceTestCase(RauthTestCase):
     def test_parse_utf8_qsl_non_unicode(self, mock_request):
         mock_request.return_value = self.response
 
-        self.response.content = 'oauth_token=ö&oauth_token_secret=b'
+        self.response.content = 'oauth_token=\xc3\xbc&oauth_token_secret=b'
 
         request_token, request_token_secret = \
                 self.service.get_request_token('GET')
-        self.assertEqual(request_token, '\xc3\xb6')
+        self.assertEqual(request_token, u'\xfc')
+        self.assertEqual(request_token_secret, 'b')
+
+    @patch.object(requests.Session, 'request')
+    def test_parse_utf8_qsl_unicode_encoded(self, mock_request):
+        mock_request.return_value = self.response
+
+        self.response.content = u'oauth_token=\xfc&oauth_token_secret=b'
+
+        request_token, request_token_secret = \
+                self.service.get_request_token('GET')
+        self.assertEqual(request_token, u'\xfc')
         self.assertEqual(request_token_secret, 'b')
 
     @patch.object(requests.Session, 'request')
     def test_parse_utf8_qsl_unicode(self, mock_request):
         mock_request.return_value = self.response
 
-        self.response.content = unicode('oauth_token=a&oauth_token_secret=b',
-                                        'utf-8')
+        self.response.content = u'oauth_token=ü&oauth_token_secret=b'
 
         request_token, request_token_secret = \
                 self.service.get_request_token('GET')
-        self.assertEqual(request_token, 'a')
+        self.assertEqual(request_token, u'\xfc')
         self.assertEqual(request_token_secret, 'b')
 
     @patch.object(requests.Session, 'request')
@@ -468,6 +478,7 @@ class OAuth1ServiceTestCase(RauthTestCase):
                                         '/',
                                         access_token='a',
                                         access_token_secret='b')
-        expected = {'username': 'joeshaw \xc3\xa9\xc3\xa9\xc3\xa9',
-                    'fullname': 'Joe Shaw'}
+
+        expected = {u'username': u'joeshaw \xe9\xe9\xe9',
+                    u'fullname': u'Joe Shaw'}
         self.assertEqual(response.content, expected)

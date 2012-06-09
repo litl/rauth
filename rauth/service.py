@@ -17,11 +17,19 @@ from datetime import datetime
 
 
 def parse_utf8_qsl(s):
-    if isinstance(s, unicode):
-        s = s.encode('utf-8')
-    else:
-        s = unicode(s, 'utf-8').encode('utf-8')
-    return parse_qsl(s)
+    d = dict(parse_qsl(s))
+
+    for k, v in d.items():
+        if isinstance(k, unicode):
+            k = k.encode('utf-8')
+        else:
+            k = unicode(k, 'utf-8').encode('utf-8')
+        if isinstance(v, unicode):
+            v = v.encode('utf-8')
+        else:
+            v = unicode(v, 'utf-8').encode('utf-8')
+        d[k.decode('utf-8')] = v.decode('utf-8')
+    return d
 
 
 class Request(object):
@@ -78,7 +86,7 @@ class Response(object):
             try:
                 content = json.loads(self.response.content)
             except ValueError:
-                content = dict(parse_utf8_qsl(self.response.content))
+                content = parse_utf8_qsl(self.response.content)
         else:
             content = self.response.content
         return content
@@ -414,9 +422,7 @@ class OAuth1Service(Request):
 
         response.raise_for_status()
 
-        encoded_content = response.content
-
-        data = dict(parse_utf8_qsl(encoded_content))
+        data = parse_utf8_qsl(response.content)
         return data['oauth_token'], data['oauth_token_secret']
 
     def get_authorize_url(self, request_token, **params):
