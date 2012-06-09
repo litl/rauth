@@ -464,8 +464,10 @@ class OAuth1ServiceTestCase(RauthTestCase):
         self.response.content = 'fullname=Joe%20Shaw&username=' \
                                 'joeshaw%20%C3%A9%C3%A9%C3%A9'
 
-        response = self.service.request('GET', '/', access_token='a',
-                access_token_secret='b')
+        response = self.service.request('GET',
+                                        '/',
+                                        access_token='a',
+                                        access_token_secret='b')
         expected = {'username': 'joeshaw \xc3\xa9\xc3\xa9\xc3\xa9',
                     'fullname': 'Joe Shaw'}
         self.assertEqual(response.content, expected)
