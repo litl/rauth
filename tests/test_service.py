@@ -456,3 +456,16 @@ class OAuth1ServiceTestCase(RauthTestCase):
                 self.service.get_request_token('GET')
         self.assertEqual(request_token, 'a')
         self.assertEqual(request_token_secret, 'b')
+
+    @patch.object(requests.Session, 'request')
+    def test_parse_utf8_qsl_joe(self, mock_request):
+        mock_request.return_value = self.response
+
+        self.response.content = 'fullname=Joe%20Shaw&username=' \
+                                'joeshaw%20%C3%A9%C3%A9%C3%A9'
+
+        response = self.service.request('GET', '/', access_token='a',
+                access_token_secret='b')
+        expected = {'username': 'joeshaw \xc3\xa9\xc3\xa9\xc3\xa9',
+                    'fullname': 'Joe Shaw'}
+        self.assertEqual(response.content, expected)
