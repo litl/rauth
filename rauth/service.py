@@ -420,7 +420,8 @@ class OAuth1Service(Request):
                                         self.request_token_url,
                                         **kwargs)
 
-        response.raise_for_status()
+        if not response.ok:
+            return response.content
 
         data = parse_utf8_qsl(response.content)
         return data['oauth_token'], data['oauth_token_secret']

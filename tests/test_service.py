@@ -281,14 +281,13 @@ class OAuth1ServiceTestCase(RauthTestCase):
     @patch.object(requests.Session, 'request')
     def test_get_request_token_bad_response(self, mock_request):
         self.response.ok = False
+        self.response.content = 'Oops, something went wrong :('
         self.response.raise_for_status = self.raise_for_status
+
         mock_request.return_value = self.response
 
-        with self.assertRaises(Exception) as e:
-            self.service.get_request_token('GET')
-            self.assertEqual('Response not OK!', str(e))
-
-        self.assertRaises(Exception, self.service.get_request_token, ('GET'))
+        response = self.service.get_request_token('GET')
+        self.assertEqual(response, 'Oops, something went wrong :(')
 
     def test_get_authorize_url(self):
         authorize_url = self.service.get_authorize_url(request_token='123')
@@ -316,16 +315,16 @@ class OAuth1ServiceTestCase(RauthTestCase):
     @patch.object(requests.Session, 'request')
     def test_get_access_token_bad_response(self, mock_request):
         self.response.ok = False
-        self.response.raise_for_status = self.raise_for_status
+        self.response.content = \
+                json.dumps(dict(error='Oops, something went wrong :('))
         mock_request.return_value = self.response
 
-        with self.assertRaises(Exception) as e:
-            self.service.get_access_token('123', '456', 'GET')
-            self.assertEqual('Response not OK!', str(e))
+        response = self.service.get_access_token('GET',
+                                                 request_token='123',
+                                                 request_token_secret='456')
 
-        self.assertRaises(Exception,
-                          self.service.get_access_token,
-                          ('123', '456', 'GET'))
+        expected = dict(error='Oops, something went wrong :(')
+        self.assertEqual(response.content, expected)
 
     def test_get_authenticated_session(self):
         auth_session = \
