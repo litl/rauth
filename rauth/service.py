@@ -82,13 +82,10 @@ class Response(object):
         # trust services to be honest with this header so for now the
         # following is more robust and less prone to fragility when the header
         # isn't set properly
-        print 'test'
-        print type(self.response.content)
         if isinstance(self.response.content, basestring):
             try:
                 content = json.loads(self.response.content)
             except ValueError:
-                print 'parse'
                 content = parse_utf8_qsl(self.response.content)
         else:
             content = self.response.content
