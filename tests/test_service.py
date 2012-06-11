@@ -481,3 +481,18 @@ class OAuth1ServiceTestCase(RauthTestCase):
         expected = {u'username': u'joeshaw \xe9\xe9\xe9',
                     u'fullname': u'Joe Shaw'}
         self.assertEqual(response.content, expected)
+
+    @patch.object(requests.Session, 'request')
+    def test_parse_utf8_qsl_dup_keys(self, mock_request):
+        mock_request.return_value = self.response
+
+        # test that we don't end up with deplicate keys
+        self.response.content = u'\xe2\x82\xac=euro'
+
+        response = self.service.request('GET',
+                                        '/',
+                                        access_token='a',
+                                        access_token_secret='b')
+
+        expected = {u'\xe2\x82\xac': u'euro'}
+        self.assertEqual(response.content, expected)
