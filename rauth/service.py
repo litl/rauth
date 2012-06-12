@@ -23,6 +23,7 @@ def parse_utf8_qsl(s):
         if isinstance(k, unicode) and isinstance(v, unicode):
             # skip this iteration if we have no keys or values to update
             continue
+        d.pop(k)
         if not isinstance(k, unicode):
             k = unicode(k, 'utf-8')
         if not isinstance(v, unicode):

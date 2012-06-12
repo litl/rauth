@@ -283,11 +283,11 @@ class OAuth1ServiceTestCase(RauthTestCase):
         self.response.ok = False
         self.response.content = 'Oops, something went wrong :('
         self.response.raise_for_status = self.raise_for_status
-
         mock_request.return_value = self.response
 
-        response = self.service.get_request_token('GET')
-        self.assertEqual(response, 'Oops, something went wrong :(')
+        with self.assertRaises(Exception) as e:
+            self.service.get_request_token('GET')
+        self.assertEqual(str(e.exception), 'Response not OK!')
 
     def test_get_authorize_url(self):
         authorize_url = self.service.get_authorize_url(request_token='123')
@@ -487,12 +487,12 @@ class OAuth1ServiceTestCase(RauthTestCase):
         mock_request.return_value = self.response
 
         # test that we don't end up with deplicate keys
-        self.response.content = u'\xe2\x82\xac=euro'
+        self.response.content = '€=euro'
 
         response = self.service.request('GET',
                                         '/',
                                         access_token='a',
                                         access_token_secret='b')
 
-        expected = {u'\xe2\x82\xac': u'euro'}
+        expected = {u'\u20ac': u'euro'}
         self.assertEqual(response.content, expected)
