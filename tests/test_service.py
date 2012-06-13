@@ -251,6 +251,14 @@ class OAuth1ServiceTestCase(RauthTestCase):
         self.response.content = 'oauth_token=123&oauth_token_secret=456'
 
     @patch.object(requests.Session, 'request')
+    def test_get_raw_request_token(self, mock_request):
+        mock_request.return_value = self.response
+
+        resp = self.service.get_raw_request_token('GET')
+        self.assertEqual(resp, {'oauth_token': '123',
+                                'oauth_token_secret': '456'})
+
+    @patch.object(requests.Session, 'request')
     def test_get_request_token(self, mock_request):
         mock_request.return_value = self.response
 
