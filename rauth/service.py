@@ -407,8 +407,12 @@ class OAuth1Service(Request):
                           **kwargs)
         return requests.session(hooks={'pre_request': hook})
 
-    def get_request_token(self, method='GET', **kwargs):
-        '''Gets a request token from the request token endpoint.
+    def get_raw_request_token(self, method='GET', **kwargs):
+        '''Gets a response from the request token endpoint.
+
+        Returns the entire parsed response, without trying to pull out the
+        token and secret.  Use this if your endpoint doesn't use the usual
+        names for 'oauth_token' and 'oauth_token_secret'.
 
         :param method: A string representation of the HTTP method to be used.
         :param \*\*kwargs: Optional arguments. Same as Requests.
@@ -426,7 +430,15 @@ class OAuth1Service(Request):
 
         response.raise_for_status()
 
-        data = parse_utf8_qsl(response.content)
+        return parse_utf8_qsl(response.content)
+
+    def get_request_token(self, method='GET', **kwargs):
+        '''Gets a request token from the request token endpoint.
+
+        :param method: A string representation of the HTTP method to be used.
+        :param \*\*kwargs: Optional arguments. Same as Requests.
+        '''
+        data = self.get_raw_request_token(method=method, **kwargs)
         return data['oauth_token'], data['oauth_token_secret']
 
     def get_authorize_url(self, request_token, **params):
