@@ -72,7 +72,7 @@ Here is an example using the OAuth 1.0/a service wrapper:
 
 Now it's possible to obtain request tokens via 
 `service.get_request_token('GET')`, generate authorization URIs 
-`service.get_authorization_url(request_token)`, and finally obtain access
+`service.get_authorize_url(request_token)`, and finally obtain access
 tokens `service.get_access_token(request_token, request_token_secret, 'GET')`.
 
 Additionally, an authenticated session, wrapped with the necessary OAuth data
