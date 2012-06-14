@@ -307,8 +307,12 @@ class OAuth2Service(Request):
             # raise an error because credentials must be sent in this method
             raise ValueError('Either params or data dict missing.')
 
-        if key is not None:
-            grant_type = kwargs[key].get('grant_type', 'authorization_code')
+        grant_type = kwargs[key].get('grant_type', 'authorization_code')
+
+        # client_credentials flow uses basic authentication for a token
+        if grant_type == 'client_credentials':
+            kwargs['auth'] = (self.consumer_key, self.consumer_secret)
+        else:
             kwargs[key].update(client_id=self.consumer_key,
                                client_secret=self.consumer_secret,
                                grant_type=grant_type)
