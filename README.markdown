@@ -88,7 +88,7 @@ The full example is in [examples/twitter-timeline.py](https://github.com/litl/ra
 
 ## Documentation
 
-The Sphinx-compiled documentation is available here: [http://packages.python.org/rauth/](http://packages.python.org/rauth/)
+The Sphinx-compiled documentation is available here: [http://readthedocs.org/docs/rauth/en/latest/](http://readthedocs.org/docs/rauth/en/latest/)
 
 
 ## Contribution
