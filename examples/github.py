@@ -24,7 +24,7 @@ access_token = \
         github.get_access_token('POST', data=data).content['access_token']
 
 # make a request using the access token
-user = github.get('https://github.com/api/v2/json/user/show',
-                  params=dict(access_token=access_token)).content['user']
+user = github.get('https://api.github.com/user',
+                  params=dict(access_token=access_token)).content
 
 print 'currently logged in as: ' + user['login']
