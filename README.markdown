@@ -96,9 +96,9 @@ The Sphinx-compiled documentation is available here: [http://packages.python.org
 Anyone who would like to contribute to the project is more than welcome.
 Basically there's just a few steps to getting started:
 
-    1. Fork this repo
-    2. Make your changes and write a test for them
-    3. Add yourself to the AUTHORS file and submit a pull request!
+1. Fork this repo
+2. Make your changes and write a test for them
+3. Add yourself to the AUTHORS file and submit a pull request!
 
 Note: it's important that the code base remain well-tested so to this end it's
 generaly advisable to include a unit test. To make sure that we retain 100%
