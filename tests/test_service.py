@@ -175,6 +175,14 @@ class OAuth2ServiceTestCase(RauthTestCase):
         self.assertEqual(response['access_token'], '321')
 
     @patch.object(requests.Session, 'request')
+    def test_get_access_token_client_credentials(self, mock_request):
+        mock_request.return_value = self.response
+        data = dict(grant_type='client_credentials')
+        response = \
+            self.service.get_access_token(data=data).content
+        self.assertEqual(response['access_token'], '321')
+
+    @patch.object(requests.Session, 'request')
     def test_request(self, mock_request):
         self.response.content = json.dumps({'status': 'ok'})
         self.response.headers['content-type'] = 'json'
