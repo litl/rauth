@@ -103,8 +103,8 @@ Basically there's just a few steps to getting started:
 Note: it's important that the code base remain well-tested so to this end it's
 generaly advisable to include a unit test. To make sure that we retain 100%
 coverage run `python setup.py test` before making a pull request. You'll need
-to make sure you have pep8, coverage, and nose installed; `pip install pep8
-coverage nose`.
+to make sure you have pyflakes, pep8, coverage, and nose installed; `pip install
+pyflakes pep8 coverage nose`.
 
 ## Copyright and License
 
