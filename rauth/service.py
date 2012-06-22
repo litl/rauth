@@ -134,6 +134,9 @@ class OflyService(Request):
 
         self.authorize_url = authorize_url
 
+        # wrap requests in a Requests session
+        self.session = requests.session()
+
     def _micro_to_milliseconds(self, microseconds):
         return microseconds / self.MICRO_MILLISECONDS_DELTA
 
@@ -212,15 +215,15 @@ class OflyService(Request):
                                            header_auth,
                                            **params)
 
-            response = requests.request(method,
-                                        url + '?' + params,
-                                        headers=headers)
+            response = self.session(method,
+                                    url + '?' + params,
+                                    headers=headers)
         else:
             params = self._sha1_sign_params(url, **params)
 
-            response = requests.request(method,
-                                        url + '?' + params,
-                                        data=data)
+            response = self.session(method,
+                                    url + '?' + params,
+                                    data=data)
 
         return Response(response)
 
@@ -277,6 +280,8 @@ class OAuth2Service(Request):
         if access_token is not None:
             self.access_token = access_token
 
+        self.session = requests.session()
+
     def get_authorize_url(self, response_type='code', **params):
         '''Returns a proper authorize URL.
 
@@ -317,7 +322,7 @@ class OAuth2Service(Request):
                                client_secret=self.consumer_secret,
                                grant_type=grant_type)
 
-        response = requests.request(method, self.access_token_url, **kwargs)
+        response = self.session(method, self.access_token_url, **kwargs)
 
         return Response(response)
 
@@ -329,7 +334,7 @@ class OAuth2Service(Request):
         :param url: The resource to be requested.
         :param \*\*kwargs: Optional arguments. Same as Requests.
         '''
-        response = requests.request(method, url, **kwargs)
+        response = self.session(method, url, **kwargs)
         return Response(response)
 
 
