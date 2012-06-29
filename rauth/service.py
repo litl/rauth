@@ -221,9 +221,9 @@ class OflyService(Request):
         else:
             params = self._sha1_sign_params(url, **params)
 
-            response = self.session(method,
-                                    url + '?' + params,
-                                    data=data)
+            response = self.session.request(method,
+                                            url + '?' + params,
+                                            data=data)
 
         return Response(response)
 
@@ -322,7 +322,9 @@ class OAuth2Service(Request):
                                client_secret=self.consumer_secret,
                                grant_type=grant_type)
 
-        response = self.session(method, self.access_token_url, **kwargs)
+        response = self.session.request(method,
+                                        self.access_token_url,
+                                        **kwargs)
 
         return Response(response)
 
@@ -334,7 +336,7 @@ class OAuth2Service(Request):
         :param url: The resource to be requested.
         :param \*\*kwargs: Optional arguments. Same as Requests.
         '''
-        response = self.session(method, url, **kwargs)
+        response = self.session.request(method, url, **kwargs)
         return Response(response)
 
 
