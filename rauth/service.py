@@ -215,9 +215,9 @@ class OflyService(Request):
                                            header_auth,
                                            **params)
 
-            response = self.session(method,
-                                    url + '?' + params,
-                                    headers=headers)
+            response = self.session.request(method,
+                                            url + '?' + params,
+                                            headers=headers)
         else:
             params = self._sha1_sign_params(url, **params)
 
