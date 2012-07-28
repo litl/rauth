@@ -32,7 +32,7 @@ simply import the service container object:
 
 .. code-block:: python
     
-    from rauth import OAuth2Service
+    from rauth.service import OAuth2Service
 
     service = OAuth2Service(
                name='example',
@@ -60,7 +60,7 @@ Here is an example using the OAuth 1.0/a service wrapper:
 
 .. code-block:: python
 
-    from rauth import OAuth1Service
+    from rauth.service import OAuth1Service
 
     service = OAuth1Service(
                     'example',
@@ -85,7 +85,7 @@ wanted. It can be used as follows:
 
 .. code-block:: python
 
-    from rauth import OAuthHook
+    from rauth.service import OAuthHook
     import requests
     
     # setup the OAuth Hook
