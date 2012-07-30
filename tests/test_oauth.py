@@ -9,8 +9,7 @@
 from base import RauthTestCase
 from rauth.oauth import (HmacSha1Signature, RsaSha1Signature,
                          PlaintextSignature)
-
-from urllib import urlencode
+from rauth.compat import urlencode
 
 
 class OAuthTestHmacSha1Case(RauthTestCase):

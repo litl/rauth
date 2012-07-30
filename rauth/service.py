@@ -14,8 +14,7 @@ from rauth.hook import OAuth1Hook
 from rauth.utils import absolute_url, parse_utf8_qsl
 
 from datetime import datetime
-from urllib import quote, urlencode
-from urlparse import urlsplit
+from rauth.compat import urlsplit, quote, urlencode, basestring
 
 DEFAULT_TIMEOUT = 300
 

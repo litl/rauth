@@ -6,7 +6,7 @@
     General utilities.
 '''
 
-from urlparse import parse_qsl
+from rauth.compat import parse_qsl, unicode
 
 
 def absolute_url(url):

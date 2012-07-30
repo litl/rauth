@@ -8,9 +8,8 @@
 
 from base import RauthTestCase
 from rauth.hook import OAuth1Hook
-
+from rauth.compat import urlencode
 from mock import Mock
-from urllib import urlencode
 
 
 class OAuthHookTestCase(RauthTestCase):

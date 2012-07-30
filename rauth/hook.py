@@ -11,10 +11,9 @@ import time
 import random
 
 from hashlib import sha1
-from urlparse import parse_qsl, urlsplit, urlunsplit
-from urllib import quote, urlencode
 
 from rauth.oauth import HmacSha1Signature
+from rauth.compat import parse_qsl, urlsplit, urlunsplit, quote, urlencode
 
 
 class OAuth1Hook(object):

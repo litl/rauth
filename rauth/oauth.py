@@ -10,8 +10,8 @@ import base64
 import hmac
 
 from hashlib import sha1
-from urlparse import parse_qsl, urlsplit, urlunsplit
-from urllib import quote, urlencode
+from rauth.compat import (parse_qsl, urlsplit, urlunsplit, quote, urlencode,
+                          unicode)
 
 
 class SignatureMethod(object):
