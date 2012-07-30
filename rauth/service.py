@@ -185,9 +185,10 @@ class OflyService(Service):
 
         if not header_auth:
             # don't use header authentication
-            params = dict(params.items() + ofly_params.items())
-            return self._sort_params(params)
-
+            merged = {}
+            merged.update(params)
+            merged.update(ofly_params)
+            return self._sort_params(merged)
         # return the raw ofly_params for use in the header
         return self._sort_params(params), ofly_params
 
