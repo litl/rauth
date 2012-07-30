@@ -19,7 +19,7 @@ class OAuthTestHmacSha1Case(RauthTestCase):
                                                    self.hook.consumer_key,
                                                    self.hook.access_token)
         self.assertIsNotNone(oauth_signature)
-        self.assertTrue(isinstance(oauth_signature, str))
+        self.assertIsInstance(oauth_signature, str)
 
     def test_normalize_request_parameters_params(self):
         # params as a dict

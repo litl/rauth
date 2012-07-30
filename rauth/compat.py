@@ -16,9 +16,17 @@ except ImportError:  # pragma: no cover
 try:  # pragma: no cover
     unicode = unicode
     basestring = basestring
+    hstr = lambda x: x
 except NameError:  # pragma: nocover
     unicode = str
     basestring = str
+
+    def hstr(s):
+        '''Converts argument to a type suitable for feeding hash methods.
+
+            :param s: object to be converted
+        '''
+        return bytes(s, 'ascii')
 
 __all__ = (
     parse_qsl,
@@ -27,5 +35,6 @@ __all__ = (
     quote,
     urlencode,
     unicode,
-    basestring
+    basestring,
+    hstr
 )

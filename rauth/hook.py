@@ -13,7 +13,8 @@ import random
 from hashlib import sha1
 
 from rauth.oauth import HmacSha1Signature
-from rauth.compat import parse_qsl, urlsplit, urlunsplit, quote, urlencode
+from rauth.compat import (parse_qsl, urlsplit, urlunsplit, quote, urlencode,
+                          hstr)
 
 
 class OAuth1Hook(object):
@@ -165,9 +166,10 @@ class OAuth1Hook(object):
         OAuth provider will expect.'''
         oauth_params = {}
 
+        random_str = str(random.random())
         oauth_params['oauth_consumer_key'] = self.consumer_key
         oauth_params['oauth_timestamp'] = int(time.time())
-        oauth_params['oauth_nonce'] = sha1(str(random.random())).hexdigest()
+        oauth_params['oauth_nonce'] = sha1(hstr(random_str)).hexdigest()
         oauth_params['oauth_version'] = self.OAUTH_VERSION
 
         if self.access_token is not None:

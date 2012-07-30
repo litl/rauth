@@ -14,6 +14,8 @@ def absolute_url(url):
 
 
 def parse_utf8_qsl(s):
+    if unicode is str and not isinstance(s, unicode):
+        s = unicode(s, 'utf-8')
     d = dict(parse_qsl(s))
 
     for k, v in d.items():

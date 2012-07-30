@@ -31,7 +31,7 @@ class RauthTestCase(unittest.TestCase):
 
         # mock response object
         response = Mock()
-        response.content = 'access_token=321'
+        response.text = 'access_token=321'
         response.headers = {'content-type': 'text/html; charset=UTF-8'}
         response.ok = True
         response.status_code = 200

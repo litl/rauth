@@ -59,7 +59,7 @@ class OflyServiceTestCase(RauthTestCase):
 
     @patch.object(requests.Session, 'request')
     def test_request(self, mock_request):
-        self.response.content = json.dumps({'status': 'ok'})
+        self.response.text = json.dumps({'status': 'ok'})
         self.response.headers['content-type'] = 'json'
         mock_request.return_value = self.response
         response = self.service.request('GET',
@@ -68,7 +68,7 @@ class OflyServiceTestCase(RauthTestCase):
 
     @patch.object(requests.Session, 'request')
     def test_get(self, mock_request):
-        self.response.content = json.dumps({'status': 'ok'})
+        self.response.text = json.dumps({'status': 'ok'})
         self.response.headers['content-type'] = 'json'
         mock_request.return_value = self.response
         response = self.service.get('http://example.com/endpoint').content
@@ -76,7 +76,7 @@ class OflyServiceTestCase(RauthTestCase):
 
     @patch.object(requests.Session, 'request')
     def test_post(self, mock_request):
-        self.response.content = json.dumps({'status': 'ok'})
+        self.response.text = json.dumps({'status': 'ok'})
         self.response.headers['content-type'] = 'json'
         mock_request.return_value = self.response
         response = self.service.post('http://example.com/endpoint').content
@@ -84,7 +84,7 @@ class OflyServiceTestCase(RauthTestCase):
 
     @patch.object(requests.Session, 'request')
     def test_put(self, mock_request):
-        self.response.content = json.dumps({'status': 'ok'})
+        self.response.text = json.dumps({'status': 'ok'})
         self.response.headers['content-type'] = 'json'
         mock_request.return_value = self.response
         response = self.service.put('http://example.com/endpoint').content
@@ -92,7 +92,7 @@ class OflyServiceTestCase(RauthTestCase):
 
     @patch.object(requests.Session, 'request')
     def test_delete(self, mock_request):
-        self.response.content = json.dumps({'status': 'ok'})
+        self.response.text = json.dumps({'status': 'ok'})
         self.response.headers['content-type'] = 'json'
         mock_request.return_value = self.response
         response = self.service.delete('http://example.com/endpoint').content
@@ -108,7 +108,7 @@ class OflyServiceTestCase(RauthTestCase):
 
     @patch.object(requests.Session, 'request')
     def test_request_header_auth(self, mock_request):
-        self.response.content = json.dumps({'status': 'ok'})
+        self.response.text = json.dumps({'status': 'ok'})
         self.response.headers['content-type'] = 'json'
         mock_request.return_value = self.response
         response = self.service.request('GET',
@@ -260,7 +260,7 @@ class OAuth2ServiceTestCase(RauthTestCase):
 
     @patch.object(requests.Session, 'request')
     def test_request(self, mock_request):
-        self.response.content = json.dumps({'status': 'ok'})
+        self.response.text = json.dumps({'status': 'ok'})
         self.response.headers['content-type'] = 'json'
         mock_request.return_value = self.response
         method = 'GET'
@@ -274,7 +274,7 @@ class OAuth2ServiceTestCase(RauthTestCase):
 
     @patch.object(requests.Session, 'request')
     def test_get(self, mock_request):
-        self.response.content = json.dumps({'status': 'ok'})
+        self.response.text = json.dumps({'status': 'ok'})
         self.response.headers['content-type'] = 'json'
         mock_request.return_value = self.response
         response = self.service.get('http://example.com/endpoint',
@@ -283,7 +283,7 @@ class OAuth2ServiceTestCase(RauthTestCase):
 
     @patch.object(requests.Session, 'request')
     def test_post(self, mock_request):
-        self.response.content = json.dumps({'status': 'ok'})
+        self.response.text = json.dumps({'status': 'ok'})
         self.response.headers['content-type'] = 'json'
         mock_request.return_value = self.response
         response = self.service.post('http://example.com/endpoint',
@@ -292,7 +292,7 @@ class OAuth2ServiceTestCase(RauthTestCase):
 
     @patch.object(requests.Session, 'request')
     def test_put(self, mock_request):
-        self.response.content = json.dumps({'status': 'ok'})
+        self.response.text = json.dumps({'status': 'ok'})
         self.response.headers['content-type'] = 'json'
         mock_request.return_value = self.response
         response = self.service.put('http://example.com/endpoint',
@@ -301,7 +301,7 @@ class OAuth2ServiceTestCase(RauthTestCase):
 
     @patch.object(requests.Session, 'request')
     def test_delete(self, mock_request):
-        self.response.content = json.dumps({'status': 'ok'})
+        self.response.text = json.dumps({'status': 'ok'})
         self.response.headers['content-type'] = 'json'
         mock_request.return_value = self.response
         response = self.service.delete('http://example.com/endpoint',
@@ -341,7 +341,7 @@ class OAuth1ServiceTestCase(RauthTestCase):
         self.service = service
 
         # mock response content
-        self.response.content = 'oauth_token=123&oauth_token_secret=456'
+        self.response.text = 'oauth_token=123&oauth_token_secret=456'
 
     def test_init_with_access_token(self):
         service = OAuth1Service(
@@ -483,7 +483,7 @@ class OAuth1ServiceTestCase(RauthTestCase):
     @patch.object(requests.Session, 'request')
     def test_get_access_token_bad_response(self, mock_request):
         self.response.ok = False
-        self.response.content = \
+        self.response.text = \
             json.dumps(dict(error='Oops, something went wrong :('))
         mock_request.return_value = self.response
 
@@ -508,7 +508,7 @@ class OAuth1ServiceTestCase(RauthTestCase):
             self.service.get_authenticated_session(access_token='123',
                                                    access_token_secret='456')
 
-        response = auth_session.get('http://example.com/foobar').content
+        response = auth_session.get('http://example.com/foobar').text
         self.assertIsNotNone(response)
         self.assertEqual('oauth_token=123&oauth_token_secret=456', response)
 
@@ -575,14 +575,14 @@ class OAuth1ServiceTestCase(RauthTestCase):
         self.response.headers['content-type'] = 'json'
         mock_request.return_value = self.response
 
-        self.response.content = json.dumps({'a': 'b'})
+        self.response.text = json.dumps({'a': 'b'})
         access_resp = self.service.get_access_token(method='GET',
                                                     request_token='123',
                                                     request_token_secret='456')
         self.assertEqual({'a': 'b'}, access_resp.content)
 
         # test the case of a non-list, non-dict
-        self.response.content = json.dumps(42)
+        self.response.text = json.dumps(42)
         access_resp = self.service.get_access_token(method='GET',
                                                     request_token='123',
                                                     request_token_secret='456')
@@ -592,7 +592,7 @@ class OAuth1ServiceTestCase(RauthTestCase):
     def test_other_response(self, mock_request):
         mock_request.return_value = self.response
 
-        self.response.content = {'a': 'b'}
+        self.response.text = {'a': 'b'}
         access_resp = self.service.get_access_token(method='GET',
                                                     request_token='123',
                                                     request_token_secret='456')
@@ -602,7 +602,7 @@ class OAuth1ServiceTestCase(RauthTestCase):
     def test_parse_utf8_qsl_non_unicode(self, mock_request):
         mock_request.return_value = self.response
 
-        self.response.content = 'oauth_token=\xc3\xbc&oauth_token_secret=b'
+        self.response.text = b'oauth_token=\xc3\xbc&oauth_token_secret=b'
 
         request_token, request_token_secret = \
             self.service.get_request_token('GET')
@@ -613,7 +613,7 @@ class OAuth1ServiceTestCase(RauthTestCase):
     def test_parse_utf8_qsl_unicode_encoded(self, mock_request):
         mock_request.return_value = self.response
 
-        self.response.content = u'oauth_token=\xfc&oauth_token_secret=b'
+        self.response.text = u'oauth_token=\xfc&oauth_token_secret=b'
 
         request_token, request_token_secret = \
             self.service.get_request_token('GET')
@@ -624,7 +624,7 @@ class OAuth1ServiceTestCase(RauthTestCase):
     def test_parse_utf8_qsl_unicode(self, mock_request):
         mock_request.return_value = self.response
 
-        self.response.content = u'oauth_token=ü&oauth_token_secret=b'
+        self.response.text = u'oauth_token=ü&oauth_token_secret=b'
 
         request_token, request_token_secret = \
             self.service.get_request_token('GET')
@@ -635,7 +635,7 @@ class OAuth1ServiceTestCase(RauthTestCase):
     def test_parse_utf8_qsl_joe(self, mock_request):
         mock_request.return_value = self.response
 
-        self.response.content = 'fullname=Joe%20Shaw&username=' \
+        self.response.text = 'fullname=Joe%20Shaw&username=' \
                                 'joeshaw%20%C3%A9%C3%A9%C3%A9'
 
         response = self.service.request('GET',
@@ -645,14 +645,14 @@ class OAuth1ServiceTestCase(RauthTestCase):
 
         expected = {u'username': u'joeshaw \xe9\xe9\xe9',
                     u'fullname': u'Joe Shaw'}
-        self.assertEqual(response.content, expected)
+        self.assertEqual(expected, response.content)
 
     @patch.object(requests.Session, 'request')
     def test_parse_utf8_qsl_dup_keys(self, mock_request):
         mock_request.return_value = self.response
 
         # test that we don't end up with deplicate keys
-        self.response.content = '€=euro'
+        self.response.text = '€=euro'
 
         response = self.service.request('GET',
                                         '/',
