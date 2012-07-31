@@ -149,7 +149,7 @@ class OflyService(Service):
                                           authorize_url)
 
     def _micro_to_milliseconds(self, microseconds):
-        return microseconds / self.MICRO_MILLISECONDS_DELTA
+        return microseconds // self.MICRO_MILLISECONDS_DELTA
 
     def _sort_params(self, params):
         def sorting():
