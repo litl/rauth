@@ -160,6 +160,15 @@ class OAuthHookTestCase(RauthTestCase):
         self.assertTrue(isinstance(self.request.data, str))
         self.assertTrue(('foo', 'bar') in self.request.params.items())
 
+    def test_literaljson_data_as_string(self):
+        oauth = OAuth1Hook('123', '345')
+        data = '{"foor": "bar"}'
+        self.request.data = data
+        self.assertTrue(isinstance(self.request.data, str))
+        oauth(self.request)
+        self.assertTrue(isinstance(self.request.data, str))
+        self.assertEqual(self.request.data, data)
+
     def test_params_or_data_as_lists_post(self):
         self.request.method = 'POST'
         oauth = OAuth1Hook('123', '345')
@@ -181,6 +190,16 @@ class OAuthHookTestCase(RauthTestCase):
         oauth(self.request)
         self.assertTrue(isinstance(self.request.data, dict))
         self.assertTrue(('foo', 'bar') in self.request.data.items())
+
+    def test_literaljson_data_as_string_post(self):
+        self.request.method = 'POST'
+        oauth = OAuth1Hook('123', '345', header_auth=True)
+        data = '{"foor": "bar"}'
+        self.request.data = data
+        self.assertTrue(isinstance(self.request.data, str))
+        oauth(self.request)
+        self.assertTrue(isinstance(self.request.data, str))
+        self.assertEqual(self.request.data, data)
 
     def test_custom_signature_object(self):
         some_signature = Mock()
