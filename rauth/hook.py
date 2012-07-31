@@ -142,22 +142,17 @@ class OAuth1Hook(object):
         # special handling if we're handed a string
         if params_is_string:
             params = dict(parse_qsl(request.params))
-        if data_is_string:
-            data = dict(parse_qsl(request.data))
 
         # remove any oauth parameters and set them as attributes
         if oauth_param in params.keys():
             setattr(self, oauth_param, params.pop(oauth_param))
-        if oauth_param in data.keys():
+        if not data_is_string and oauth_param in data.keys():
             setattr(self, oauth_param, data.pop(oauth_param))
 
-        # re-encode the params or data if they were a string, without any oauth
-        # params
+        # re-encode the params if they were a string, without any oauth
         if params_is_string:
             request.params = urlencode(params)
 
-        if data_is_string:
-            request.data = urlencode(data)
 
     @property
     def oauth_params(self):
