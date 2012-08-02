@@ -14,7 +14,7 @@ if sys.argv[-1] == 'test':
     os.system('pyflakes rauth tests; '
               'pep8 rauth tests && '
               + nosetests)
-    sys.exit()
+    sys.exit(1)
 
 setup(
     name='rauth',

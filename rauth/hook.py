@@ -153,7 +153,6 @@ class OAuth1Hook(object):
         if params_is_string:
             request.params = urlencode(params)
 
-
     @property
     def oauth_params(self):
         '''This method handles generating the necessary URL parameters the
