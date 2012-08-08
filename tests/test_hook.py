@@ -42,6 +42,19 @@ class OAuthHookTestCase(RauthTestCase):
         self.assertTrue('oauth_version="1.0"' in auth_header)
         self.assertTrue('oauth_signature_method="HMAC-SHA1"' in auth_header)
 
+    def test_oauth_header_auth_request_token(self):
+        oauth = OAuth1Hook('123', '345', header_auth=True, default_oauth_callback='oob')
+        self.assertTrue(oauth.header_auth)
+        oauth(self.request)
+        auth_header = self.request.headers['Authorization']
+        self.assertTrue(auth_header is not None)
+        self.assertTrue('oauth_timestamp' in auth_header)
+        self.assertTrue('oauth_consumer_key="123"' in auth_header)
+        self.assertTrue('oauth_nonce' in auth_header)
+        self.assertTrue('oauth_version="1.0"' in auth_header)
+        self.assertTrue('oauth_signature_method="HMAC-SHA1"' in auth_header)
+        self.assertTrue('oauth_callback="oob"' in auth_header)
+
     def test_oauth_post(self):
         oauth = OAuth1Hook('123', '345')
         self.request.method = 'POST'
@@ -190,6 +203,21 @@ class OAuthHookTestCase(RauthTestCase):
         oauth(self.request)
         self.assertTrue(isinstance(self.request.data, dict))
         self.assertTrue(('foo', 'bar') in self.request.data.items())
+        self.assertTrue('oauth_verifier' not in self.request.oauth_params)
+        self.assertTrue('oauth_callback' not in self.request.oauth_params)
+
+    def test_params_or_data_as_strings_post_with_oauth_callback(self):
+        self.request.method = 'POST'
+        oauth = OAuth1Hook('123', '345')
+        self.request.params = 'foo=bar&oauth_callback=oob'
+        self.request.data = 'foo=bar'
+        self.assertTrue(isinstance(self.request.params, str))
+        self.assertTrue(isinstance(self.request.data, str))
+        oauth(self.request)
+        self.assertTrue(isinstance(self.request.data, dict))
+        self.assertTrue(('foo', 'bar') in self.request.data.items())
+        self.assertTrue('oauth_callback' in self.request.oauth_params)
+        self.assertEqual(self.request.oauth_params['oauth_callback'], 'oob')
 
     def test_literaljson_data_as_string_post(self):
         self.request.method = 'POST'

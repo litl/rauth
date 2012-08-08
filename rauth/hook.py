@@ -57,10 +57,14 @@ class OAuth1Hook(object):
     :param consumer_secret: Client consumer secret.
     :param access_token: Access token key.
     :param access_token_secret: Access token secret.
-    :param header_auth: Authenication via header, defauls to False.
+    :param header_auth: Authenication via header, defaults to False.
     :param signature: A signature method used to sign request parameters.
         Defaults to None. If None the `HmacSha1Signature` method is used as
         default.
+    :param default_oauth_callback: Defining OAuth callback *is required* (only)
+        when obtaining a request token. If `oauth_callback` is not specified
+        otherwise (in URL query or body data params), `default_oauth_callback`
+        shall be used. In all non-request-token requests it can be left out.
     '''
     OAUTH_VERSION = '1.0'
 
@@ -68,7 +72,8 @@ class OAuth1Hook(object):
     oauth_verifier = None
 
     def __init__(self, consumer_key, consumer_secret, access_token=None,
-            access_token_secret=None, header_auth=False, signature=None):
+            access_token_secret=None, header_auth=False, signature=None,
+            default_oauth_callback=None):
         # consumer credentials
         self.consumer_key = consumer_key
         self.consumer_secret = consumer_secret
@@ -84,6 +89,9 @@ class OAuth1Hook(object):
         # override the default signature object if available
         if signature is not None:
             self.signature = signature
+
+        # 'oauth_callback' is required only on request-token requests
+        self.oauth_callback = default_oauth_callback
 
     def __call__(self, request):
         # this is a workaround for a known bug that will be patched
