@@ -43,7 +43,8 @@ class OAuthHookTestCase(RauthTestCase):
         self.assertTrue('oauth_signature_method="HMAC-SHA1"' in auth_header)
 
     def test_oauth_header_auth_request_token(self):
-        oauth = OAuth1Hook('123', '345', header_auth=True, default_oauth_callback='oob')
+        oauth = OAuth1Hook('123', '345', header_auth=True,
+                           default_oauth_callback='oob')
         self.assertTrue(oauth.header_auth)
         oauth(self.request)
         auth_header = self.request.headers['Authorization']
