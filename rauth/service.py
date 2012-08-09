@@ -429,7 +429,8 @@ class OAuth1Service(Request):
         :param \*\*kwargs: Optional arguments. Same as Requests.
         '''
         auth_session = \
-                self._construct_session(header_auth=self.header_auth)
+                self._construct_session(header_auth=self.header_auth,
+                                        default_oauth_callback='oob')
 
         response = auth_session.request(method,
                                         self.request_token_url,

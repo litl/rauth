@@ -310,12 +310,12 @@ class OAuth1ServiceTestCase(RauthTestCase):
         expected_url = 'http://example.com/authorize?oauth_token=123'
         self.assertEqual(expected_url, authorize_url)
 
-    def test_get_authorize_url_with_callback(self):
-        callback = 'http://example.com/callback'
+    def test_get_authorize_url_with_additional_param(self):
+        val = 'http://example.com/something'
         authorize_url = self.service.get_authorize_url(request_token='123',
-                                                       oauth_callback=callback)
+                                                       additional_param=val)
         expected_url = 'http://example.com/authorize?oauth_token=123&' \
-                'oauth_callback=http%3A%2F%2Fexample.com%2Fcallback'
+                'additional_param=http%3A%2F%2Fexample.com%2Fsomething'
         self.assertEqual(expected_url, authorize_url)
 
     @patch.object(requests.Session, 'request')
