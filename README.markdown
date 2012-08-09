@@ -8,7 +8,7 @@ package is wrapped around the superb Python Requests.
 ## Installation
 
 Install the package with one of the following commands:
-w
+
     $ easy_install rauth
 
 or
