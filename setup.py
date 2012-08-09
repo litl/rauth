@@ -6,15 +6,20 @@ from setuptools import setup, find_packages
 
 if sys.argv[-1] == 'test':
     nosetests = 'nosetests -v --with-coverage --cover-package=rauth'
+    coverage = ('grep ^TOTAL test.log | grep 100% >/dev/null ||'
+                '{ echo \'\n\033[1m\033[91mFAILURE\033[0m: Test coverage incomplete.\';'
+                'exit 1; }')
     try:
         import yanc
-        nosetests += ' --with-yanc'
+        nosetests += ' --with-yanc --yanc-color=on'
     except ImportError:
         pass
-    os.system('pyflakes rauth tests; '
-              'pep8 rauth tests && '
-              + nosetests)
-    sys.exit()
+    status = os.system('pyflakes rauth tests; '
+                       'pep8 rauth tests && '
+                       + nosetests + ' 2>&1 | tee -a test.log;'
+                       + coverage)
+    os.system('rm test.log')
+    sys.exit(status)
 
 setup(
     name='rauth',
