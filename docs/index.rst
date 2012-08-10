@@ -50,7 +50,7 @@ authorization URL:
     url = service.get_authorize_url()
 
 Once this URL has been visited and (presumably) the client authorizes the
-application an access token can be obtained:
+application an access token can be obtained::
 
     # the code should be returned upon the redirect from the authorize step,
     # be sure to use it here
@@ -77,7 +77,7 @@ tokens `service.get_access_token(request_token, request_token_secret, 'GET')`.
 
 Additionally, an authenticated session, wrapped with the necessary OAuth data
 can be returned via `service.get_authenticated_session(access_token,
-access_token_secret)`. Bind this to a variables and then call it to make
+access_token_secret)`. Bind this to a variable and then call it to make
 authenticated requests to service endpoints.
 
 The OAuth hook object is also available if the service wrapper is not needed or
