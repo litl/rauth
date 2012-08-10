@@ -72,8 +72,8 @@ class OAuth1Hook(object):
     oauth_verifier = None
 
     def __init__(self, consumer_key, consumer_secret, access_token=None,
-            access_token_secret=None, header_auth=False, signature=None,
-            default_oauth_callback=None):
+                 access_token_secret=None, header_auth=False, signature=None,
+                 default_oauth_callback=None):
         # consumer credentials
         self.consumer_key = consumer_key
         self.consumer_secret = consumer_secret
@@ -112,12 +112,12 @@ class OAuth1Hook(object):
 
         # sign and add the signature to the request params
         request.oauth_params['oauth_signature'] = \
-                self.signature.sign(request,
-                                    self.consumer_secret,
-                                    self.access_token_secret)
+            self.signature.sign(request,
+                                self.consumer_secret,
+                                self.access_token_secret)
 
         request.params_and_data['oauth_signature'] = \
-                request.oauth_params['oauth_signature']
+            request.oauth_params['oauth_signature']
 
         if self.header_auth:
             # extract the domain for use as the realm
@@ -125,7 +125,7 @@ class OAuth1Hook(object):
             realm = urlunsplit((scheme, netloc, '/', '', ''))
 
             request.headers['Authorization'] = \
-                    self.auth_header(request.oauth_params, realm=realm)
+                self.auth_header(request.oauth_params, realm=realm)
         elif request.method == 'POST':
             content_type = 'application/x-www-form-urlencoded'
             request.headers['content-type'] = content_type

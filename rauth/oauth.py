@@ -64,7 +64,7 @@ class SignatureMethod(object):
 
             # we concatenate the respective dicts
             params_and_data = \
-                    dict(request.params.items() + request.data.items())
+                dict(request.params.items() + request.data.items())
 
             normalized = []
             for k, v in params_and_data.items():

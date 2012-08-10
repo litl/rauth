@@ -150,20 +150,20 @@ class OflyService(Request):
         now = datetime.utcnow()
         milliseconds = self._micro_to_milliseconds(now.microsecond)
         time_format = self.TIMESTAMP_FORMAT.format(milliseconds)
-        ofly_params = \
-                {'oflyAppId': self.consumer_key,
-                 'oflyHashMeth': 'SHA1',
-                 'oflyTimestamp': now.strftime(time_format)}
+        ofly_params = {'oflyAppId': self.consumer_key,
+                       'oflyHashMeth': 'SHA1',
+                       'oflyTimestamp': now.strftime(time_format)}
 
         # select only the path for signing
         url_path = urlsplit(url).path
 
-        signature_base_string = self.consumer_secret \
-                                + url_path \
-                                + '?' \
-                                + self._sort_params(params) \
-                                + '&' \
-                                + self._sort_params(ofly_params)
+        signature_base_string = \
+            self.consumer_secret \
+            + url_path \
+            + '?' \
+            + self._sort_params(params) \
+            + '&' \
+            + self._sort_params(ofly_params)
 
         params['oflyApiSig'] = hashlib.sha1(signature_base_string).hexdigest()
 
@@ -210,10 +210,9 @@ class OflyService(Request):
 
         header_auth = kwargs.get('header_auth', False)
         if header_auth:
-            params, headers = \
-                    self._sha1_sign_params(url,
-                                           header_auth,
-                                           **params)
+            params, headers = self._sha1_sign_params(url,
+                                                     header_auth,
+                                                     **params)
 
             response = self.session.request(method,
                                             url + '?' + params,
@@ -267,7 +266,7 @@ class OAuth2Service(Request):
     :param access_token: An access token, defaults to None.
     '''
     def __init__(self, name, consumer_key, consumer_secret, access_token_url,
-            authorize_url, access_token=None):
+                 authorize_url, access_token=None):
         self.name = name
 
         self.consumer_key = consumer_key
@@ -392,7 +391,7 @@ class OAuth1Service(Request):
     :param header_auth: Authenication via header, defaults to False.
     '''
     def __init__(self, name, consumer_key, consumer_secret, request_token_url,
-            access_token_url, authorize_url, header_auth=False):
+                 access_token_url, authorize_url, header_auth=False):
         self.name = name
 
         self.consumer_key = consumer_key
@@ -428,9 +427,8 @@ class OAuth1Service(Request):
         :param method: A string representation of the HTTP method to be used.
         :param \*\*kwargs: Optional arguments. Same as Requests.
         '''
-        auth_session = \
-                self._construct_session(header_auth=self.header_auth,
-                                        default_oauth_callback='oob')
+        auth_session = self._construct_session(header_auth=self.header_auth,
+                                               default_oauth_callback='oob')
 
         response = auth_session.request(method,
                                         self.request_token_url,
@@ -480,10 +478,10 @@ class OAuth1Service(Request):
         request_token = kwargs.pop('request_token')
         request_token_secret = kwargs.pop('request_token_secret')
 
-        auth_session = self._construct_session(
-                                access_token=request_token,
-                                access_token_secret=request_token_secret,
-                                header_auth=self.header_auth)
+        auth_session = \
+            self._construct_session(access_token=request_token,
+                                    access_token_secret=request_token_secret,
+                                    header_auth=self.header_auth)
 
         response = auth_session.request(method,
                                         self.access_token_url,
@@ -492,7 +490,7 @@ class OAuth1Service(Request):
         return Response(response)
 
     def get_authenticated_session(self, access_token, access_token_secret,
-            header_auth=False):
+                                  header_auth=False):
         '''Returns an authenticated Requests session utilizing the hook.
 
         :param access_token: The access token as returned by
