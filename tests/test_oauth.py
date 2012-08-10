@@ -7,13 +7,13 @@
 
 from base import RauthTestCase
 from rauth.oauth import (HmacSha1Signature, RsaSha1Signature,
-        PlaintextSignature)
+                         PlaintextSignature)
 
 from urllib import urlencode
 
 
 class OAuthTestHmacSha1Case(RauthTestCase):
-    def test_hamcsha1_signature(self):
+    def test_hmacsha1_signature(self):
         self.request.params = {'foo': 'bar'}
         oauth_signature = HmacSha1Signature().sign(self.request,
                                                    self.hook.consumer_key,
@@ -25,14 +25,14 @@ class OAuthTestHmacSha1Case(RauthTestCase):
         # params as a dict
         self.request.params = {'foo': 'bar'}
         normalized = \
-                HmacSha1Signature()._normalize_request_parameters(self.request)
+            HmacSha1Signature()._normalize_request_parameters(self.request)
         self.assertEqual('foo=bar',  normalized)
 
         # params as a dict with URL encodable chars
         self.request.params_and_data = {}
         self.request.params = {'foo+bar': 'baz'}
         normalized = \
-                HmacSha1Signature()._normalize_request_parameters(self.request)
+            HmacSha1Signature()._normalize_request_parameters(self.request)
         self.assertEqual('foo%2Bbar=baz',  normalized)
         self.assertTrue('+' not in normalized)
 
@@ -40,14 +40,14 @@ class OAuthTestHmacSha1Case(RauthTestCase):
         self.request.params_and_data = {}
         self.request.params = urlencode({'foo': 'bar'})
         normalized = \
-                HmacSha1Signature()._normalize_request_parameters(self.request)
+            HmacSha1Signature()._normalize_request_parameters(self.request)
         self.assertEqual('foo=bar',  normalized)
 
         # params as a string with URL encodable chars
         self.request.params_and_data = {}
         self.request.params = urlencode({'foo+bar': 'baz'})
         normalized = \
-                HmacSha1Signature()._normalize_request_parameters(self.request)
+            HmacSha1Signature()._normalize_request_parameters(self.request)
         self.assertEqual('foo%2Bbar=baz',  normalized)
         self.assertTrue('+' not in normalized)
 
@@ -56,28 +56,28 @@ class OAuthTestHmacSha1Case(RauthTestCase):
         self.request.params = {'a': 'b'}
         self.request.data = {'foo': 'bar'}
         normalized = \
-                HmacSha1Signature()._normalize_request_parameters(self.request)
+            HmacSha1Signature()._normalize_request_parameters(self.request)
         self.assertEqual('a=b&foo=bar',  normalized)
 
     def test_normalize_request_parameters_data(self):
         # data as a dict
         self.request.data = {'foo': 'bar'}
         normalized = \
-                HmacSha1Signature()._normalize_request_parameters(self.request)
+            HmacSha1Signature()._normalize_request_parameters(self.request)
         self.assertEqual('foo=bar',  normalized)
 
         # data as a dict with URL encodable chars
         self.request.params_and_data = {}
         self.request.data = {'foo+bar': 'baz'}
         normalized = \
-                HmacSha1Signature()._normalize_request_parameters(self.request)
+            HmacSha1Signature()._normalize_request_parameters(self.request)
         self.assertEqual('foo%2Bbar=baz',  normalized)
         self.assertTrue('+' not in normalized)
 
         # data as a string with URL encodable chars
         self.request.data = urlencode({'foo+bar': 'baz'})
         normalized = \
-                HmacSha1Signature()._normalize_request_parameters(self.request)
+            HmacSha1Signature()._normalize_request_parameters(self.request)
         self.assertEqual('foo%2Bbar=baz',  normalized)
         self.assertTrue('+' not in normalized)
 
@@ -86,7 +86,7 @@ class OAuthTestHmacSha1Case(RauthTestCase):
         self.request.params = urlencode({'a': 'b'})
         self.request.data = urlencode({'foo': 'bar'})
         normalized = \
-                HmacSha1Signature()._normalize_request_parameters(self.request)
+            HmacSha1Signature()._normalize_request_parameters(self.request)
         # this also demonstrates sorting
         self.assertEqual('a=b&foo=bar',  normalized)
 
@@ -95,7 +95,7 @@ class OAuthTestHmacSha1Case(RauthTestCase):
         self.request.params = urlencode({'a': 'b'})
         self.request.data = {'foo': 'bar'}
         normalized = \
-                HmacSha1Signature()._normalize_request_parameters(self.request)
+            HmacSha1Signature()._normalize_request_parameters(self.request)
         self.assertEqual('a=b&foo=bar',  normalized)
 
     def test_normalize_request_parameters_data_string(self):
@@ -103,7 +103,7 @@ class OAuthTestHmacSha1Case(RauthTestCase):
         self.request.params = {'a': 'b'}
         self.request.data = urlencode({'foo': 'bar'})
         normalized = \
-                HmacSha1Signature()._normalize_request_parameters(self.request)
+            HmacSha1Signature()._normalize_request_parameters(self.request)
         self.assertEqual('a=b&foo=bar',  normalized)
 
     def test_normalize_request_parameters_whitespace(self):
