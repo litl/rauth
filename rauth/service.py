@@ -417,7 +417,8 @@ class OAuth1Service(Request):
                           **kwargs)
         return requests.session(hooks={'pre_request': hook})
 
-    def get_raw_request_token(self, method='GET', **kwargs):
+    def get_raw_request_token(self, method='GET',
+                              oauth_callback='oob', **kwargs):
         '''Gets a response from the request token endpoint.
 
         Returns the entire parsed response, without trying to pull out the
@@ -427,8 +428,9 @@ class OAuth1Service(Request):
         :param method: A string representation of the HTTP method to be used.
         :param \*\*kwargs: Optional arguments. Same as Requests.
         '''
-        auth_session = self._construct_session(header_auth=self.header_auth,
-                                               default_oauth_callback='oob')
+        auth_session = \
+            self._construct_session(header_auth=self.header_auth,
+                                    default_oauth_callback=oauth_callback)
 
         response = auth_session.request(method,
                                         self.request_token_url,
