@@ -27,4 +27,5 @@ OAuth 1.0/a hook; thanks Miguel!
 
 Add yourself as a contributor!
 
+* [Justin Barber](https://github.com/barberj)
 * (your name here)
