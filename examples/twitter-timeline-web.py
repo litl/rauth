@@ -1,3 +1,8 @@
+"""
+Example to demonstrate using twitter oauth as a desktop app or a web app.
+
+Be sure to update with your consumer key/secret and your callback.
+"""
 from flask import Flask, request, redirect, url_for, session
 from rauth.service import OAuth1Service
 
@@ -87,7 +92,7 @@ def authorize():
     """
     session['request_token'], session['request_token_sercret'] =\
         twitter.get_request_token(method='GET',
-        oauth_callback='http://71.56.112.238:5000/get_access_tokens')
+        oauth_callback='YOUR URL or IP/get_access_tokens')
 
     authorize_url = twitter.get_authorize_url(session['request_token'])
 
