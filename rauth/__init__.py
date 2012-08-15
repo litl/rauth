@@ -6,5 +6,5 @@
 '''
 
 __title__ = 'rauth'
-__version__ = '0.4.14'
+__version__ = '0.4.15'
 __license__ = 'MIT'
