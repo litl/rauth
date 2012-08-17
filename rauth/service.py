@@ -374,9 +374,9 @@ class OAuth1Service(Request):
                                      request_token=request_token,
                                      request_token_secret=request_token_secret)
 
-        # access tokens are returned in the response dictionary
-        response['oauth_token']
-        response['oauth_key']
+        # access tokens are returned in the response.content dictionary
+        response.content['oauth_token']
+        response.content['oauth_key']
 
     Finally the :class:`get_authenticated_session` method returns a wrapped
     session and can be used once the access token has been made available.
