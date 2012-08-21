@@ -160,10 +160,14 @@ class OflyService(Request):
         signature_base_string = \
             self.consumer_secret \
             + url_path \
-            + '?' \
-            + self._sort_params(params) \
-            + '&' \
-            + self._sort_params(ofly_params)
+            + '?'
+
+        # only append params if there are any, to avoid a leading ampersand
+        sorted_params = self._sort_params(params)
+        if len(sorted_params) > 0:
+             signature_base_string += sorted_params + '&'
+
+        signature_base_string += self._sort_params(ofly_params)
 
         params['oflyApiSig'] = hashlib.sha1(signature_base_string).hexdigest()
 
