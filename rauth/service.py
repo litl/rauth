@@ -522,10 +522,12 @@ class OAuth1Service(Request):
         access_token_secret = kwargs.pop('access_token_secret')
         header_auth = kwargs.pop('header_auth', self.header_auth)
         allow_redirects = kwargs.pop('allow_redirects', True)
+        signature = kwargs.pop('signature', None)
         auth_session = \
             self._construct_session(access_token=access_token,
                                     access_token_secret=access_token_secret,
-                                    header_auth=header_auth)
+                                    header_auth=header_auth,
+                                    signature=signature)
 
         response = auth_session.request(method,
                                         url,
