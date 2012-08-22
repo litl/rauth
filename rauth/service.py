@@ -390,9 +390,11 @@ class OAuth1Service(Request):
     :param access_token_url: Access token endpoint.
     :param authorize_url: Authorize endpoint.
     :param header_auth: Authenication via header, defaults to False.
+    :param signature: The signature(object) strategy to be used. Currently
+                        supported PlaintextSignature and HmacSha1Signature
     '''
     def __init__(self, name, consumer_key, consumer_secret, request_token_url,
-            access_token_url, authorize_url, header_auth=False):
+            access_token_url, authorize_url, header_auth=False, signature=None):
         self.name = name
 
         self.consumer_key = consumer_key
@@ -406,6 +408,8 @@ class OAuth1Service(Request):
         # set to True to use header authentication for this service
         self.header_auth = header_auth
 
+        self.signature = signature
+
     def _construct_session(self, **kwargs):
         '''Construct the request session, supplying the consumer key and
         secret.
@@ -415,6 +419,7 @@ class OAuth1Service(Request):
         '''
         hook = OAuth1Hook(consumer_key=self.consumer_key,
                           consumer_secret=self.consumer_secret,
+                          signature=self.signature,
                           **kwargs)
         return requests.session(hooks={'pre_request': hook})
 
@@ -522,12 +527,10 @@ class OAuth1Service(Request):
         access_token_secret = kwargs.pop('access_token_secret')
         header_auth = kwargs.pop('header_auth', self.header_auth)
         allow_redirects = kwargs.pop('allow_redirects', True)
-        signature = kwargs.pop('signature', None)
         auth_session = \
             self._construct_session(access_token=access_token,
                                     access_token_secret=access_token_secret,
-                                    header_auth=header_auth,
-                                    signature=signature)
+                                    header_auth=header_auth)
 
         response = auth_session.request(method,
                                         url,
