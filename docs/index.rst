@@ -91,8 +91,8 @@ wanted. It can be used as follows:
     # setup the OAuth Hook
     oauth = OAuthHook(consumer_key='123', consumer_secret='456')
     # attach it to a pre-request hook
-    oauth_requests = requests.session(hooks={'prehook': oauth})
-
+    oauth_requests = requests.session(hooks={'pre_request': oauth})
+    # I think there is typo. This must be pre_request. There is no key called prehook.
     # begin by getting a request token
     oauth_requests.get('http://example.com/request_token').content
 
