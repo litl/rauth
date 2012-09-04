@@ -14,7 +14,7 @@ request_token, request_token_secret = \
 
 authorize_url = twitter.get_authorize_url(request_token)
 
-print 'Visit this URL in your browser: ' + authorize_url
+print('Visit this URL in your browser: %s' % authorize_url)
 pin = raw_input('Enter PIN from browser: ')
 
 response = twitter.get_access_token('POST',
@@ -37,4 +37,4 @@ response = twitter.get('https://api.twitter.com/1/statuses/home_timeline.json',
 for i, tweet in enumerate(response.content, 1):
     handle = tweet['user']['screen_name'].encode('utf-8')
     text = tweet['text'].encode('utf-8')
-    print '{0}. @{1} - {2}'.format(i, handle, text)
+    print('%s. %s - %s' % (i, handle, text))
