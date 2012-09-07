@@ -151,7 +151,8 @@ class OAuth1Hook(object):
 
         # re-encode the params if they were a string, without any oauth
         if params_is_string:
-            request.params = urlencode(params)
+            # Some providers does not recognise '+' so replace
+            request.params = urlencode(params).replace('+', '%20')
 
 
     @property
