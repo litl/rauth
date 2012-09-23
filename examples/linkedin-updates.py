@@ -3,16 +3,16 @@ from rauth.service import OAuth1Service
 LINKEDIN_API_BASE = 'http://api.linkedin.com/v1/'
 
 linkedin = OAuth1Service(
-        name='linkedin',
-        consumer_key='tjm826j6uzio',
-        consumer_secret='1XbHsC7UxtC6EzqW',
-        request_token_url = 'https://api.linkedin.com/uas/oauth/requestToken',
-        authorize_url = 'https://api.linkedin.com/uas/oauth/authorize',
-        access_token_url = 'https://api.linkedin.com/uas/oauth/accessToken',
-        header_auth=True)
+    name='linkedin',
+    consumer_key='tjm826j6uzio',
+    consumer_secret='1XbHsC7UxtC6EzqW',
+    request_token_url='https://api.linkedin.com/uas/oauth/requestToken',
+    authorize_url='https://api.linkedin.com/uas/oauth/authorize',
+    access_token_url='https://api.linkedin.com/uas/oauth/accessToken',
+    header_auth=True)
 
 request_token, request_token_secret = \
-        linkedin.get_request_token(method='GET')
+    linkedin.get_request_token(method='GET')
 
 authorize_url = linkedin.get_authorize_url(request_token)
 
@@ -30,10 +30,10 @@ access_token = data['oauth_token']
 access_token_secret = data['oauth_token_secret']
 
 response = linkedin.get(
-        LINKEDIN_API_BASE + 'people/~/network/updates',
-        params={'type': 'SHAR', 'format': 'json'},
-        access_token=access_token,
-        access_token_secret=access_token_secret)
+    LINKEDIN_API_BASE + 'people/~/network/updates',
+    params={'type': 'SHAR', 'format': 'json'},
+    access_token=access_token,
+    access_token_secret=access_token_secret)
 
 updates = response.content
 
