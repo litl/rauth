@@ -165,7 +165,7 @@ class OflyService(Request):
         # only append params if there are any, to avoid a leading ampersand
         sorted_params = self._sort_params(params)
         if len(sorted_params) > 0:
-             signature_base_string += sorted_params + '&'
+            signature_base_string += sorted_params + '&'
 
         signature_base_string += self._sort_params(ofly_params)
 
