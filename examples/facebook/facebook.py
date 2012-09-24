@@ -1,15 +1,14 @@
 '''
-Facebook Example
-----------------
+    facebook
+    --------
 
-A simple Flask demo app that shows how to login with Facebook via rauth.
+    A simple Flask demo app that shows how to login with Facebook via rauth.
 
-Before you begin you must run `from facebook import db; db.create_all()` from
-the python interpreter from within the facebook directory!
-
-When viewing the example, please make sure that you connect to 127.0.0.1:5000,
-which is the default running URL. If you connect to another address, the
-facebook integration will not work
+    Please note: you must do `from facebook import db; db.create_all()` from
+    the interpreter before running this example!
+    
+    Due to Facebook's stringent domain validation, requests using this app 
+    must originate from 127.0.0.1:5000.
 '''
 
 from flask import Flask, flash, request, redirect, render_template, url_for
