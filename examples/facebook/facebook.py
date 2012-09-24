@@ -1,13 +1,3 @@
-'''
-    facebook
-    --------
-
-    A simple Flask demo app that shows how to login with Facebook via rauth.
-
-    Please note: you must do `from facebook import db; db.create_all()` from
-    the interpreter before running this example!
-'''
-
 from flask import Flask, flash, request, redirect, render_template, url_for
 from flask.ext.sqlalchemy import SQLAlchemy
 
