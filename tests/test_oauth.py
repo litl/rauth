@@ -5,6 +5,7 @@
 
     Test suite for rauth.oauth.
 '''
+from __future__ import unicode_literals
 
 from base import RauthTestCase
 from rauth.oauth import (HmacSha1Signature, RsaSha1Signature,
@@ -137,10 +138,14 @@ class OAuthTestHmacSha1Case(RauthTestCase):
 
     def test_utf8_encoded_string(self):
         # in the event a string is already UTF-8
-        self.request.params = {u'foo': u'bar'}
-        self.request.url = u'http://example.com/'
+        self.request.params = {
+            'foo'.encode('utf-8'): 'bar'.encode('utf-8')
+        }
+        self.request.url = 'http://example.com/'.encode('utf-8')
         HmacSha1Signature().sign(self.request, self.hook.consumer_key)
-        self.assertEqual({'foo': 'bar'},  self.request.params)
+        self.assertEqual({
+            'foo'.encode('utf-8'): 'bar'.encode('utf-8')
+        },  self.request.params)
 
     def test_remove_query_string(self):
         # can't sign the URL with the query string so

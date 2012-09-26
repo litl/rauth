@@ -6,6 +6,8 @@
     Test suite for rauth.service.
 '''
 
+from __future__ import unicode_literals
+
 from base import RauthTestCase
 from rauth.service import (OAuth1Service, OAuth2Service, OflyService,
                            DEFAULT_TIMEOUT)
@@ -606,45 +608,45 @@ class OAuth1ServiceTestCase(RauthTestCase):
 
         request_token, request_token_secret = \
             self.service.get_request_token('GET')
-        self.assertEqual(request_token, u'\xfc')
+        self.assertEqual(request_token, '\xfc')
         self.assertEqual(request_token_secret, 'b')
 
     @patch.object(requests.Session, 'request')
     def test_parse_utf8_qsl_unicode_encoded(self, mock_request):
         mock_request.return_value = self.response
 
-        self.response.text = u'oauth_token=\xfc&oauth_token_secret=b'
+        self.response.text = 'oauth_token=\xfc&oauth_token_secret=b'
 
         request_token, request_token_secret = \
             self.service.get_request_token('GET')
-        self.assertEqual(request_token, u'\xfc')
+        self.assertEqual(request_token, '\xfc')
         self.assertEqual(request_token_secret, 'b')
 
     @patch.object(requests.Session, 'request')
     def test_parse_utf8_qsl_unicode(self, mock_request):
         mock_request.return_value = self.response
 
-        self.response.text = u'oauth_token=ü&oauth_token_secret=b'
+        self.response.text = 'oauth_token=ü&oauth_token_secret=b'
 
         request_token, request_token_secret = \
             self.service.get_request_token('GET')
-        self.assertEqual(request_token, u'\xfc')
+        self.assertEqual(request_token, '\xfc')
         self.assertEqual(request_token_secret, 'b')
 
     @patch.object(requests.Session, 'request')
     def test_parse_utf8_qsl_joe(self, mock_request):
         mock_request.return_value = self.response
 
-        self.response.text = 'fullname=Joe%20Shaw&username=' \
-                                'joeshaw%20%C3%A9%C3%A9%C3%A9'
+        self.response.text = str('fullname=Joe%20Shaw&username='
+                                 'joeshaw%20%C3%A9%C3%A9%C3%A9')
 
         response = self.service.request('GET',
                                         '/',
                                         access_token='a',
                                         access_token_secret='b')
 
-        expected = {u'username': u'joeshaw \xe9\xe9\xe9',
-                    u'fullname': u'Joe Shaw'}
+        expected = {'username': 'joeshaw \xe9\xe9\xe9',
+                    'fullname': 'Joe Shaw'}
         self.assertEqual(expected, response.content)
 
     @patch.object(requests.Session, 'request')
@@ -659,7 +661,7 @@ class OAuth1ServiceTestCase(RauthTestCase):
                                         access_token='a',
                                         access_token_secret='b')
 
-        expected = {u'\u20ac': u'euro'}
+        expected = {'\u20ac': 'euro'}
         self.assertEqual(response.content, expected)
 
     def test_missing_request_token_url(self):
