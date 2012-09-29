@@ -12,8 +12,8 @@ LINKEDIN_API_BASE = 'http://api.linkedin.com/v1/'
 
 linkedin = OAuth1Service(
     name='linkedin',
-    consumer_key='CONSUMER_KEY',
-    consumer_secret='CONSUMER_SECRET',
+    consumer_key='tjm826j6uzio',
+    consumer_secret='1XbHsC7UxtC6EzqW',
     request_token_url='https://api.linkedin.com/uas/oauth/requestToken',
     access_token_url='https://api.linkedin.com/uas/oauth/accessToken',
     authorize_url='https://www.linkedin.com/uas/oauth/authenticate')
