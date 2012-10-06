@@ -38,6 +38,9 @@ response = linkedin.get(
 updates = response.content
 
 for i, update in enumerate(updates['values'], 1):
+    if 'currentShare' not in update['updateContent']['person']:
+        print '{0}. {1}'.format(i, update['updateKey'])
+        continue
     current_share = update['updateContent']['person']['currentShare']
     person = current_share['author']['firstName'].encode('utf-8') + ' '
     person += current_share['author']['lastName'].encode('utf-8')
