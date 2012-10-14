@@ -74,6 +74,8 @@ class OAuthHookTestCase(RauthTestCase):
         oauth = OAuth1Hook('123', '345')
         self.request.method = 'POST'
         self.request.data = {'foo': 'bar'}
+        self.request.headers = \
+            {'Content-Type': 'application/x-www-form-urlencoded'}
         oauth(self.request)
         self.assertTrue(('foo', 'bar') in self.request.data.items())
 
@@ -81,6 +83,8 @@ class OAuthHookTestCase(RauthTestCase):
         oauth = OAuth1Hook('123', '345')
         self.request.method = 'POST'
         self.request.data = urlencode({'foo': 'bar'})
+        self.request.headers = \
+            {'Content-Type': 'application/x-www-form-urlencoded'}
         oauth(self.request)
         self.assertTrue(('foo', 'bar') in self.request.data.items())
 
