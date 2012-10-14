@@ -527,6 +527,15 @@ class OAuth1Service(Request):
         access_token_secret = kwargs.pop('access_token_secret')
         header_auth = kwargs.pop('header_auth', self.header_auth)
         allow_redirects = kwargs.pop('allow_redirects', True)
+
+        headers = kwargs.get('headers', {})
+
+        # set the Content-Type if unspecified
+        if method in ('POST', 'PUT'):
+            headers['Content-Type'] = \
+                headers.get('Content-Type',
+                            'application/x-www-form-urlencoded')
+
         auth_session = \
             self._construct_session(access_token=access_token,
                                     access_token_secret=access_token_secret,
@@ -535,6 +544,7 @@ class OAuth1Service(Request):
         response = auth_session.request(method,
                                         url,
                                         allow_redirects=allow_redirects,
+                                        headers=headers,
                                         **kwargs)
 
         return Response(response)
