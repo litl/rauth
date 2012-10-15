@@ -160,10 +160,14 @@ class OflyService(Request):
         signature_base_string = \
             self.consumer_secret \
             + url_path \
-            + '?' \
-            + self._sort_params(params) \
-            + '&' \
-            + self._sort_params(ofly_params)
+            + '?'
+
+        # only append params if there are any, to avoid a leading ampersand
+        sorted_params = self._sort_params(params)
+        if len(sorted_params) > 0:
+            signature_base_string += sorted_params + '&'
+
+        signature_base_string += self._sort_params(ofly_params)
 
         params['oflyApiSig'] = hashlib.sha1(signature_base_string).hexdigest()
 
@@ -379,9 +383,9 @@ class OAuth1Service(Request):
                                      request_token=request_token,
                                      request_token_secret=request_token_secret)
 
-        # access tokens are returned in the response dictionary
-        response['oauth_token']
-        response['oauth_key']
+        # access tokens are returned in the response.content dictionary
+        response.content['oauth_token']
+        response.content['oauth_key']
 
     Finally the :class:`get_authenticated_session` method returns a wrapped
     session and can be used once the access token has been made available.
@@ -537,8 +541,8 @@ class OAuth1Service(Request):
         # set the Content-Type if unspecified
         if method in ('POST', 'PUT'):
             kwargs['headers']['Content-Type'] = \
-                    kwargs['headers'].get('Content-Type',
-                                          'application/x-www-form-urlencoded')
+                kwargs['headers'].get('Content-Type',
+                                      'application/x-www-form-urlencoded')
 
         auth_session = \
             self._construct_session(access_token=access_token,

@@ -2,6 +2,7 @@
 Example to demonstrate using twitter oauth as a desktop app or a web app.
 
 Be sure to update with your consumer key/secret and your callback.
+from flask import Flask, request, redirect, url_for, session
 """
 from flask import Flask, request, redirect, url_for, session
 from rauth.service import OAuth1Service
@@ -60,7 +61,8 @@ def access():
 def timeline():
     app.logger.debug('display twitter time line:\n'
                      '{}\n{}\n'.format(session.get('access_token', None),
-                                       session.get('access_token_secret', None)))
+                                       session.get('access_token_secret',
+                                                   None)))
 
     if not session.get('access_token'):
         return redirect(url_for('authorize'))
@@ -68,7 +70,8 @@ def timeline():
     params = {'include_rts': 1,  # Include retweets
               'count': 10}       # 10 tweets
 
-    response = twitter.get('https://api.twitter.com/1/statuses/home_timeline.json',
+    response = twitter.get('https://api.twitter.com/1/statuses/'
+                           'home_timeline.json',
                            params=params,
                            access_token=session['access_token'],
                            access_token_secret=session['access_token_secret'])
@@ -90,9 +93,10 @@ def authorize():
     session['request_token'], session['request_token_sercret'] =
         twitter.get_request_token(method='GET')
     """
-    session['request_token'], session['request_token_sercret'] =\
+    session['request_token'], session['request_token_sercret'] = \
         twitter.get_request_token(method='GET',
-        oauth_callback='YOUR URL or IP/get_access_tokens')
+                                  oauth_callback='YOUR URL or '
+                                  'IP/get_access_tokens')
 
     authorize_url = twitter.get_authorize_url(session['request_token'])
 

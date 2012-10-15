@@ -6,6 +6,9 @@
 
     Please note: you must do `from facebook import db; db.create_all()` from
     the interpreter before running this example!
+    
+    Due to Facebook's stringent domain validation, requests using this app 
+    must originate from 127.0.0.1:5000.
 '''
 
 from flask import Flask, flash, request, redirect, render_template, url_for
