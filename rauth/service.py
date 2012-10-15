@@ -202,13 +202,15 @@ class OflyService(Request):
         :param header_auth: Authenication via header, defaults to False.
         :param \*\*kwargs: Optional arguments. Same as Requests.
         '''
-        params = kwargs.get('params')
-        data = kwargs.get('data')
+        params = kwargs.pop('params', None)
+        data = kwargs.pop('data', None)
 
         if params is None:
             params = {}
 
-        header_auth = kwargs.get('header_auth', False)
+        kwargs['timeout'] = kwargs.get('timeout', 300)
+
+        header_auth = kwargs.pop('header_auth', False)
         if header_auth:
             params, headers = self._sha1_sign_params(url,
                                                      header_auth,
@@ -216,13 +218,15 @@ class OflyService(Request):
 
             response = self.session.request(method,
                                             url + '?' + params,
-                                            headers=headers)
+                                            headers=headers,
+                                            **kwargs)
         else:
             params = self._sha1_sign_params(url, **params)
 
             response = self.session.request(method,
                                             url + '?' + params,
-                                            data=data)
+                                            data=data,
+                                            **kwargs)
 
         return Response(response)
 
@@ -335,6 +339,7 @@ class OAuth2Service(Request):
         :param url: The resource to be requested.
         :param \*\*kwargs: Optional arguments. Same as Requests.
         '''
+        kwargs['timeout'] = kwargs.get('timeout', 300)
         response = self.session.request(method, url, **kwargs)
         return Response(response)
 
@@ -523,6 +528,18 @@ class OAuth1Service(Request):
         access_token_secret = kwargs.pop('access_token_secret')
         header_auth = kwargs.pop('header_auth', self.header_auth)
         allow_redirects = kwargs.pop('allow_redirects', True)
+
+        kwargs['headers'] = kwargs.get('headers', {})
+
+        # set a default request timeout
+        kwargs['timeout'] = kwargs.get('timeout', 300)
+
+        # set the Content-Type if unspecified
+        if method in ('POST', 'PUT'):
+            kwargs['headers']['Content-Type'] = \
+                    kwargs['headers'].get('Content-Type',
+                                          'application/x-www-form-urlencoded')
+
         auth_session = \
             self._construct_session(access_token=access_token,
                                     access_token_secret=access_token_secret,
