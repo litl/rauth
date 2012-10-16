@@ -1,7 +1,16 @@
 from rauth.service import OAuth2Service
+import webbrowser
 
 # Get a real consumer key & secret from:
 # https://code.google.com/apis/console/
+#
+# When creating a client id choose:
+#   - Application type: Installed application
+#   - Installed application type: Other
+#
+# For existing client id's, from "Edit settings":
+#   - Platform: Other
+
 google = OAuth2Service(
     name='google',
     authorize_url='https://accounts.google.com/o/oauth2/auth',
@@ -9,17 +18,19 @@ google = OAuth2Service(
     consumer_key='',
     consumer_secret='')
 
-redirect_uri = 'https://github.com/litl/rauth/'
+redirect_uri = 'urn:ietf:wg:oauth:2.0:oob'
+authorize_url = google.get_authorize_url(redirect_uri=redirect_uri,
+                                         scope='profile email')
 
-print 'Visit this URL in your browser: ' + google.get_authorize_url(redirect_uri=redirect_uri, scope='profile email')
+print 'Visit this URL in your browser: ' + authorize_url
+webbrowser.open(authorize_url);
 
-# This is a bit cumbersome, but you need to copy the code=something (just the
-# `something` part) out of the URL that's redirected to AFTER you login and
-# authorize the demo application
-code = raw_input('Enter code parameter (code=something) from URL: ')
+code = raw_input('Copy code from browser: ')
 
 # create a dictionary for the data we'll post on the get_access_token request
-data = dict(code=code, grant_type='authorization_code', redirect_uri=redirect_uri)
+data = dict(code=code,
+            grant_type='authorization_code',
+            redirect_uri=redirect_uri)
 
 # retrieve the access token
 access_token = \
