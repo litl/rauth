@@ -1,4 +1,5 @@
 from rauth.service import OAuth2Service
+import webbrowser
 
 # Get a real consumer key & secret from:
 # https://code.google.com/apis/console/
@@ -18,13 +19,18 @@ google = OAuth2Service(
     consumer_secret='')
 
 redirect_uri = 'urn:ietf:wg:oauth:2.0:oob'
+authorize_url = google.get_authorize_url(redirect_uri=redirect_uri,
+                                         scope='profile email')
 
-print 'Visit this URL in your browser: ' + google.get_authorize_url(redirect_uri=redirect_uri, scope='profile email')
+print 'Visit this URL in your browser: ' + authorize_url
+webbrowser.open(authorize_url);
 
 code = raw_input('Copy code from browser: ')
 
 # create a dictionary for the data we'll post on the get_access_token request
-data = dict(code=code, grant_type='authorization_code', redirect_uri=redirect_uri)
+data = dict(code=code,
+            grant_type='authorization_code',
+            redirect_uri=redirect_uri)
 
 # retrieve the access token
 access_token = \
