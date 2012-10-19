@@ -273,12 +273,14 @@ class OAuth2Service(Request):
     :param authorize_url: Authorize endpoint.
     :param access_token: An access token, defaults to None.
     '''
-    def __init__(self, name, consumer_key, consumer_secret, access_token_url,
+    def __init__(self, name, client_id, client_secret, access_token_url,
                  authorize_url, access_token=None):
-        self.name = name
+        self.client_id = client_id
+        self.client_secret = client_secret
 
-        self.consumer_key = consumer_key
-        self.consumer_secret = consumer_secret
+        # DEPRECATED
+        self.consumer_key = client_id
+        self.consumer_secret = client_secret
 
         self.access_token_url = access_token_url
         self.authorize_url = authorize_url
