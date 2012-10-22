@@ -36,8 +36,9 @@ simply import the service container object:
 
     service = OAuth2Service(
                name='example',
-               consumer_key='123',
-               consumer_secret='456',
+               client_id='123',
+               client_secret='456',
+               base_url='http://example.com/api/'
                access_token_url='http://example.com/token',
                authorize_url='http://example.com/authorize')
 
@@ -66,6 +67,7 @@ Here is an example using the OAuth 1.0/a service wrapper:
                     name='example',
                     consumer_key='123',
                     consumer_secret='456',
+                    base_url='http://example.com/api/',
                     request_token_url='http://example.com/request_token',
                     access_token_url='http://example.com/access_token',
                     authorize_url='http://example.com/authorize')
