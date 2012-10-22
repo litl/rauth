@@ -4,3 +4,5 @@ dist/*
 *.pyc
 *.un~
 .coverage
+!.gitignore
+!.gitmodules
