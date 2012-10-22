@@ -126,9 +126,7 @@ class OAuth1Hook(object):
 
             request.headers['Authorization'] = \
                 self.auth_header(request.oauth_params, realm=realm)
-        elif request.method == 'POST':
-            content_type = 'application/x-www-form-urlencoded'
-            request.headers['content-type'] = content_type
+        elif request.method in ('POST', 'PUT'):
             request.data = request.params_and_data
         else:
             request.params = request.params_and_data
