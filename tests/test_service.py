@@ -21,7 +21,7 @@ class OflyServiceTestCase(RauthTestCase):
         RauthTestCase.setUp(self)
 
         # mock service for testing
-        service = OflyService('example',
+        service = OflyService(name='example',
                               consumer_key='123',
                               consumer_secret='456',
                               authorize_url='http://example.com/authorize')
@@ -111,7 +111,7 @@ class OAuth2ServiceTestCase(RauthTestCase):
 
         # mock service for testing
         service = OAuth2Service(
-            'example',
+            name='example',
             consumer_key='123',
             consumer_secret='456',
             access_token_url='http://example.com/access_token',
@@ -120,13 +120,23 @@ class OAuth2ServiceTestCase(RauthTestCase):
 
     def test_init_with_access_token(self):
         service = OAuth2Service(
-            'example',
+            name='example',
             consumer_key='123',
             consumer_secret='456',
             access_token_url='http://example.com/access_token',
             authorize_url='http://example.com/authorize',
             access_token='321')
         self.assertEqual(service.access_token, '321')
+
+    def test_init_with_base_url(self):
+        service = OAuth2Service(
+            name='example',
+            consumer_key='123',
+            consumer_secret='456',
+            access_token_url='http://example.com/access_token',
+            authorize_url='http://example.com/authorize',
+            base_url='http://example.com/api/')
+        self.assertEqual(service.base_url, 'http://example.com/api/')
 
     def test_get_authorize_url(self):
         authorize_url = self.service.get_authorize_url()
@@ -244,16 +254,40 @@ class OAuth1ServiceTestCase(RauthTestCase):
 
         # mock service for testing
         service = OAuth1Service(
-            'example',
+            name='example',
             consumer_key='123',
             consumer_secret='456',
             request_token_url='http://example.com/request_token',
             access_token_url='http://example.com/access_token',
-            authorize_url='http://example.com/authorize')
+            authorize_url='http://example.com/authorize',
+            base_url='http://example.com/api/')
         self.service = service
 
         # mock response content
         self.response.content = 'oauth_token=123&oauth_token_secret=456'
+
+    def test_init_with_access_token(self):
+        service = OAuth1Service(
+            name='example',
+            consumer_key='123',
+            consumer_secret='456',
+            access_token_url='http://example.com/access_token',
+            authorize_url='http://example.com/authorize',
+            access_token='321',
+            access_token_secret='123')
+        self.assertEqual(service.access_token, '321')
+        self.assertEqual(service.access_token_secret, '123')
+
+    def test_init_with_base_url(self):
+        service = OAuth1Service(
+            name='example',
+            consumer_key='123',
+            consumer_secret='456',
+            access_token_url='http://example.com/access_token',
+            authorize_url='http://example.com/authorize',
+            base_url='http://example.com/api/',
+            access_token_secret='123')
+        self.assertEqual(service.base_url, 'http://example.com/api/')
 
     @patch.object(requests.Session, 'request')
     def test_get_raw_request_token(self, mock_request):
