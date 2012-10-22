@@ -63,7 +63,7 @@ Here is an example using the OAuth 1.0/a service wrapper:
     from rauth.service import OAuth1Service
 
     service = OAuth1Service(
-                    'example',
+                    name='example',
                     consumer_key='123',
                     consumer_secret='456',
                     request_token_url='http://example.com/request_token',
