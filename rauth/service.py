@@ -8,6 +8,7 @@
 import requests
 import json
 import hashlib
+import re
 
 from rauth.hook import OAuth1Hook
 
@@ -229,7 +230,7 @@ class OflyService(Service):
 
         kwargs['timeout'] = kwargs.get('timeout', 300)
 
-        if self.base_url is not None:
+        if self.base_url and not re.match('https?://', uri):
             uri = self.base_url + uri
 
         header_auth = kwargs.pop('header_auth', False)
@@ -372,14 +373,17 @@ class OAuth2Service(Service):
         :param \*\*kwargs: Optional arguments. Same as Requests.
         '''
         # see if we can prepend base_url
-        if self.base_url is not None:
+        if self.base_url and not re.match('https?://', uri):
             uri = self.base_url + uri
-
         # see if we can use a stored access_token
-        if self.access_token is not None:
+        if self.access_token and not re.search('access_token=', uri):
             if method not in ('POST', 'PUT'):  # pragma: no cover
+                if 'params' not in kwargs:
+                    kwargs['params'] = {}
                 kwargs['params'].update(access_token=self.access_token)
             else:
+                if 'data' not in kwargs:
+                    kwargs['data'] = {}
                 kwargs['data'].update(access_token=self.access_token)
 
         kwargs['timeout'] = kwargs.get('timeout', 300)
@@ -596,7 +600,7 @@ class OAuth1Service(Service):
                                       'application/x-www-form-urlencoded')
 
         # prepend a base_url to the uri if we can
-        if self.base_url is not None:
+        if self.base_url and not re.match('https?://', uri):
             uri = self.base_url + uri
 
         # if we've got a non-None access token, use it
