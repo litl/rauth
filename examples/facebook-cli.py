@@ -9,6 +9,7 @@ facebook = OAuth2Service(
     name='facebook',
     authorize_url='https:/graph.facebook.com/oauth/authorize',
     access_token_url='https:/graph.facebook.com/oauth/access_token',
+    base_url='https://graph.facebook.com/',
     consumer_key='YOUR CONSUMER KEY',
     consumer_secret='YOUR CONSUMER SECRET')
 
@@ -21,10 +22,9 @@ print 'Visit this URL in your browser: ' + authorize_url
 webbrowser.open(authorize_url);
 
 url_with_code = raw_input("Copy URL from your browser's address bar: ")
-access_token = re.search('#access_token=([^&]*)', url_with_code).group(1)
+facebook.access_token = re.search('#access_token=([^&]*)', url_with_code).group(1)
 
-user = facebook.get('https://graph.facebook.com/me',
-                    params=dict(access_token=access_token)).content
+user = facebook.get('me').content
 
 print 'currently logged in as: ' + user['link']
 
