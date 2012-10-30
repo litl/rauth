@@ -8,7 +8,6 @@
 import requests
 import json
 import hashlib
-import re
 
 from rauth.hook import OAuth1Hook
 
@@ -32,6 +31,8 @@ def parse_utf8_qsl(s):
         d[k] = v
     return d
 
+def is_absolute_url(url):
+    return (url[:7] == 'http://' or url[:8] == 'https://')
 
 class Request(object):
     '''A container for common HTTP request methods.'''
@@ -230,7 +231,7 @@ class OflyService(Service):
 
         kwargs['timeout'] = kwargs.get('timeout', 300)
 
-        if self.base_url and not re.match('https?://', uri):
+        if self.base_url is not None and not is_absolute_url(uri):
             uri = self.base_url + uri
 
         header_auth = kwargs.pop('header_auth', False)
@@ -373,10 +374,10 @@ class OAuth2Service(Service):
         :param \*\*kwargs: Optional arguments. Same as Requests.
         '''
         # see if we can prepend base_url
-        if self.base_url and not re.match('https?://', uri):
+        if self.base_url is not None and not is_absolute_url(uri):
             uri = self.base_url + uri
         # see if we can use a stored access_token
-        if self.access_token and not re.search('access_token=', uri):
+        if self.access_token and not 'access_token=' in uri:
             if method not in ('POST', 'PUT'):  # pragma: no cover
                 if 'params' not in kwargs:
                     kwargs['params'] = {}
@@ -600,7 +601,7 @@ class OAuth1Service(Service):
                                       'application/x-www-form-urlencoded')
 
         # prepend a base_url to the uri if we can
-        if self.base_url and not re.match('https?://', uri):
+        if self.base_url is not None and not is_absolute_url(uri):
             uri = self.base_url + uri
 
         # if we've got a non-None access token, use it
