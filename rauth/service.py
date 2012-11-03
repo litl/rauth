@@ -31,8 +31,10 @@ def parse_utf8_qsl(s):
         d[k] = v
     return d
 
+
 def is_absolute_url(url):
     return url.startswith(('http://', 'https://'))
+
 
 class Request(object):
     '''A container for common HTTP request methods.'''
