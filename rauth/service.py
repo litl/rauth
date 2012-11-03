@@ -15,6 +15,8 @@ from urllib import quote, urlencode
 from urlparse import parse_qsl, urlsplit
 from datetime import datetime
 
+DEFAULT_TIMEOUT = 300
+
 
 def parse_utf8_qsl(s):
     d = dict(parse_qsl(s))
@@ -231,7 +233,7 @@ class OflyService(Service):
         if params is None:
             params = {}
 
-        kwargs['timeout'] = kwargs.get('timeout', 300)
+        kwargs['timeout'] = kwargs.get('timeout', DEFAULT_TIMEOUT)
 
         if self.base_url is not None and not is_absolute_url(uri):
             uri = self.base_url + uri
@@ -367,7 +369,7 @@ class OAuth2Service(Service):
 
         return Response(response)
 
-    def request(self, method, uri, **kwargs):
+    def request(self, method, uri, use_stored_token=True, **kwargs):
         '''Sends a request to an OAuth 2.0 endpoint, properly wrapped around
         requests.
 
@@ -378,18 +380,12 @@ class OAuth2Service(Service):
         # see if we can prepend base_url
         if self.base_url is not None and not is_absolute_url(uri):
             uri = self.base_url + uri
-        # see if we can use a stored access_token
-        if self.access_token and not 'access_token=' in uri:
-            if method not in ('POST', 'PUT'):  # pragma: no cover
-                if 'params' not in kwargs:
-                    kwargs['params'] = {}
-                kwargs['params'].update(access_token=self.access_token)
-            else:
-                if 'data' not in kwargs:
-                    kwargs['data'] = {}
-                kwargs['data'].update(access_token=self.access_token)
 
-        kwargs['timeout'] = kwargs.get('timeout', 300)
+        # see if we can use a stored access_token
+        if self.access_token is not None and use_stored_token:
+            kwargs['params'].update(access_token=self.access_token)
+
+        kwargs['timeout'] = kwargs.get('timeout', DEFAULT_TIMEOUT)
         response = self.session.request(method, uri, **kwargs)
         return Response(response)
 
@@ -574,7 +570,7 @@ class OAuth1Service(Service):
                                        access_token_secret=access_token_secret,
                                        header_auth=header_auth)
 
-    def request(self, method, uri, **kwargs):
+    def request(self, method, uri, use_stored_token=True, **kwargs):
         '''Makes a request using :class:`_construct_session`.
 
         :param method: A string representation of the HTTP method to be
@@ -594,7 +590,7 @@ class OAuth1Service(Service):
         kwargs['headers'] = kwargs.get('headers', {})
 
         # set a default request timeout
-        kwargs['timeout'] = kwargs.get('timeout', 300)
+        kwargs['timeout'] = kwargs.get('timeout', DEFAULT_TIMEOUT)
 
         # set the Content-Type if unspecified
         if method in ('POST', 'PUT'):
@@ -607,7 +603,8 @@ class OAuth1Service(Service):
             uri = self.base_url + uri
 
         # if we've got a non-None access token, use it
-        if not None in (self.access_token, self.access_token_secret):
+        access_tokens = (self.access_token, self.access_token_secret)
+        if not None in access_tokens and use_stored_token:
             access_token = self.access_token,
             access_token_secret = self.access_token_secret
         else:
