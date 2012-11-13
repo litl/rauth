@@ -40,6 +40,14 @@ def is_absolute_url(url):
 
 class Request(object):
     '''A container for common HTTP request methods.'''
+    def head(self, url, **kwargs):
+        '''Sends a HEAD request. Returns :class:`Response` object.
+
+        :param url: The resource to be requested.
+        :param \*\*kwargs: Optional arguments that ``request`` takes.
+        '''
+        return self.request('HEAD', url, **kwargs)
+
     def get(self, url, **kwargs):
         '''Sends a GET request. Returns :class:`Response` object.
 
@@ -383,6 +391,8 @@ class OAuth2Service(Service):
 
         # see if we can use a stored access_token
         if self.access_token is not None and use_stored_token:
+            if not 'params' in kwargs.keys():
+                kwargs['params'] = {}
             kwargs['params'].update(access_token=self.access_token)
 
         kwargs['timeout'] = kwargs.get('timeout', DEFAULT_TIMEOUT)

@@ -16,24 +16,27 @@ from flask.ext.sqlalchemy import SQLAlchemy
 
 from rauth.service import OAuth2Service
 
-# rauth OAuth 2.0 service wrapper
-graph_url = 'https://graph.facebook.com/'
-facebook = OAuth2Service(name='facebook',
-                         authorize_url='https://www.facebook.com/dialog/oauth',
-                         access_token_url=graph_url + 'oauth/access_token',
-                         consumer_key='440483442642551',
-                         consumer_secret='cd54f1ace848fa2a7ac89a31ed9c1b61')
 
 # Flask config
 SQLALCHEMY_DATABASE_URI = 'sqlite:///facebook.db'
 SECRET_KEY = '\xfb\x12\xdf\xa1@i\xd6>V\xc0\xbb\x8fp\x16#Z\x0b\x81\xeb\x16'
 DEBUG = True
+FB_CLIENT_ID = '440483442642551'
+FB_CLIENT_SECRET = 'cd54f1ace848fa2a7ac89a31ed9c1b61'
 
 # Flask setup
 app = Flask(__name__)
 app.config.from_object(__name__)
 db = SQLAlchemy(app)
 
+# rauth OAuth 2.0 service wrapper
+graph_url = 'https://graph.facebook.com/'
+facebook = OAuth2Service(name='facebook',
+                         authorize_url='https://www.facebook.com/dialog/oauth',
+                         access_token_url=graph_url + 'oauth/access_token',
+                         client_id=app.config['FB_CLIENT_ID'],
+                         client_secret=app.config['FB_CLIENT_SECRET'],
+                         base_url=graph_url)
 
 # models
 class User(db.Model):
@@ -80,10 +83,10 @@ def authorized():
     redirect_uri = url_for('authorized', _external=True)
     data = dict(code=request.args['code'], redirect_uri=redirect_uri)
     auth = facebook.get_access_token(data=data).content
+    facebook.access_token = auth['access_token']
 
     # the "me" response
-    me = facebook.get(graph_url + '/me',
-                      params=dict(access_token=auth['access_token'])).content
+    me = facebook.get('/me').content
 
     User.get_or_create(me['username'], me['id'])
     flash('Logged in as ' + me['name'])
