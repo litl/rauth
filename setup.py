@@ -23,6 +23,10 @@ if sys.argv[-1] == 'test':
     status >>= 8
     sys.exit(status)
 
+install_requires = ['requests>=0.12.0']
+if sys.version_info[1] < 7:
+    install_requires.append('unittest2>=0.5.1')
+
 setup(
     name='rauth',
     version=rauth.__version__,
@@ -32,7 +36,7 @@ setup(
     author_email='max@litl.com',
     url='https://github.com/litl/rauth',
     packages=find_packages(),
-    install_requires=['requests>=0.12.0'],
+    install_requires=install_requires,
     license='MIT',
     classifiers=(
         'Development Status :: 5 - Production/Stable',

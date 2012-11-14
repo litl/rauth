@@ -1,8 +1,8 @@
 '''
-    rauth.test_hook
-    ---------------
+    rauth.base
+    ----------
 
-    Test suite for rauth.hook.
+    Test suite common infrastructure.
 '''
 
 import unittest
