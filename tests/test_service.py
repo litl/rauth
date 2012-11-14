@@ -37,6 +37,14 @@ class OflyServiceTestCase(RauthTestCase):
         self.assertIsNotNone(service.base_url)
         self.assertEqual(service.base_url, 'http://example.com/api/')
 
+    @patch.object(requests.Session, 'request')
+    def test_get_with_base_url(self, mock_request):
+        self.response.content = json.dumps({'status': 'ok'})
+        self.response.headers['content-type'] = 'json'
+        mock_request.return_value = self.response
+        response = self.service.get('mock_resource').content
+        self.assertEqual(response['status'], 'ok')
+
     def test_get_authorize_url(self):
         url = self.service.get_authorize_url(
             remote_user='foobar',
@@ -90,6 +98,14 @@ class OflyServiceTestCase(RauthTestCase):
         self.assertEqual(response['status'], 'ok')
 
     @patch.object(requests.Session, 'request')
+    def test_head(self, mock_request):
+        self.response.content = json.dumps({'status': 'ok'})
+        self.response.headers['content-type'] = 'json'
+        mock_request.return_value = self.response
+        response = self.service.head('http://example.com/endpoint').content
+        self.assertEqual(response['status'], 'ok')
+
+    @patch.object(requests.Session, 'request')
     def test_request_header_auth(self, mock_request):
         self.response.content = json.dumps({'status': 'ok'})
         self.response.headers['content-type'] = 'json'
@@ -128,7 +144,8 @@ class OAuth2ServiceTestCase(RauthTestCase):
             consumer_secret='456',
             access_token_url='http://example.com/access_token',
             authorize_url='http://example.com/authorize',
-            base_url='http://example.com/api/')
+            base_url='http://example.com/api/',
+            access_token='987')
         self.service = service
 
     def test_init_with_access_token(self):
@@ -151,6 +168,14 @@ class OAuth2ServiceTestCase(RauthTestCase):
             base_url='http://example.com/api/')
         self.assertIsNotNone(service.base_url)
         self.assertEqual(service.base_url, 'http://example.com/api/')
+
+    @patch.object(requests.Session, 'request')
+    def test_get_with_access_token(self, mock_request):
+        self.response.content = json.dumps({'status': 'ok'})
+        self.response.headers['content-type'] = 'json'
+        mock_request.return_value = self.response
+        response = self.service.get('http://example.com/endpoint').content
+        self.assertEqual(response['status'], 'ok')
 
     def test_missing_client_creds(self):
         with self.assertRaises(ValueError) as e:
@@ -313,6 +338,19 @@ class OAuth1ServiceTestCase(RauthTestCase):
             base_url='http://example.com/api/',
             access_token_secret='123')
         self.assertEqual(service.base_url, 'http://example.com/api/')
+
+    @patch.object(requests.Session, 'request')
+    def test_get_without_stored_access_token(self, mock_request):
+        mock_request.return_value = self.response
+
+        response = \
+            self.service.get('http://example.com/some/method',
+                             access_token='123',
+                             access_token_secret='456',
+                             use_stored_token=False).content
+        self.assertIsNotNone(response)
+        self.assertEqual('123', response['oauth_token'])
+        self.assertEqual('456', response['oauth_token_secret'])
 
     @patch.object(requests.Session, 'request')
     def test_get_raw_request_token(self, mock_request):

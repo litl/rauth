@@ -8,7 +8,7 @@ if sys.argv[-1] == 'test':
     nosetests = 'nosetests -v --with-coverage --cover-package=rauth'
     coverage = ('grep ^TOTAL test.log | grep 100% >/dev/null ||'
                 '{ echo \'\n\033[1m\033[91mFAILURE\033[0m: '
-                'Test coverage incomplete.\';'
+                'Test coverage incomplete.\'&&'
                 'exit 1; }')
     try:
         import yanc
@@ -20,6 +20,7 @@ if sys.argv[-1] == 'test':
                        + nosetests + ' 2>&1 | tee -a test.log;'
                        + coverage)
     os.system('rm test.log')
+    status >>= 8
     sys.exit(status)
 
 setup(
