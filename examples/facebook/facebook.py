@@ -42,22 +42,23 @@ facebook = OAuth2Service(name='facebook',
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True)
-    fb_id = db.Column(db.String(120), unique=True)
+    fb_id = db.Column(db.String(120))
 
-    def __init__(self, username, email):
+    def __init__(self, username, fb_id):
         self.username = username
-        self.email = email
+        self.fb_id = fb_id
 
     def __repr__(self):
         return '<User %r>' % self.username
 
     @staticmethod
     def get_or_create(username, fb_id):
-        rv = User.query.filter_by(fb_id=fb_id).first()
-        if rv is None:
-            rv = User(username, fb_id)
-            db.session.add(rv)
-        return rv
+        user = User.query.filter_by(username=username).first()
+        if user is None:
+            user = User(username, fb_id)
+            db.session.add(user)
+            db.session.commit()
+        return user
 
 
 # views
@@ -68,8 +69,8 @@ def index():
 
 @app.route('/facebook/login')
 def login():
-    redirect_url = url_for('authorized', _external=True)
-    return redirect(facebook.get_authorize_url(redirect_uri=redirect_url))
+    redirect_uri = url_for('authorized', _external=True)
+    return redirect(facebook.get_authorize_url(redirect_uri=redirect_uri))
 
 
 @app.route('/facebook/authorized')
@@ -89,6 +90,7 @@ def authorized():
     me = facebook.get('/me').content
 
     User.get_or_create(me['username'], me['id'])
+
     flash('Logged in as ' + me['name'])
     return redirect(url_for('index'))
 
