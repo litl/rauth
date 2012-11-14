@@ -174,7 +174,7 @@ class OAuth2ServiceTestCase(RauthTestCase):
         self.response.content = json.dumps({'status': 'ok'})
         self.response.headers['content-type'] = 'json'
         mock_request.return_value = self.response
-        response = self.service.get('http://example.com/endpoint').content
+        response = self.service.get('mock_resource').content
         self.assertEqual(response['status'], 'ok')
 
     def test_missing_client_creds(self):
