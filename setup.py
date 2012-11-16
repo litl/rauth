@@ -5,6 +5,10 @@ import rauth
 from setuptools import setup, find_packages
 
 if sys.argv[-1] == 'test':
+    abspath = os.path.abspath(__file__)
+    dname = os.path.dirname(abspath)
+    os.chdir(dname)
+
     nosetests = 'nosetests -v --with-coverage --cover-package=rauth'
     coverage = ('grep ^TOTAL test.log | grep 100% >/dev/null ||'
                 '{ echo \'\n\033[1m\033[91mFAILURE\033[0m: '
