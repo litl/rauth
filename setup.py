@@ -14,6 +14,7 @@ if sys.argv[-1] == 'test':
                 '{ echo \'\n\033[1m\033[91mFAILURE\033[0m: '
                 'Test coverage incomplete.\'&&'
                 'exit 1; }')
+    tests = ('&& grep ^FAILED test.log || exit 1')
     try:
         import yanc
         nosetests += ' --with-yanc --yanc-color=on'
@@ -22,8 +23,11 @@ if sys.argv[-1] == 'test':
     status = os.system('pyflakes rauth tests; '
                        'pep8 rauth tests && '
                        + nosetests + ' 2>&1 | tee -a test.log;'
-                       + coverage)
-    os.system('rm test.log')
+                       + coverage + tests)
+
+    if os.path.isfile('test.log'):
+        os.system('rm test.log')
+
     status >>= 8
     sys.exit(status)
 
