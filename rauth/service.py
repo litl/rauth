@@ -395,7 +395,7 @@ class OAuth2Service(Service):
 
         # see if we can use a stored access_token
         access_token = kwargs['params'].get('access_token')
-        if access_token is None self.access_token is None:
+        if access_token is None and self.access_token is None:
             raise ValueError('access_token must not be None')
 
         if access_token is None:
