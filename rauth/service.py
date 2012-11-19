@@ -241,7 +241,7 @@ class OflyService(Service):
         if params is None:
             params = {}
 
-        kwargs['timeout'] = kwargs.get('timeout', DEFAULT_TIMEOUT)
+        kwargs.setdefault('timeout', DEFAULT_TIMEOUT)
 
         if self.base_url is not None and not is_absolute_url(uri):
             uri = self.base_url + uri
@@ -398,7 +398,7 @@ class OAuth2Service(Service):
         if access_token is None:
             kwargs['params'].update(access_token=self.access_token)
 
-        kwargs['timeout'] = kwargs.get('timeout', DEFAULT_TIMEOUT)
+        kwargs.setdefault('timeout', DEFAULT_TIMEOUT)
         response = self.session.request(method, uri, **kwargs)
 
         return Response(response)
