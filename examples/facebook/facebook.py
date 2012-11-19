@@ -6,8 +6,8 @@
 
     Please note: you must do `from facebook import db; db.create_all()` from
     the interpreter before running this example!
-    
-    Due to Facebook's stringent domain validation, requests using this app 
+
+    Due to Facebook's stringent domain validation, requests using this app
     must originate from 127.0.0.1:5000.
 '''
 
@@ -37,6 +37,7 @@ facebook = OAuth2Service(name='facebook',
                          client_id=app.config['FB_CLIENT_ID'],
                          client_secret=app.config['FB_CLIENT_SECRET'],
                          base_url=graph_url)
+
 
 # models
 class User(db.Model):

@@ -67,14 +67,17 @@ def timeline():
     if not session.get('access_token'):
         return redirect(url_for('authorize'))
 
-    params = {'include_rts': 1,  # Include retweets
-              'count': 10}       # 10 tweets
+    include_rts = 1   # Include retweets
+    tweet_count = 10  # 10 tweets
 
     response = twitter.get('https://api.twitter.com/1/statuses/'
                            'home_timeline.json',
-                           params=params,
-                           access_token=session['access_token'],
-                           access_token_secret=session['access_token_secret'])
+                           params=dict(
+                               include_rts=include_rts,
+                               tweet_count=10,
+                               access_token=access_token,
+                               access_token_secret=access_token_secret))
+
     tweets = ''
 
     for i, tweet in enumerate(response.content, 1):

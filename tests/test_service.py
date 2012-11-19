@@ -372,8 +372,9 @@ class OAuth1ServiceTestCase(RauthTestCase):
             self.service.get('http://example.com/some/method',
                              params=dict(access_token_secret='666')
                              ).content
-        self.assertEqual('Either both or neither access_token and \
-                 access_token_secret must be supplied', str(e.exception))
+        self.assertEqual('Either both or neither access_token and '
+                         'access_token_secret must be supplied',
+                         str(e.exception))
 
     @patch.object(requests.Session, 'request')
     def test_request_access_token_secret_missing(self, mock_request):
@@ -382,8 +383,9 @@ class OAuth1ServiceTestCase(RauthTestCase):
         with self.assertRaises(ValueError) as e:
             self.service.get('http://example.com/some/method',
                              params=dict(access_token='666')).content
-        self.assertEqual('Either both or neither access_token and \
-                 access_token_secret must be supplied', str(e.exception))
+        self.assertEqual('Either both or neither access_token and '
+                         'access_token_secret must be supplied',
+                         str(e.exception))
 
     @patch.object(requests.Session, 'request')
     def test_request_with_access_token_override(self, mock_request):

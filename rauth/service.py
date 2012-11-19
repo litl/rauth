@@ -620,8 +620,8 @@ class OAuth1Service(Service):
 
         if (access_token is None and access_token_secret is not None) or \
            (access_token is not None and access_token_secret is None):
-                raise ValueError('Either both or neither access_token and \
-                 access_token_secret must be supplied')
+                raise ValueError('Either both or neither access_token and '
+                                 'access_token_secret must be supplied')
 
         # use default tokens if user supplied tokens are not present
         if not all((access_token, access_token_secret)):

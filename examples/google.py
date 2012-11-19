@@ -23,7 +23,7 @@ authorize_url = google.get_authorize_url(redirect_uri=redirect_uri,
                                          scope='profile email')
 
 print 'Visit this URL in your browser: ' + authorize_url
-webbrowser.open(authorize_url);
+webbrowser.open(authorize_url)
 
 code = raw_input('Copy code from browser: ')
 
