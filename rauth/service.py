@@ -627,7 +627,7 @@ class OAuth1Service(Service):
 
         # use default tokens if user supplied tokens are not present
         if not tokens_found:
-            access_token = self.access_token,
+            access_token = self.access_token
             access_token_secret = self.access_token_secret
 
         auth_session = self._construct_session(

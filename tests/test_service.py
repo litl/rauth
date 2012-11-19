@@ -514,11 +514,8 @@ class OAuth1ServiceTestCase(RauthTestCase):
     def test_request(self, mock_request):
         mock_request.return_value = self.response
 
-        response = \
-            self.service.request('GET',
-                                 'http://example.com/some/method',
-                                 access_token='123',
-                                 access_token_secret='456').content
+        response = self.service.request(
+            'GET', 'http://example.com/some/method').content
         self.assertIsNotNone(response)
         self.assertEqual('123', response['oauth_token'])
         self.assertEqual('456', response['oauth_token_secret'])
