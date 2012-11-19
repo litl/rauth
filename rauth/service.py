@@ -636,6 +636,6 @@ class OAuth1Service(Service):
         response = auth_session.request(method,
                                         uri,
                                         allow_redirects=allow_redirects,
-                                        params=kwargs['params'])
+                                        **kwargs)
 
         return Response(response)
