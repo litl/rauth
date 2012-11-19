@@ -14,7 +14,7 @@ if sys.argv[-1] == 'test':
                 '{ echo \'\n\033[1m\033[91mFAILURE\033[0m: '
                 'Test coverage incomplete.\'&&'
                 'exit 1; }')
-    tests = ('&& grep ^FAILED test.log || exit 1')
+    tests = ('&& grep OK test.log >/dev/null || exit 1')
     try:
         import yanc
         nosetests += ' --with-yanc --yanc-color=on'
