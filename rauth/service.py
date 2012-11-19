@@ -54,7 +54,6 @@ class Request(object):
         :param url: The resource to be requested.
         :param \*\*kwargs: Optional arguments that ``request`` takes.
         '''
-        print kwargs
         return self.request('GET', url, **kwargs)
 
     def post(self, url, **kwargs):
