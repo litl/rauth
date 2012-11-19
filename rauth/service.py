@@ -390,8 +390,7 @@ class OAuth2Service(Service):
         if self.base_url is not None and not is_absolute_url(uri):
             uri = self.base_url + uri
 
-        if 'params' not in kwargs:
-            kwargs['params'] = {}
+        kwargs.setdefault('params', {})
 
         # see if we can use a stored access_token
         access_token = kwargs['params'].get('access_token')
