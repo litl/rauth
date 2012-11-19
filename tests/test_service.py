@@ -7,7 +7,8 @@
 '''
 
 from base import RauthTestCase
-from rauth.service import OAuth1Service, OAuth2Service, OflyService
+from rauth.service import (OAuth1Service, OAuth2Service, OflyService,
+                           DEFAULT_TIMEOUT)
 
 from datetime import datetime
 from mock import patch
@@ -236,14 +237,30 @@ class OAuth2ServiceTestCase(RauthTestCase):
         self.assertEqual(response['access_token'], '321')
 
     @patch.object(requests.Session, 'request')
+    def test_request_with_access_token_override(self, mock_request):
+        self.response.content = json.dumps({'status': 'ok'})
+        self.response.headers['content-type'] = 'json'
+        mock_request.return_value = self.response
+        method = 'GET'
+        url = 'http://example.com/endpoint'
+        params = dict(access_token='420')
+        response = self.service.request(method, url, params=params)
+        self.assertEqual(response.content['status'], 'ok')
+        mock_request.assert_called_with(method, url, params=params,
+                                        timeout=DEFAULT_TIMEOUT)
+
+    @patch.object(requests.Session, 'request')
     def test_request(self, mock_request):
         self.response.content = json.dumps({'status': 'ok'})
         self.response.headers['content-type'] = 'json'
         mock_request.return_value = self.response
-        response = self.service.request('GET',
-                                        'http://example.com/endpoint',
-                                        access_token='321').content
+        method = 'GET'
+        url = 'http://example.com/endpoint'
+        response = self.service.request(method, url).content
         self.assertEqual(response['status'], 'ok')
+        mock_request.assert_called_with(method, url,
+                                        params=dict(access_token='987'),
+                                        timeout=DEFAULT_TIMEOUT)
 
     @patch.object(requests.Session, 'request')
     def test_get(self, mock_request):

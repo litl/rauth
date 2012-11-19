@@ -390,10 +390,8 @@ class OAuth2Service(Service):
         if self.base_url is not None and not is_absolute_url(uri):
             uri = self.base_url + uri
 
-        kwargs.setdefault('params', {})
-
         # see if we can use a stored access_token
-        access_token = kwargs['params'].get('access_token')
+        access_token = kwargs.setdefault('params', {}).get('access_token')
         if access_token is None and self.access_token is None:
             raise ValueError('access_token must not be None')
 
@@ -402,6 +400,10 @@ class OAuth2Service(Service):
 
         kwargs['timeout'] = kwargs.get('timeout', DEFAULT_TIMEOUT)
         response = self.session.request(method, uri, **kwargs)
+
+        print self.session
+        print self.session.request
+
         return Response(response)
 
 
