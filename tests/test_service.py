@@ -243,10 +243,10 @@ class OAuth2ServiceTestCase(RauthTestCase):
         mock_request.return_value = self.response
         method = 'GET'
         url = 'http://example.com/endpoint'
-        params = dict(access_token='420')
-        response = self.service.request(method, url, params=params)
+        response = self.service.request(method, url, access_token='420')
         self.assertEqual(response.content['status'], 'ok')
-        mock_request.assert_called_with(method, url, params=params,
+        mock_request.assert_called_with(method, url,
+                                        params=dict(access_token='420'),
                                         timeout=DEFAULT_TIMEOUT)
 
     @patch.object(requests.Session, 'request')
@@ -370,8 +370,7 @@ class OAuth1ServiceTestCase(RauthTestCase):
 
         with self.assertRaises(ValueError) as e:
             self.service.get('http://example.com/some/method',
-                             params=dict(access_token_secret='666')
-                             ).content
+                             access_token_secret='666').content
         self.assertEqual('Either both or neither access_token and '
                          'access_token_secret must be supplied',
                          str(e.exception))
@@ -382,7 +381,7 @@ class OAuth1ServiceTestCase(RauthTestCase):
 
         with self.assertRaises(ValueError) as e:
             self.service.get('http://example.com/some/method',
-                             params=dict(access_token='666')).content
+                             access_token='666').content
         self.assertEqual('Either both or neither access_token and '
                          'access_token_secret must be supplied',
                          str(e.exception))
@@ -390,19 +389,20 @@ class OAuth1ServiceTestCase(RauthTestCase):
     @patch.object(requests.Session, 'request')
     def test_request_with_access_token_override(self, mock_request):
         mock_request.return_value = self.response
-        response = \
-            self.service.get('http://example.com/some/method',
-                             params=dict(access_token_secret='777',
-                                         access_token='666')).content
+        response = self.service.get(
+            'http://example.com/some/method',
+            access_token_secret='777',
+            access_token='666').content
         self.assertIsNotNone(response)
         self.assertEqual('123', response['oauth_token'])
         self.assertEqual('456', response['oauth_token_secret'])
 
     @patch.object(OAuth1Service, '_construct_session')
     def test_request_with_access_token_override2(self, _construct_session):
-        self.service.get('http://example.com/some/method',
-                         params=dict(access_token_secret='777',
-                                     access_token='666')).content
+        self.service.get(
+            'http://example.com/some/method',
+            access_token_secret='777',
+            access_token='666').content
         _construct_session.assert_called_with(
             access_token='666',
             access_token_secret='777',
