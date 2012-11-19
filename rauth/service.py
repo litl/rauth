@@ -377,22 +377,28 @@ class OAuth2Service(Service):
 
         return Response(response)
 
-    def request(self, method, uri, use_stored_token=True, **kwargs):
+    def request(self, method, uri, **kwargs):
         '''Sends a request to an OAuth 2.0 endpoint, properly wrapped around
         requests.
 
         :param method: A string representation of the HTTP method to be used.
         :param uri: The resource to be requested.
+        :param access_token: Override self.access_token. Defaults to None
         :param \*\*kwargs: Optional arguments. Same as Requests.
         '''
         # see if we can prepend base_url
         if self.base_url is not None and not is_absolute_url(uri):
             uri = self.base_url + uri
 
+        if 'params' not in kwargs:
+            kwargs['params'] = {}
+
         # see if we can use a stored access_token
-        if self.access_token is not None and use_stored_token:
-            if not 'params' in kwargs.keys():
-                kwargs['params'] = {}
+        access_token = kwargs['params'].get('access_token')
+        if access_token is None self.access_token is None:
+            raise ValueError('access_token must not be None')
+
+        if access_token is None:
             kwargs['params'].update(access_token=self.access_token)
 
         kwargs['timeout'] = kwargs.get('timeout', DEFAULT_TIMEOUT)
