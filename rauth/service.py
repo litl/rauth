@@ -54,6 +54,7 @@ class Request(object):
         :param url: The resource to be requested.
         :param \*\*kwargs: Optional arguments that ``request`` takes.
         '''
+        print kwargs
         return self.request('GET', url, **kwargs)
 
     def post(self, url, **kwargs):
@@ -386,6 +387,7 @@ class OAuth2Service(Service):
         :param access_token: Overrides self.access_token. Defaults to None
         :param \*\*kwargs: Optional arguments. Same as Requests.
         '''
+
         # see if we can prepend base_url
         if self.base_url is not None and not is_absolute_url(uri):
             uri = self.base_url + uri

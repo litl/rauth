@@ -31,9 +31,9 @@ access_token_secret = data['oauth_token_secret']
 
 response = linkedin.get(
     LINKEDIN_API_BASE + 'people/~/network/updates',
-    params=dict(type='SHAR', format='json',
-                access_token=access_token,
-                access_token_secret=access_token_secret))
+    params={'type': 'SHAR', 'format': 'json'},
+    access_token=access_token,
+    access_token_secret=access_token_secret)
 
 updates = response.content
 
