@@ -33,11 +33,11 @@ data = dict(code=code,
             redirect_uri=redirect_uri)
 
 # retrieve the access token
-access_token = \
-    google.get_access_token('POST', data=data).content['access_token']
+resp = google.get_access_token('POST', data=data)
+access_token = resp.content['access_token']
 
 # make a request using the access token
 user = google.get('https://www.googleapis.com/oauth2/v1/userinfo',
-                  params=dict(access_token=access_token)).content
+                  access_token=access_token).content
 
 print 'currently logged in as: ' + user['email']

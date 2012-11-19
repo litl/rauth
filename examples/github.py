@@ -20,11 +20,11 @@ code = raw_input('Enter code parameter (code=something) from URL: ')
 data = dict(code=code, redirect_uri='https://github.com/litl/rauth/')
 
 # retrieve the access token
-access_token = \
-    github.get_access_token('POST', data=data).content['access_token']
+resp = github.get_access_token('POST', data=data)
+access_token = resp.content['access_token']
 
 # make a request using the access token
 user = github.get('https://api.github.com/user',
-                  params=dict(access_token=access_token)).content
+                  access_token=access_token).content
 
 print 'currently logged in as: ' + user['login']
