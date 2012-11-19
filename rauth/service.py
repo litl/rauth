@@ -401,9 +401,6 @@ class OAuth2Service(Service):
         kwargs['timeout'] = kwargs.get('timeout', DEFAULT_TIMEOUT)
         response = self.session.request(method, uri, **kwargs)
 
-        print self.session
-        print self.session.request
-
         return Response(response)
 
 
@@ -587,7 +584,7 @@ class OAuth1Service(Service):
                                        access_token_secret=access_token_secret,
                                        header_auth=header_auth)
 
-    def request(self, method, uri, use_stored_token=True, **kwargs):
+    def request(self, method, uri, **kwargs):
         '''Makes a request using :class:`_construct_session`.
 
         :param method: A string representation of the HTTP method to be
@@ -604,29 +601,32 @@ class OAuth1Service(Service):
         header_auth = kwargs.pop('header_auth', self.header_auth)
         allow_redirects = kwargs.pop('allow_redirects', True)
 
-        kwargs['headers'] = kwargs.get('headers', {})
-
-        # set a default request timeout
-        kwargs['timeout'] = kwargs.get('timeout', DEFAULT_TIMEOUT)
+        kwargs.setdefault('headers', {})
+        kwargs.setdefault('params', {})
+        kwargs.setdefault('timeout', DEFAULT_TIMEOUT)
 
         # set the Content-Type if unspecified
         if method in ('POST', 'PUT'):
-            kwargs['headers']['Content-Type'] = \
-                kwargs['headers'].get('Content-Type',
-                                      'application/x-www-form-urlencoded')
+            kwargs['headers'].setdefault('Content-Type',
+                                         'application/x-www-form-urlencoded')
 
         # prepend a base_url to the uri if we can
         if self.base_url is not None and not is_absolute_url(uri):
             uri = self.base_url + uri
 
-        # if we've got a non-None access token, use it
-        access_tokens = (self.access_token, self.access_token_secret)
-        if not None in access_tokens and use_stored_token:
+        # collect user supplied tokens
+        access_token = kwargs['params'].pop('access_token', None)
+        access_token_secret = kwargs['params'].pop('access_token_secret', None)
+
+        if (access_token is None and access_token_secret is not None) or \
+           (access_token is not None and access_token_secret is None):
+                raise ValueError('Either both or neither access_token and \
+                 access_token_secret must be supplied')
+
+        # use default tokens if user supplied tokens are not present
+        if not all((access_token, access_token_secret)):
             access_token = self.access_token,
             access_token_secret = self.access_token_secret
-        else:
-            access_token = kwargs.pop('access_token')
-            access_token_secret = kwargs.pop('access_token_secret')
 
         auth_session = \
             self._construct_session(access_token=access_token,
@@ -636,6 +636,6 @@ class OAuth1Service(Service):
         response = auth_session.request(method,
                                         uri,
                                         allow_redirects=allow_redirects,
-                                        **kwargs)
+                                        params=kwargs['params'])
 
         return Response(response)

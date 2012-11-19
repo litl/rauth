@@ -357,17 +357,46 @@ class OAuth1ServiceTestCase(RauthTestCase):
         self.assertEqual(service.base_url, 'http://example.com/api/')
 
     @patch.object(requests.Session, 'request')
-    def test_get_without_stored_access_token(self, mock_request):
+    def test_request_access_token_missing(self, mock_request):
         mock_request.return_value = self.response
 
+        with self.assertRaises(ValueError) as e:
+            self.service.get('http://example.com/some/method',
+                             params=dict(access_token_secret='666')
+                             ).content
+        self.assertEqual('Either both or neither access_token and \
+                 access_token_secret must be supplied', str(e.exception))
+
+    @patch.object(requests.Session, 'request')
+    def test_request_access_token_secret_missing(self, mock_request):
+        mock_request.return_value = self.response
+
+        with self.assertRaises(ValueError) as e:
+            self.service.get('http://example.com/some/method',
+                             params=dict(access_token='666')).content
+        self.assertEqual('Either both or neither access_token and \
+                 access_token_secret must be supplied', str(e.exception))
+
+    @patch.object(requests.Session, 'request')
+    def test_request_with_access_token_override(self, mock_request):
+        mock_request.return_value = self.response
         response = \
             self.service.get('http://example.com/some/method',
-                             access_token='123',
-                             access_token_secret='456',
-                             use_stored_token=False).content
+                             params=dict(access_token_secret='777',
+                                         access_token='666')).content
         self.assertIsNotNone(response)
         self.assertEqual('123', response['oauth_token'])
         self.assertEqual('456', response['oauth_token_secret'])
+
+    @patch.object(OAuth1Service, '_construct_session')
+    def test_request_with_access_token_override2(self, _construct_session):
+        self.service.get('http://example.com/some/method',
+                         params=dict(access_token_secret='777',
+                                     access_token='666')).content
+        _construct_session.assert_called_with(
+            access_token='666',
+            access_token_secret='777',
+            header_auth=self.service.header_auth)
 
     @patch.object(requests.Session, 'request')
     def test_get_raw_request_token(self, mock_request):
