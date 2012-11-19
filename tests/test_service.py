@@ -250,6 +250,14 @@ class OAuth2ServiceTestCase(RauthTestCase):
                                         timeout=DEFAULT_TIMEOUT)
 
     @patch.object(requests.Session, 'request')
+    def test_request_with_no_access_token(self, mock_request):
+        self.service.access_token = None
+        with self.assertRaises(Exception) as e:
+            self.service.request('GET', 'http://example.com/endpoint')
+        self.assertEqual('access_token must not be None',
+                         str(e.exception))
+
+    @patch.object(requests.Session, 'request')
     def test_request(self, mock_request):
         self.response.content = json.dumps({'status': 'ok'})
         self.response.headers['content-type'] = 'json'
