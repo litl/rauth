@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
     rauth.service
     -------------
@@ -5,37 +6,18 @@
     Provides OAuth 1.0/a, 2.0 and Ofly service containers.
 '''
 
-import requests
-import json
 import hashlib
+import json
+import requests
 
 from rauth.hook import OAuth1Hook
+from rauth.utils import absolute_url, parse_utf8_qsl
 
-from urllib import quote, urlencode
-from urlparse import parse_qsl, urlsplit
 from datetime import datetime
+from urllib import quote, urlencode
+from urlparse import urlsplit
 
 DEFAULT_TIMEOUT = 300
-
-
-def parse_utf8_qsl(s):
-    d = dict(parse_qsl(s))
-
-    for k, v in d.items():
-        if isinstance(k, unicode) and isinstance(v, unicode):
-            # skip this iteration if we have no keys or values to update
-            continue
-        d.pop(k)
-        if not isinstance(k, unicode):
-            k = unicode(k, 'utf-8')
-        if not isinstance(v, unicode):
-            v = unicode(v, 'utf-8')
-        d[k] = v
-    return d
-
-
-def is_absolute_url(url):
-    return url.startswith(('http://', 'https://'))
 
 
 class Request(object):
@@ -243,7 +225,7 @@ class OflyService(Service):
 
         kwargs.setdefault('timeout', DEFAULT_TIMEOUT)
 
-        if self.base_url is not None and not is_absolute_url(uri):
+        if self.base_url is not None and not absolute_url(uri):
             uri = self.base_url + uri
 
         header_auth = kwargs.pop('header_auth', False)
@@ -316,7 +298,7 @@ class OAuth2Service(Service):
         self.consumer_secret = kwargs.get('consumer_secret', client_secret)
 
         if None in (self.consumer_key, self.consumer_secret):
-            raise ValueError('client_id and client_secret must not be None')
+            raise TypeError('client_id and client_secret must not be None')
 
         self.access_token_url = access_token_url
 
@@ -359,7 +341,7 @@ class OAuth2Service(Service):
             key = 'params'
         else:
             # raise an error because credentials must be sent in this method
-            raise ValueError('Either params or data dict missing.')
+            raise NameError('Either params or data dict missing')
 
         grant_type = kwargs[key].get('grant_type', 'authorization_code')
 
@@ -383,17 +365,17 @@ class OAuth2Service(Service):
 
         :param method: A string representation of the HTTP method to be used.
         :param uri: The resource to be requested.
-        :param access_token: Overrides self.access_token. Defaults to None
+        :param access_token: Overrides self.access_token. Defaults to None.
         :param \*\*kwargs: Optional arguments. Same as Requests.
         '''
 
         # see if we can prepend base_url
-        if self.base_url is not None and not is_absolute_url(uri):
+        if self.base_url is not None and not absolute_url(uri):
             uri = self.base_url + uri
 
         # see if we can use a stored access_token
         if access_token is None and self.access_token is None:
-            raise ValueError('access_token must not be None')
+            raise TypeError('access_token must not be None')
 
         if access_token is None:
             access_token = self.access_token
@@ -504,7 +486,7 @@ class OAuth1Service(Service):
         '''
         # ensure we've set the request_token_url
         if self.request_token_url is None:
-            raise ValueError('request_token_url must not be None')
+            raise TypeError('request_token_url must not be None')
 
         auth_session = \
             self._construct_session(header_auth=self.header_auth,
@@ -556,7 +538,7 @@ class OAuth1Service(Service):
         '''
         # ensure we've set the access_token_url
         if self.access_token_url is None:
-            raise ValueError('access_token_url must not be None')
+            raise TypeError('access_token_url must not be None')
 
         request_token = kwargs.pop('request_token')
         request_token_secret = kwargs.pop('request_token_secret')
@@ -602,8 +584,8 @@ class OAuth1Service(Service):
         :param \*\*kwargs: Optional arguments. Same as Requests.
         '''
         header_auth = kwargs.pop('header_auth', self.header_auth)
-        allow_redirects = kwargs.pop('allow_redirects', True)
 
+        kwargs.setdefault('allow_redirects', True)
         kwargs.setdefault('headers', {})
         kwargs.setdefault('params', {})
         kwargs.setdefault('timeout', DEFAULT_TIMEOUT)
@@ -614,29 +596,28 @@ class OAuth1Service(Service):
                                          'application/x-www-form-urlencoded')
 
         # prepend a base_url to the uri if we can
-        if self.base_url is not None and not is_absolute_url(uri):
+        if self.base_url is not None and not absolute_url(uri):
             uri = self.base_url + uri
 
         # check user supplied tokens
         tokens = (access_token, access_token_secret)
-        tokens_found = len([t for t in tokens if t is not None])
-        if tokens_found and tokens_found != 2:
-            raise ValueError('Either both or neither access_token and '
-                             'access_token_secret must be supplied')
+        all_tokens_none = all(v is None for v in tokens)
+        if None in tokens and not all_tokens_none:
+            raise TypeError('Either both or neither access_token and '
+                            'access_token_secret must be supplied')
 
         # use default tokens if user supplied tokens are not present
-        if not tokens_found:
+        if all_tokens_none:
             access_token = self.access_token
             access_token_secret = self.access_token_secret
 
-        auth_session = self._construct_session(
-            access_token=access_token,
-            access_token_secret=access_token_secret,
-            header_auth=header_auth)
+        session_params = dict(access_token=access_token,
+                              access_token_secret=access_token_secret,
+                              header_auth=header_auth)
+        auth_session = self._construct_session(**session_params)
 
         response = auth_session.request(method,
                                         uri,
-                                        allow_redirects=allow_redirects,
                                         **kwargs)
 
         return Response(response)

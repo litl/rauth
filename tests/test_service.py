@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 '''
-    rauth.test_oauth
-    ----------------
+    rauth.test_service
+    ------------------
 
     Test suite for rauth.service.
 '''
@@ -179,7 +179,7 @@ class OAuth2ServiceTestCase(RauthTestCase):
         self.assertEqual(response['status'], 'ok')
 
     def test_missing_client_creds(self):
-        with self.assertRaises(ValueError) as e:
+        with self.assertRaises(TypeError) as e:
             OAuth2Service()
         self.assertEqual(str(e.exception),
                          'client_id and client_secret must not be None')
@@ -217,9 +217,9 @@ class OAuth2ServiceTestCase(RauthTestCase):
         self.response.raise_for_status = self.raise_for_status
         mock_request.return_value = self.response
 
-        with self.assertRaises(Exception) as e:
+        with self.assertRaises(NameError) as e:
             self.service.get_access_token(code='4242')
-        self.assertEqual('Either params or data dict missing.',
+        self.assertEqual('Either params or data dict missing',
                          str(e.exception))
 
     @patch.object(requests.Session, 'request')
@@ -245,14 +245,15 @@ class OAuth2ServiceTestCase(RauthTestCase):
         url = 'http://example.com/endpoint'
         response = self.service.request(method, url, access_token='420')
         self.assertEqual(response.content['status'], 'ok')
-        mock_request.assert_called_with(method, url,
+        mock_request.assert_called_with(method,
+                                        url,
                                         params=dict(access_token='420'),
                                         timeout=DEFAULT_TIMEOUT)
 
     @patch.object(requests.Session, 'request')
     def test_request_with_no_access_token(self, mock_request):
         self.service.access_token = None
-        with self.assertRaises(Exception) as e:
+        with self.assertRaises(TypeError) as e:
             self.service.request('GET', 'http://example.com/endpoint')
         self.assertEqual('access_token must not be None',
                          str(e.exception))
@@ -266,7 +267,8 @@ class OAuth2ServiceTestCase(RauthTestCase):
         url = 'http://example.com/endpoint'
         response = self.service.request(method, url).content
         self.assertEqual(response['status'], 'ok')
-        mock_request.assert_called_with(method, url,
+        mock_request.assert_called_with(method,
+                                        url,
                                         params=dict(access_token='987'),
                                         timeout=DEFAULT_TIMEOUT)
 
@@ -368,7 +370,7 @@ class OAuth1ServiceTestCase(RauthTestCase):
     def test_request_access_token_missing(self, mock_request):
         mock_request.return_value = self.response
 
-        with self.assertRaises(ValueError) as e:
+        with self.assertRaises(TypeError) as e:
             self.service.get('http://example.com/some/method',
                              access_token_secret='666').content
         self.assertEqual('Either both or neither access_token and '
@@ -379,7 +381,7 @@ class OAuth1ServiceTestCase(RauthTestCase):
     def test_request_access_token_secret_missing(self, mock_request):
         mock_request.return_value = self.response
 
-        with self.assertRaises(ValueError) as e:
+        with self.assertRaises(TypeError) as e:
             self.service.get('http://example.com/some/method',
                              access_token='666').content
         self.assertEqual('Either both or neither access_token and '
@@ -389,24 +391,24 @@ class OAuth1ServiceTestCase(RauthTestCase):
     @patch.object(requests.Session, 'request')
     def test_request_with_access_token_override(self, mock_request):
         mock_request.return_value = self.response
-        response = self.service.get(
-            'http://example.com/some/method',
-            access_token_secret='777',
-            access_token='666').content
+        response = self.service.request('GET',
+                                        'http://example.com/some/method',
+                                        access_token_secret='777',
+                                        access_token='666').content
         self.assertIsNotNone(response)
         self.assertEqual('123', response['oauth_token'])
         self.assertEqual('456', response['oauth_token_secret'])
 
     @patch.object(OAuth1Service, '_construct_session')
-    def test_request_with_access_token_override2(self, _construct_session):
-        self.service.get(
-            'http://example.com/some/method',
-            access_token_secret='777',
-            access_token='666').content
-        _construct_session.assert_called_with(
-            access_token='666',
-            access_token_secret='777',
-            header_auth=self.service.header_auth)
+    def test_request_with_access_token_session(self, _construct_session):
+        self.service.request('GET',
+                             'http://example.com/some/method',
+                             access_token_secret='777',
+                             access_token='666')
+        session_params = dict(access_token='666',
+                              access_token_secret='777',
+                              header_auth=self.service.header_auth)
+        _construct_session.assert_called_with(**session_params)
 
     @patch.object(requests.Session, 'request')
     def test_get_raw_request_token(self, mock_request):
@@ -662,14 +664,14 @@ class OAuth1ServiceTestCase(RauthTestCase):
 
     def test_missing_request_token_url(self):
         service = OAuth1Service(None, None)
-        with self.assertRaises(Exception) as e:
+        with self.assertRaises(TypeError) as e:
             service.get_request_token()
         self.assertEqual(str(e.exception),
                          'request_token_url must not be None')
 
     def test_missing_access_token_url(self):
         service = OAuth1Service(None, None)
-        with self.assertRaises(Exception) as e:
+        with self.assertRaises(TypeError) as e:
             service.get_access_token()
         self.assertEqual(str(e.exception),
                          'access_token_url must not be None')
