@@ -134,8 +134,8 @@ class OAuth1Hook(object):
         :param oauth_param: The OAuth parameter to parse.
         :param request: The Request object.
         '''
-        params_is_string = type(request.params) == str
-        data_is_string = type(request.data) == str
+        params_is_string = isinstance(request.params, basestring)
+        data_is_string = isinstance(request.data, basestring)
         params = request.params
         data = request.data
 
