@@ -202,8 +202,8 @@ class OflyService(Request):
         :param header_auth: Authenication via header, defaults to False.
         :param \*\*kwargs: Optional arguments. Same as Requests.
         '''
-        params = kwargs.get('params')
-        data = kwargs.get('data')
+        params = kwargs.pop('params', None)
+        data = kwargs.pop('data', None)
 
         if params is None:
             params = {}
