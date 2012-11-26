@@ -218,14 +218,14 @@ class OflyService(Request):
             response = self.session.request(method,
                                             url + '?' + params,
                                             headers=headers,
-                                            files=kwargs.get('files'))
+                                            **kwargs)
         else:
             params = self._sha1_sign_params(url, **params)
 
             response = self.session.request(method,
                                             url + '?' + params,
                                             data=data,
-                                            files=kwargs.get('files'))
+                                            **kwargs)
 
         return Response(response)
 
