@@ -202,8 +202,8 @@ class OflyService(Request):
         :param header_auth: Authenication via header, defaults to False.
         :param \*\*kwargs: Optional arguments. Same as Requests.
         '''
-        params = kwargs.get('params')
-        data = kwargs.get('data')
+        params = kwargs.pop('params', None)
+        data = kwargs.pop('data', None)
 
         if params is None:
             params = {}
@@ -218,14 +218,14 @@ class OflyService(Request):
             response = self.session.request(method,
                                             url + '?' + params,
                                             headers=headers,
-                                            **kwargs)
+                                            files=kwargs.get('files'))
         else:
             params = self._sha1_sign_params(url, **params)
 
             response = self.session.request(method,
                                             url + '?' + params,
                                             data=data,
-                                            **kwargs)
+                                            files=kwargs.get('files'))
 
         return Response(response)
 
