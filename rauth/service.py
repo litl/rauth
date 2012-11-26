@@ -217,13 +217,15 @@ class OflyService(Request):
 
             response = self.session.request(method,
                                             url + '?' + params,
-                                            headers=headers)
+                                            headers=headers,
+                                            **kwargs)
         else:
             params = self._sha1_sign_params(url, **params)
 
             response = self.session.request(method,
                                             url + '?' + params,
-                                            data=data)
+                                            data=data,
+                                            **kwargs)
 
         return Response(response)
 
