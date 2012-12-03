@@ -14,8 +14,7 @@ from rauth.hook import OAuth1Hook
 from rauth.utils import absolute_url, parse_utf8_qsl
 
 from datetime import datetime
-from urllib import quote, urlencode
-from urlparse import urlsplit
+from rauth.compat import urlsplit, quote, urlencode, basestring, hstr
 
 DEFAULT_TIMEOUT = 300
 
@@ -74,17 +73,18 @@ class Response(object):
 
     @property
     def content(self):
+        content = self.response.text
+
         # NOTE: it would be nice to use content-type here however we can't
         # trust services to be honest with this header so for now the
         # following is more robust and less prone to fragility when the header
         # isn't set properly
-        if isinstance(self.response.content, basestring):
+        if isinstance(content, basestring):
             try:
-                content = json.loads(self.response.content)
+                content = json.loads(content)
             except ValueError:
-                content = parse_utf8_qsl(self.response.content)
-        else:
-            content = self.response.content
+                content = parse_utf8_qsl(content)
+
         return content
 
 
@@ -149,7 +149,7 @@ class OflyService(Service):
                                           authorize_url)
 
     def _micro_to_milliseconds(self, microseconds):
-        return microseconds / self.MICRO_MILLISECONDS_DELTA
+        return microseconds // self.MICRO_MILLISECONDS_DELTA
 
     def _sort_params(self, params):
         def sorting():
@@ -179,14 +179,16 @@ class OflyService(Service):
             signature_base_string += sorted_params + '&'
 
         signature_base_string += self._sort_params(ofly_params)
+        signature_base_string = hstr(signature_base_string)
 
         params['oflyApiSig'] = hashlib.sha1(signature_base_string).hexdigest()
 
         if not header_auth:
             # don't use header authentication
-            params = dict(params.items() + ofly_params.items())
-            return self._sort_params(params)
-
+            merged = {}
+            merged.update(params)
+            merged.update(ofly_params)
+            return self._sort_params(merged)
         # return the raw ofly_params for use in the header
         return self._sort_params(params), ofly_params
 
@@ -502,7 +504,7 @@ class OAuth1Service(Service):
 
         response.raise_for_status()
 
-        return parse_utf8_qsl(response.content)
+        return parse_utf8_qsl(response.text)
 
     def get_request_token(self, method='GET', **kwargs):
         '''Gets a request token from the request token endpoint.

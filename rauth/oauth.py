@@ -10,8 +10,8 @@ import base64
 import hmac
 
 from hashlib import sha1
-from urlparse import parse_qsl, urlsplit, urlunsplit
-from urllib import quote, urlencode
+from rauth.compat import (parse_qsl, urlsplit, urlunsplit, quote, urlencode,
+                          unicode, hstr)
 
 
 class SignatureMethod(object):
@@ -137,10 +137,14 @@ class HmacSha1Signature(SignatureMethod):
         signature_base_string = '&'.join(parameters)
 
         # hash the string with HMAC-SHA1
-        hashed = hmac.new(key, signature_base_string, sha1)
+        hashed = hmac.new(
+            hstr(key),
+            hstr(signature_base_string),
+            sha1)
 
         # return the signature
-        return base64.b64encode(hashed.digest())
+        signature = base64.b64encode(hashed.digest())
+        return signature.decode()
 
 
 class RsaSha1Signature(SignatureMethod):

@@ -1,4 +1,18 @@
 from rauth.service import OAuth1Service
+import sys
+
+try:
+    raw_input
+except NameError:
+    raw_input = input
+
+try:
+    unicode
+    def unicode_to_str(x):
+        return x.encode('utf-8')
+except:
+    unicode_to_str = lambda x: x
+
 
 LINKEDIN_API_BASE = 'http://api.linkedin.com/v1/'
 
@@ -16,7 +30,7 @@ request_token, request_token_secret = \
 
 authorize_url = linkedin.get_authorize_url(request_token)
 
-print 'Visit this URL in your browser: ' + authorize_url
+print('Visit this URL in your browser: %s' % authorize_url)
 pin = raw_input('Enter PIN from browser: ')
 
 response = linkedin.get_access_token('POST',
@@ -42,9 +56,9 @@ for i, update in enumerate(updates['values'], 1):
         print '{0}. {1}'.format(i, update['updateKey'])
         continue
     current_share = update['updateContent']['person']['currentShare']
-    person = current_share['author']['firstName'].encode('utf-8') + ' '
-    person += current_share['author']['lastName'].encode('utf-8')
-    comment = current_share.get('comment', '').encode('utf-8')
+    person = unicode_to_str(current_share['author']['firstName']) + ' '
+    person += unicode_to_str(current_share['author']['lastName'])
+    comment = unicode_to_str(current_share.get('comment', ''))
     if not comment:
-        comment = current_share['content']['description'].encode('utf-8')
-    print '{0}. {1} - {2}'.format(i, person, comment)
+        comment = unicode_to_str(current_share['content']['description'])
+    print('%s. %s - %s' % (i, person, comment))
