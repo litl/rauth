@@ -155,14 +155,5 @@ class PlaintextSignature(SignatureMethod):
     '''PLAINTEXT Signature Method. (Not implemented)'''
     NAME = 'PLAINTEXT'
 
-    def sign(self, request, consumer_secret, access_token_secret=None):
-        '''Sign request parameters.
-
-        :param request: The request to sign.
-        :param consumer: The consumer token object.
-        :param token: The access token object.
-        '''
-        key = self._escape(consumer_secret) + '&'
-        if access_token_secret:
-            key += self._escape(access_token_secret)
-        return key
+    def __init__(self):
+        raise NotImplementedError
