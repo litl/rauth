@@ -3,6 +3,7 @@
 This package provides OAuth 1.0/a, 2.0, and Ofly consumer support. The
 package is wrapped around the superb Python Requests.
 
+[![build status](https://secure.travis-ci.org/litl/rauth.png?branch=master)](https://travis-ci.org/#!/litl/rauth)
 
 ## Installation
 

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
     rauth.hook
     ----------
@@ -57,10 +58,14 @@ class OAuth1Hook(object):
     :param consumer_secret: Client consumer secret.
     :param access_token: Access token key.
     :param access_token_secret: Access token secret.
-    :param header_auth: Authenication via header, defauls to False.
+    :param header_auth: Authenication via header, defaults to False.
     :param signature: A signature method used to sign request parameters.
         Defaults to None. If None the `HmacSha1Signature` method is used as
         default.
+    :param default_oauth_callback: Defining OAuth callback *is required* (only)
+        when obtaining a request token. If `oauth_callback` is not specified
+        otherwise (in URL query or body data params), `default_oauth_callback`
+        shall be used. In all non-request-token requests it can be left out.
     '''
     OAUTH_VERSION = '1.0'
 
@@ -68,7 +73,8 @@ class OAuth1Hook(object):
     oauth_verifier = None
 
     def __init__(self, consumer_key, consumer_secret, access_token=None,
-            access_token_secret=None, header_auth=False, signature=None):
+                 access_token_secret=None, header_auth=False, signature=None,
+                 default_oauth_callback=None):
         # consumer credentials
         self.consumer_key = consumer_key
         self.consumer_secret = consumer_secret
@@ -84,6 +90,9 @@ class OAuth1Hook(object):
         # override the default signature object if available
         if signature is not None:
             self.signature = signature
+
+        # 'oauth_callback' is required only on request-token requests
+        self.oauth_callback = default_oauth_callback
 
     def __call__(self, request):
         # this is a workaround for a known bug that will be patched
@@ -104,12 +113,12 @@ class OAuth1Hook(object):
 
         # sign and add the signature to the request params
         request.oauth_params['oauth_signature'] = \
-                self.signature.sign(request,
-                                    self.consumer_secret,
-                                    self.access_token_secret)
+            self.signature.sign(request,
+                                self.consumer_secret,
+                                self.access_token_secret)
 
         request.params_and_data['oauth_signature'] = \
-                request.oauth_params['oauth_signature']
+            request.oauth_params['oauth_signature']
 
         if self.header_auth:
             # extract the domain for use as the realm
@@ -117,10 +126,8 @@ class OAuth1Hook(object):
             realm = urlunsplit((scheme, netloc, '/', '', ''))
 
             request.headers['Authorization'] = \
-                    self.auth_header(request.oauth_params, realm=realm)
-        elif request.method == 'POST':
-            content_type = 'application/x-www-form-urlencoded'
-            request.headers['content-type'] = content_type
+                self.auth_header(request.oauth_params, realm=realm)
+        elif request.method in ('POST', 'PUT'):
             request.data = request.params_and_data
         else:
             request.params = request.params_and_data
@@ -153,7 +160,6 @@ class OAuth1Hook(object):
         if params_is_string:
             # Some providers does not recognise '+' so replace
             request.params = urlencode(params).replace('+', '%20')
-
 
     @property
     def oauth_params(self):

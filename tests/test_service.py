@@ -1,13 +1,14 @@
 # -*- coding: utf-8 -*-
 '''
-    rauth.test_oauth
-    ----------------
+    rauth.test_service
+    ------------------
 
     Test suite for rauth.service.
 '''
 
 from base import RauthTestCase
-from rauth.service import OAuth1Service, OAuth2Service, OflyService
+from rauth.service import (OAuth1Service, OAuth2Service, OflyService,
+                           DEFAULT_TIMEOUT)
 
 from datetime import datetime
 from mock import patch
@@ -21,17 +22,34 @@ class OflyServiceTestCase(RauthTestCase):
         RauthTestCase.setUp(self)
 
         # mock service for testing
-        service = OflyService(
-                'example',
-                consumer_key='123',
-                consumer_secret='456',
-                authorize_url='http://example.com/authorize')
+        service = OflyService(name='example',
+                              consumer_key='123',
+                              consumer_secret='456',
+                              authorize_url='http://example.com/authorize',
+                              base_url='http://example.com/api/')
         self.service = service
+
+    def test_init_with_base_url(self):
+        service = OflyService(name='example',
+                              consumer_key='123',
+                              consumer_secret='456',
+                              authorize_url='http://example.com/authorize',
+                              base_url='http://example.com/api/')
+        self.assertIsNotNone(service.base_url)
+        self.assertEqual(service.base_url, 'http://example.com/api/')
+
+    @patch.object(requests.Session, 'request')
+    def test_get_with_base_url(self, mock_request):
+        self.response.content = json.dumps({'status': 'ok'})
+        self.response.headers['content-type'] = 'json'
+        mock_request.return_value = self.response
+        response = self.service.get('mock_resource').content
+        self.assertEqual(response['status'], 'ok')
 
     def test_get_authorize_url(self):
         url = self.service.get_authorize_url(
-                remote_user='foobar',
-                redirect_uri='http://example.com/redirect')
+            remote_user='foobar',
+            redirect_uri='http://example.com/redirect')
         self.assertIn('ApiSig=', url)
         self.assertIn('oflyAppId=123', url)
         self.assertIn('oflyCallbackUrl=http://example.com/redirect', url)
@@ -81,6 +99,14 @@ class OflyServiceTestCase(RauthTestCase):
         self.assertEqual(response['status'], 'ok')
 
     @patch.object(requests.Session, 'request')
+    def test_head(self, mock_request):
+        self.response.content = json.dumps({'status': 'ok'})
+        self.response.headers['content-type'] = 'json'
+        mock_request.return_value = self.response
+        response = self.service.head('http://example.com/endpoint').content
+        self.assertEqual(response['status'], 'ok')
+
+    @patch.object(requests.Session, 'request')
     def test_request_header_auth(self, mock_request):
         self.response.content = json.dumps({'status': 'ok'})
         self.response.headers['content-type'] = 'json'
@@ -96,9 +122,11 @@ class OflyServiceTestCase(RauthTestCase):
         self.response.raise_for_status = self.raise_for_status
         mock_request.return_value = self.response
 
+        response = self.service.get('http://example.com/endpoint')
+
         with self.assertRaises(Exception) as e:
-            self.service.get('http://example.com/endpoint')
-            self.assertEqual('Response not OK!', str(e))
+            response.response.raise_for_status()
+        self.assertEqual('Response not OK!', str(e.exception))
 
     def test_micro_to_milliseconds(self):
         microseconds = datetime.utcnow().microsecond
@@ -112,27 +140,54 @@ class OAuth2ServiceTestCase(RauthTestCase):
 
         # mock service for testing
         service = OAuth2Service(
-                'example',
-                consumer_key='123',
-                consumer_secret='456',
-                access_token_url='http://example.com/access_token',
-                authorize_url='http://example.com/authorize')
+            name='example',
+            consumer_key='123',
+            consumer_secret='456',
+            access_token_url='http://example.com/access_token',
+            authorize_url='http://example.com/authorize',
+            base_url='http://example.com/api/',
+            access_token='987')
         self.service = service
 
     def test_init_with_access_token(self):
         service = OAuth2Service(
-                'example',
-                consumer_key='123',
-                consumer_secret='456',
-                access_token_url='http://example.com/access_token',
-                authorize_url='http://example.com/authorize',
-                access_token='321')
+            name='example',
+            consumer_key='123',
+            consumer_secret='456',
+            access_token_url='http://example.com/access_token',
+            authorize_url='http://example.com/authorize',
+            access_token='321')
         self.assertEqual(service.access_token, '321')
+
+    def test_init_with_base_url(self):
+        service = OAuth2Service(
+            name='example',
+            consumer_key='123',
+            consumer_secret='456',
+            access_token_url='http://example.com/access_token',
+            authorize_url='http://example.com/authorize',
+            base_url='http://example.com/api/')
+        self.assertIsNotNone(service.base_url)
+        self.assertEqual(service.base_url, 'http://example.com/api/')
+
+    @patch.object(requests.Session, 'request')
+    def test_get_with_access_token(self, mock_request):
+        self.response.content = json.dumps({'status': 'ok'})
+        self.response.headers['content-type'] = 'json'
+        mock_request.return_value = self.response
+        response = self.service.get('mock_resource').content
+        self.assertEqual(response['status'], 'ok')
+
+    def test_missing_client_creds(self):
+        with self.assertRaises(TypeError) as e:
+            OAuth2Service()
+        self.assertEqual(str(e.exception),
+                         'client_id and client_secret must not be None')
 
     def test_get_authorize_url(self):
         authorize_url = self.service.get_authorize_url()
         expected_url = \
-                'http://example.com/authorize?response_type=code&client_id=123'
+            'http://example.com/authorize?response_type=code&client_id=123'
         self.assertEqual(expected_url, authorize_url)
 
     def test_get_authorize_url_response_type(self):
@@ -145,15 +200,15 @@ class OAuth2ServiceTestCase(RauthTestCase):
     def test_get_access_token(self, mock_request):
         mock_request.return_value = self.response
         response = \
-                self.service.get_access_token(data=dict(code='4242')).content
+            self.service.get_access_token(data=dict(code='4242')).content
         self.assertEqual(response['access_token'], '321')
 
     @patch.object(requests.Session, 'request')
     def test_get_access_token_params(self, mock_request):
         mock_request.return_value = self.response
         response = \
-                self.service.get_access_token('GET',
-                                              params=dict(code='4242')).content
+            self.service.get_access_token('GET',
+                                          params=dict(code='4242')).content
         self.assertEqual(response['access_token'], '321')
 
     @patch.object(requests.Session, 'request')
@@ -162,35 +217,60 @@ class OAuth2ServiceTestCase(RauthTestCase):
         self.response.raise_for_status = self.raise_for_status
         mock_request.return_value = self.response
 
-        with self.assertRaises(Exception) as e:
+        with self.assertRaises(NameError) as e:
             self.service.get_access_token(code='4242')
-            self.assertEqual('Response not OK!', str(e))
+        self.assertEqual('Either params or data dict missing',
+                         str(e.exception))
 
     @patch.object(requests.Session, 'request')
     def test_get_access_token_grant_type(self, mock_request):
         mock_request.return_value = self.response
         data = dict(code='4242', grant_type='refresh_token')
-        response = \
-            self.service.get_access_token(data=data).content
+        response = self.service.get_access_token(data=data).content
         self.assertEqual(response['access_token'], '321')
 
     @patch.object(requests.Session, 'request')
     def test_get_access_token_client_credentials(self, mock_request):
         mock_request.return_value = self.response
         data = dict(grant_type='client_credentials')
-        response = \
-            self.service.get_access_token(data=data).content
+        response = self.service.get_access_token(data=data).content
         self.assertEqual(response['access_token'], '321')
+
+    @patch.object(requests.Session, 'request')
+    def test_request_with_access_token_override(self, mock_request):
+        self.response.content = json.dumps({'status': 'ok'})
+        self.response.headers['content-type'] = 'json'
+        mock_request.return_value = self.response
+        method = 'GET'
+        url = 'http://example.com/endpoint'
+        response = self.service.request(method, url, access_token='420')
+        self.assertEqual(response.content['status'], 'ok')
+        mock_request.assert_called_with(method,
+                                        url,
+                                        params=dict(access_token='420'),
+                                        timeout=DEFAULT_TIMEOUT)
+
+    @patch.object(requests.Session, 'request')
+    def test_request_with_no_access_token(self, mock_request):
+        self.service.access_token = None
+        with self.assertRaises(TypeError) as e:
+            self.service.request('GET', 'http://example.com/endpoint')
+        self.assertEqual('access_token must not be None',
+                         str(e.exception))
 
     @patch.object(requests.Session, 'request')
     def test_request(self, mock_request):
         self.response.content = json.dumps({'status': 'ok'})
         self.response.headers['content-type'] = 'json'
         mock_request.return_value = self.response
-        response = self.service.request('GET',
-                                        'http://example.com/endpoint',
-                                         access_token='321').content
+        method = 'GET'
+        url = 'http://example.com/endpoint'
+        response = self.service.request(method, url).content
         self.assertEqual(response['status'], 'ok')
+        mock_request.assert_called_with(method,
+                                        url,
+                                        params=dict(access_token='987'),
+                                        timeout=DEFAULT_TIMEOUT)
 
     @patch.object(requests.Session, 'request')
     def test_get(self, mock_request):
@@ -234,11 +314,13 @@ class OAuth2ServiceTestCase(RauthTestCase):
         self.response.raise_for_status = self.raise_for_status
         mock_request.return_value = self.response
 
+        response = self.service.request('GET',
+                                        'http://example.com/endpoint',
+                                        access_token='321')
+        self.assertFalse(response.response.ok)
         with self.assertRaises(Exception) as e:
-            self.service.request('GET',
-                                 'http://example.com/endpoint',
-                                  access_token='321')
-            self.assertEqual('Response not OK!', str(e))
+            response.response.raise_for_status()
+        self.assertEqual('Response not OK!', str(e.exception))
 
 
 class OAuth1ServiceTestCase(RauthTestCase):
@@ -247,16 +329,86 @@ class OAuth1ServiceTestCase(RauthTestCase):
 
         # mock service for testing
         service = OAuth1Service(
-                'example',
-                consumer_key='123',
-                consumer_secret='456',
-                request_token_url='http://example.com/request_token',
-                access_token_url='http://example.com/access_token',
-                authorize_url='http://example.com/authorize')
+            name='example',
+            consumer_key='123',
+            consumer_secret='456',
+            request_token_url='http://example.com/request_token',
+            access_token_url='http://example.com/access_token',
+            authorize_url='http://example.com/authorize',
+            base_url='http://example.com/api/',
+            access_token='321',
+            access_token_secret='123')
         self.service = service
 
         # mock response content
         self.response.content = 'oauth_token=123&oauth_token_secret=456'
+
+    def test_init_with_access_token(self):
+        service = OAuth1Service(
+            name='example',
+            consumer_key='123',
+            consumer_secret='456',
+            access_token_url='http://example.com/access_token',
+            authorize_url='http://example.com/authorize',
+            access_token='321',
+            access_token_secret='123')
+        self.assertEqual(service.access_token, '321')
+        self.assertEqual(service.access_token_secret, '123')
+
+    def test_init_with_base_url(self):
+        service = OAuth1Service(
+            name='example',
+            consumer_key='123',
+            consumer_secret='456',
+            access_token_url='http://example.com/access_token',
+            authorize_url='http://example.com/authorize',
+            base_url='http://example.com/api/',
+            access_token_secret='123')
+        self.assertEqual(service.base_url, 'http://example.com/api/')
+
+    @patch.object(requests.Session, 'request')
+    def test_request_access_token_missing(self, mock_request):
+        mock_request.return_value = self.response
+
+        with self.assertRaises(TypeError) as e:
+            self.service.get('http://example.com/some/method',
+                             access_token_secret='666').content
+        self.assertEqual('Either both or neither access_token and '
+                         'access_token_secret must be supplied',
+                         str(e.exception))
+
+    @patch.object(requests.Session, 'request')
+    def test_request_access_token_secret_missing(self, mock_request):
+        mock_request.return_value = self.response
+
+        with self.assertRaises(TypeError) as e:
+            self.service.get('http://example.com/some/method',
+                             access_token='666').content
+        self.assertEqual('Either both or neither access_token and '
+                         'access_token_secret must be supplied',
+                         str(e.exception))
+
+    @patch.object(requests.Session, 'request')
+    def test_request_with_access_token_override(self, mock_request):
+        mock_request.return_value = self.response
+        response = self.service.request('GET',
+                                        'http://example.com/some/method',
+                                        access_token_secret='777',
+                                        access_token='666').content
+        self.assertIsNotNone(response)
+        self.assertEqual('123', response['oauth_token'])
+        self.assertEqual('456', response['oauth_token_secret'])
+
+    @patch.object(OAuth1Service, '_construct_session')
+    def test_request_with_access_token_session(self, _construct_session):
+        self.service.request('GET',
+                             'http://example.com/some/method',
+                             access_token_secret='777',
+                             access_token='666')
+        session_params = dict(access_token='666',
+                              access_token_secret='777',
+                              header_auth=self.service.header_auth)
+        _construct_session.assert_called_with(**session_params)
 
     @patch.object(requests.Session, 'request')
     def test_get_raw_request_token(self, mock_request):
@@ -271,7 +423,7 @@ class OAuth1ServiceTestCase(RauthTestCase):
         mock_request.return_value = self.response
 
         request_token, request_token_secret = \
-                self.service.get_request_token('GET')
+            self.service.get_request_token('GET')
         self.assertEqual(request_token, '123')
         self.assertEqual(request_token_secret, '456')
 
@@ -280,7 +432,7 @@ class OAuth1ServiceTestCase(RauthTestCase):
         mock_request.return_value = self.response
 
         request_token, request_token_secret = \
-                self.service.get_request_token('POST')
+            self.service.get_request_token('POST')
         self.assertEqual(request_token, '123')
         self.assertEqual(request_token_secret, '456')
 
@@ -290,7 +442,7 @@ class OAuth1ServiceTestCase(RauthTestCase):
 
         self.service.header_auth = True
         request_token, request_token_secret = \
-                self.service.get_request_token('POST')
+            self.service.get_request_token('POST')
         self.assertEqual(request_token, '123')
         self.assertEqual(request_token_secret, '456')
 
@@ -310,12 +462,12 @@ class OAuth1ServiceTestCase(RauthTestCase):
         expected_url = 'http://example.com/authorize?oauth_token=123'
         self.assertEqual(expected_url, authorize_url)
 
-    def test_get_authorize_url_with_callback(self):
-        callback = 'http://example.com/callback'
+    def test_get_authorize_url_with_additional_param(self):
+        val = 'http://example.com/something'
         authorize_url = self.service.get_authorize_url(request_token='123',
-                                                       oauth_callback=callback)
+                                                       additional_param=val)
         expected_url = 'http://example.com/authorize?oauth_token=123&' \
-                'oauth_callback=http%3A%2F%2Fexample.com%2Fcallback'
+                       'additional_param=http%3A%2F%2Fexample.com%2Fsomething'
         self.assertEqual(expected_url, authorize_url)
 
     @patch.object(requests.Session, 'request')
@@ -332,7 +484,7 @@ class OAuth1ServiceTestCase(RauthTestCase):
     def test_get_access_token_bad_response(self, mock_request):
         self.response.ok = False
         self.response.content = \
-                json.dumps(dict(error='Oops, something went wrong :('))
+            json.dumps(dict(error='Oops, something went wrong :('))
         mock_request.return_value = self.response
 
         response = self.service.get_access_token('GET',
@@ -364,11 +516,8 @@ class OAuth1ServiceTestCase(RauthTestCase):
     def test_request(self, mock_request):
         mock_request.return_value = self.response
 
-        response = \
-            self.service.request('GET',
-                                 'http://example.com/some/method',
-                                 access_token='123',
-                                 access_token_secret='456').content
+        response = self.service.request(
+            'GET', 'http://example.com/some/method').content
         self.assertIsNotNone(response)
         self.assertEqual('123', response['oauth_token'])
         self.assertEqual('456', response['oauth_token_secret'])
@@ -456,7 +605,7 @@ class OAuth1ServiceTestCase(RauthTestCase):
         self.response.content = 'oauth_token=\xc3\xbc&oauth_token_secret=b'
 
         request_token, request_token_secret = \
-                self.service.get_request_token('GET')
+            self.service.get_request_token('GET')
         self.assertEqual(request_token, u'\xfc')
         self.assertEqual(request_token_secret, 'b')
 
@@ -467,7 +616,7 @@ class OAuth1ServiceTestCase(RauthTestCase):
         self.response.content = u'oauth_token=\xfc&oauth_token_secret=b'
 
         request_token, request_token_secret = \
-                self.service.get_request_token('GET')
+            self.service.get_request_token('GET')
         self.assertEqual(request_token, u'\xfc')
         self.assertEqual(request_token_secret, 'b')
 
@@ -478,7 +627,7 @@ class OAuth1ServiceTestCase(RauthTestCase):
         self.response.content = u'oauth_token=ü&oauth_token_secret=b'
 
         request_token, request_token_secret = \
-                self.service.get_request_token('GET')
+            self.service.get_request_token('GET')
         self.assertEqual(request_token, u'\xfc')
         self.assertEqual(request_token_secret, 'b')
 
@@ -512,3 +661,17 @@ class OAuth1ServiceTestCase(RauthTestCase):
 
         expected = {u'\u20ac': u'euro'}
         self.assertEqual(response.content, expected)
+
+    def test_missing_request_token_url(self):
+        service = OAuth1Service(None, None)
+        with self.assertRaises(TypeError) as e:
+            service.get_request_token()
+        self.assertEqual(str(e.exception),
+                         'request_token_url must not be None')
+
+    def test_missing_access_token_url(self):
+        service = OAuth1Service(None, None)
+        with self.assertRaises(TypeError) as e:
+            service.get_access_token()
+        self.assertEqual(str(e.exception),
+                         'access_token_url must not be None')

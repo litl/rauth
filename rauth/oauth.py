@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 '''
     rauth.oauth
     -----------
@@ -59,35 +60,28 @@ class SignatureMethod(object):
 
         :param request: The request object that will be normalized.
         '''
-        if type(request.params) != str and type(request.data) != str:
-            # if neither params nor data are a string, i.e. both are dicts
-
-            # we concatenate the respective dicts
-            params_and_data = \
-                    dict(request.params.items() + request.data.items())
-
-            normalized = []
-            for k, v in params_and_data.items():
-                normalized += [(k, v)]
-        elif type(request.params) == str and type(request.data) == str:
-            # if both params and data are strings
-            params = parse_qsl(request.params)
-            data = parse_qsl(request.data)
-            normalized = params + data
-        elif type(request.params) == str:
+        normalized = []
+        # processing request parameters
+        if type(request.params) == str:
             # parse the string into a list of tuples
-            normalized = parse_qsl(request.params)
-
-            # extract any data
-            for k, v in request.data.items():
+            normalized_params = parse_qsl(request.params)
+            for k, v in normalized_params:
                 normalized += [(k, v)]
-        elif type(request.data) == str:
-            # and we do the same if data
-            normalized = parse_qsl(request.data)
-
-            # extract any params
+        else:
+            # assume request.params is a list and extract the items
             for k, v in request.params.items():
                 normalized += [(k, v)]
+
+        # processing request data
+        if request.headers['Content-Type'] == \
+                'application/x-www-form-urlencoded':
+            if type(request.data) == str:
+                normalized_data = parse_qsl(request.data)
+                for k, v in normalized_data:
+                    normalized += [(k, v)]
+            else:
+                for k, v in request.data.items():
+                    normalized += [(k, v)]
 
         # extract values from our list of tuples
         all_normalized = []

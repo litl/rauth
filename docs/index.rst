@@ -36,8 +36,9 @@ simply import the service container object:
 
     service = OAuth2Service(
                name='example',
-               consumer_key='123',
-               consumer_secret='456',
+               client_id='123',
+               client_secret='456',
+               base_url='http://example.com/api/'
                access_token_url='http://example.com/token',
                authorize_url='http://example.com/authorize')
 
@@ -50,7 +51,7 @@ authorization URL:
     url = service.get_authorize_url()
 
 Once this URL has been visited and (presumably) the client authorizes the
-application an access token can be obtained:
+application an access token can be obtained::
 
     # the code should be returned upon the redirect from the authorize step,
     # be sure to use it here
@@ -63,9 +64,10 @@ Here is an example using the OAuth 1.0/a service wrapper:
     from rauth.service import OAuth1Service
 
     service = OAuth1Service(
-                    'example',
+                    name='example',
                     consumer_key='123',
                     consumer_secret='456',
+                    base_url='http://example.com/api/',
                     request_token_url='http://example.com/request_token',
                     access_token_url='http://example.com/access_token',
                     authorize_url='http://example.com/authorize')
@@ -77,7 +79,7 @@ tokens `service.get_access_token(request_token, request_token_secret, 'GET')`.
 
 Additionally, an authenticated session, wrapped with the necessary OAuth data
 can be returned via `service.get_authenticated_session(access_token,
-access_token_secret)`. Bind this to a variables and then call it to make
+access_token_secret)`. Bind this to a variable and then call it to make
 authenticated requests to service endpoints.
 
 The OAuth hook object is also available if the service wrapper is not needed or
@@ -91,7 +93,7 @@ wanted. It can be used as follows:
     # setup the OAuth Hook
     oauth = OAuthHook(consumer_key='123', consumer_secret='456')
     # attach it to a pre-request hook
-    oauth_requests = requests.session(hooks={'prehook': oauth})
+    oauth_requests = requests.session(hooks={'pre_request': oauth})
 
     # begin by getting a request token
     oauth_requests.get('http://example.com/request_token').content
