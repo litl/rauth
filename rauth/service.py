@@ -11,6 +11,7 @@ import json
 import requests
 
 from rauth.hook import OAuth1Hook
+from rauth.oauth import HmacSha1Signature, PlaintextSignature, RsaSha1Signature
 from rauth.utils import absolute_url, parse_utf8_qsl
 
 from datetime import datetime
@@ -438,11 +439,15 @@ class OAuth1Service(Service):
     :param access_token_url: Access token endpoint, defaults to None.
     :param authorize_url: Authorize endpoint, defaults to None.
     :param header_auth: Authenication via header, defaults to False.
+    :param signature: The signature method to use. Defaults to "HMAC-SHA1".
+                      Also accepts "PLAINTEXT" with future support for
+                      "RSA-SHA1"
     '''
     def __init__(self, consumer_key, consumer_secret, name=None,
                  request_token_url=None, access_token_url=None,
                  authorize_url=None, header_auth=False, base_url=None,
-                 access_token=None, access_token_secret=None):
+                 access_token=None, access_token_secret=None,
+                 signature="HMAC-SHA1"):
         self.consumer_key = consumer_key
         self.consumer_secret = consumer_secret
 
@@ -452,6 +457,13 @@ class OAuth1Service(Service):
 
         # set to True to use header authentication for this service
         self.header_auth = header_auth
+        if signature == "PLAINTEXT":
+            self.signature = PlaintextSignature()
+        elif signature == "RSA-SHA1":
+            self.signature = RsaSha1Signature()
+        else:
+            # default to HMAC-SHA1
+            self.signature = HmacSha1Signature()
 
         params = dict(access_token=access_token,
                       access_token_secret=access_token_secret)
@@ -470,6 +482,7 @@ class OAuth1Service(Service):
         '''
         hook = OAuth1Hook(consumer_key=self.consumer_key,
                           consumer_secret=self.consumer_secret,
+                          signature=self.signature,
                           **kwargs)
         return requests.session(hooks={'pre_request': hook})
 
