@@ -438,11 +438,13 @@ class OAuth1Service(Service):
     :param access_token_url: Access token endpoint, defaults to None.
     :param authorize_url: Authorize endpoint, defaults to None.
     :param header_auth: Authenication via header, defaults to False.
+    :param signature: The signature(object) strategy to be used. Currently
+                        supported PlaintextSignature and HmacSha1Signature
     '''
     def __init__(self, consumer_key, consumer_secret, name=None,
                  request_token_url=None, access_token_url=None,
                  authorize_url=None, header_auth=False, base_url=None,
-                 access_token=None, access_token_secret=None):
+                 access_token=None, access_token_secret=None, signature=None):
         self.consumer_key = consumer_key
         self.consumer_secret = consumer_secret
 
@@ -452,6 +454,8 @@ class OAuth1Service(Service):
 
         # set to True to use header authentication for this service
         self.header_auth = header_auth
+
+        self.signature = signature
 
         params = dict(access_token=access_token,
                       access_token_secret=access_token_secret)
@@ -470,6 +474,7 @@ class OAuth1Service(Service):
         '''
         hook = OAuth1Hook(consumer_key=self.consumer_key,
                           consumer_secret=self.consumer_secret,
+                          signature=self.signature,
                           **kwargs)
         return requests.session(hooks={'pre_request': hook})
 
