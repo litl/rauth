@@ -15,7 +15,7 @@ from rauth.utils import absolute_url, parse_utf8_qsl
 
 from datetime import datetime
 from urllib import quote, urlencode
-from urlparse import urlsplit
+from urlparse import urlsplit, urljoin
 
 DEFAULT_TIMEOUT = 300
 
@@ -226,7 +226,7 @@ class OflyService(Service):
         kwargs.setdefault('timeout', DEFAULT_TIMEOUT)
 
         if self.base_url is not None and not absolute_url(uri):
-            uri = self.base_url + uri
+            uri = urljoin(self.base_url, uri)
 
         header_auth = kwargs.pop('header_auth', False)
         if header_auth:
@@ -371,7 +371,7 @@ class OAuth2Service(Service):
 
         # see if we can prepend base_url
         if self.base_url is not None and not absolute_url(uri):
-            uri = self.base_url + uri
+            uri = urljoin(self.base_url, uri)
 
         # see if we can use a stored access_token
         if access_token is None and self.access_token is None:
@@ -597,7 +597,7 @@ class OAuth1Service(Service):
 
         # prepend a base_url to the uri if we can
         if self.base_url is not None and not absolute_url(uri):
-            uri = self.base_url + uri
+            uri = urljoin(self.base_url, uri)
 
         # check user supplied tokens
         tokens = (access_token, access_token_secret)
