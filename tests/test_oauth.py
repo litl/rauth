@@ -172,5 +172,10 @@ class OAuthTestRsaSha1Case(RauthTestCase):
 
 
 class OAuthTestPlaintextCase(RauthTestCase):
-    def test_plaintext_notimplemented(self):
-        self.assertRaises(NotImplementedError, PlaintextSignature)
+    def test_hamcsha1_signature(self):
+        self.request.params = {'foo': 'bar'}
+        oauth_signature = PlaintextSignature().sign(self.request,
+                                                    self.hook.consumer_key,
+                                                    self.hook.access_token)
+        self.assertIsNotNone(oauth_signature)
+        self.assertTrue(isinstance(oauth_signature, str))
