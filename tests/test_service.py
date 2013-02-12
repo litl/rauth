@@ -138,6 +138,13 @@ class OAuth2ServiceTestCase(RauthTestCase):
     def setUp(self):
         RauthTestCase.setUp(self)
 
+        # Use JSON as the response type for OAuth2.  RauthTestCase sets up
+        # for OAuth1.
+        self.response.content = \
+            '{"access_token": "321", "token_type": "Bearer"}'
+        self.response.headers = \
+            {'content-type': 'application/json;charset=ISO-8859-1'}
+
         # mock service for testing
         service = OAuth2Service(
             name='example',
