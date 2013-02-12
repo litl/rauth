@@ -61,6 +61,7 @@ class SignatureMethod(object):
         :param request: The request object that will be normalized.
         '''
         normalized = []
+
         # processing request parameters
         if type(request.params) == str:
             # parse the string into a list of tuples
@@ -73,7 +74,8 @@ class SignatureMethod(object):
                 normalized += [(k, v)]
 
         # processing request data
-        if request.headers['Content-Type'] == \
+        if 'Content-Type' in request.headers and \
+                request.headers['Content-Type'] == \
                 'application/x-www-form-urlencoded':
             if type(request.data) == str:
                 normalized_data = parse_qsl(request.data)
@@ -124,9 +126,9 @@ class HmacSha1Signature(SignatureMethod):
         # the necessary parameters we'll sign
         url = self._remove_qs(request.url)
         params_and_data = self._normalize_request_parameters(request)
-        parameters = [self._escape(request.method),
-                      self._escape(url),
-                      self._escape(params_and_data)]
+        parameters = map(self._escape, [request.method,
+                                        url,
+                                        params_and_data])
 
         # set our key
         key = self._escape(consumer_secret) + '&'

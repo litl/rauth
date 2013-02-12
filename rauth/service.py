@@ -10,7 +10,7 @@ import hashlib
 import json
 import requests
 
-from rauth.hook import OAuth1Hook
+from rauth.request import OAuth1Request
 from rauth.utils import absolute_url, parse_utf8_qsl
 
 from datetime import datetime
@@ -28,7 +28,7 @@ class Request(object):
         :param url: The resource to be requested.
         :param \*\*kwargs: Optional arguments that ``request`` takes.
         '''
-        return self.request('HEAD', url, **kwargs)
+        return self.request(method='HEAD', uri=url, **kwargs)
 
     def get(self, url, **kwargs):
         '''Sends a GET request. Returns :class:`Response` object.
@@ -36,7 +36,7 @@ class Request(object):
         :param url: The resource to be requested.
         :param \*\*kwargs: Optional arguments that ``request`` takes.
         '''
-        return self.request('GET', url, **kwargs)
+        return self.request(method='GET', uri=url, **kwargs)
 
     def post(self, url, **kwargs):
         '''Sends a POST request. Returns :class:`Response` object.
@@ -44,7 +44,7 @@ class Request(object):
         :param url: The resource to be requested.
         :param \*\*kwargs: Optional arguments that ``request`` takes.
         '''
-        return self.request('POST', url, **kwargs)
+        return self.request(method='POST', uri=url, **kwargs)
 
     def put(self, url, **kwargs):
         '''Sends a PUT request. Returns :class:`Response` object.
@@ -52,7 +52,7 @@ class Request(object):
         :param url: The resource to be requested.
         :param \*\*kwargs: Optional arguments that ``request`` takes.
         '''
-        return self.request('PUT', url, **kwargs)
+        return self.request(method='PUT', uri=url, **kwargs)
 
     def delete(self, url, **kwargs):
         '''Sends a DELETE request. Returns :class:`Response` object.
@@ -60,7 +60,7 @@ class Request(object):
         :param url: The resource to be requested.
         :param \*\*kwargs: Optional arguments that ``request`` takes.
         '''
-        return self.request('DELETE', url, **kwargs)
+        return self.request(method='DELETE', uri=url, **kwargs)
 
 
 class Response(object):
@@ -349,8 +349,8 @@ class OAuth2Service(Service):
         if grant_type == 'client_credentials':
             kwargs['auth'] = (self.consumer_key, self.consumer_secret)
         else:
-            kwargs[key].update(client_id=self.consumer_key,
-                               client_secret=self.consumer_secret,
+            kwargs[key].update(client_id=self.client_id,
+                               client_secret=self.client_secret,
                                grant_type=grant_type)
 
         response = Response(self.session.request(method,
@@ -378,10 +378,11 @@ class OAuth2Service(Service):
         if self.base_url is not None and not absolute_url(uri):
             uri = urljoin(self.base_url, uri)
 
-        # see if we can use a stored access_token
+        # ensure the access_token is actually set properly
         if access_token is None and self.access_token is None:
             raise TypeError('access_token must not be None')
 
+        # see if we can use a stored access_token
         if access_token is None:
             access_token = self.access_token
 
@@ -415,8 +416,13 @@ class OAuth1Service(Service):
 
         request_token, request_token_secret = service.get_request_token()
 
-    At this point it is usually necessary to redirect the client to the
-    authorize URI. This URI is retrieved as follows::
+    Some services provide different formatting when returning tokens. For this
+    reason the service wrapper provides a special method
+    :class:`get_raw_request_token`. This will return the unparsed response. At
+    this point it's up to you to extract the necessary data.
+
+    Now it's time to access the authorize URI and direct the client to
+    authorize requests on their behalf. This URI is retrieved as follows::
 
         authorize_url = service.get_authorize_url(request_token)
 
@@ -444,10 +450,18 @@ class OAuth1Service(Service):
     :param authorize_url: Authorize endpoint, defaults to None.
     :param header_auth: Authenication via header, defaults to False.
     '''
-    def __init__(self, consumer_key, consumer_secret, name=None,
-                 request_token_url=None, access_token_url=None,
-                 authorize_url=None, header_auth=False, base_url=None,
-                 access_token=None, access_token_secret=None):
+    def __init__(self,
+                 consumer_key,
+                 consumer_secret,
+                 name=None,
+                 request_token_url=None,
+                 access_token_url=None,
+                 authorize_url=None,
+                 header_auth=False,
+                 base_url=None,
+                 access_token=None,
+                 access_token_secret=None):
+
         self.consumer_key = consumer_key
         self.consumer_secret = consumer_secret
 
@@ -466,19 +480,9 @@ class OAuth1Service(Service):
                                             authorize_url,
                                             **params)
 
-    def _construct_session(self, **kwargs):
-        '''Construct the request session, supplying the consumer key and
-        secret.
-
-        :param \*\*kwargs: Extra keyworded arguments to be passed to the
-            OAuth1Hook constructor.
-        '''
-        hook = OAuth1Hook(consumer_key=self.consumer_key,
-                          consumer_secret=self.consumer_secret,
-                          **kwargs)
-        return requests.session(hooks={'pre_request': hook})
-
-    def get_raw_request_token(self, method='GET', oauth_callback='oob',
+    def get_raw_request_token(self,
+                              method='GET',
+                              oauth_callback='oob',
                               **kwargs):
         '''Gets a response from the request token endpoint.
 
@@ -493,21 +497,14 @@ class OAuth1Service(Service):
         if self.request_token_url is None:
             raise TypeError('request_token_url must not be None')
 
-        auth_session = \
-            self._construct_session(header_auth=self.header_auth,
-                                    default_oauth_callback=oauth_callback)
+        r = self.request(method=method,
+                         uri=self.request_token_url,
+                         oauth_callback=oauth_callback,
+                         **kwargs)
 
-        response = auth_session.request(method,
-                                        self.request_token_url,
-                                        **kwargs)
+        r.response.raise_for_status()
 
-        # TODO: use the following instead
-        #if not response.ok:
-        #    return response.content
-
-        response.raise_for_status()
-
-        return parse_utf8_qsl(response.content)
+        return parse_utf8_qsl(r.response.content)
 
     def get_request_token(self, method='GET', **kwargs):
         '''Gets a request token from the request token endpoint.
@@ -548,34 +545,23 @@ class OAuth1Service(Service):
         request_token = kwargs.pop('request_token')
         request_token_secret = kwargs.pop('request_token_secret')
 
-        auth_session = \
-            self._construct_session(access_token=request_token,
-                                    access_token_secret=request_token_secret,
-                                    header_auth=self.header_auth)
-
-        response = auth_session.request(method,
-                                        self.access_token_url,
-                                        **kwargs)
+        response = self.request(method=method,
+                                uri=self.access_token_url,
+                                access_token=request_token,
+                                access_token_secret=request_token_secret,
+                                **kwargs)
 
         return Response(response)
 
-    def get_authenticated_session(self, access_token, access_token_secret,
-                                  header_auth=False):
-        '''Returns an authenticated Requests session utilizing the hook.
-
-        :param access_token: The access token as returned by
-            :class:`get_access_token`
-        :param access_token_secret: The access token secret as returned by
-            :class:`get_access_token`
-        :param header_auth: Authenication via header, defaults to False.
-        '''
-        return self._construct_session(access_token=access_token,
-                                       access_token_secret=access_token_secret,
-                                       header_auth=header_auth)
-
-    def request(self, method, uri, access_token=None,
-                access_token_secret=None, **kwargs):
-        '''Makes a request using :class:`_construct_session`.
+    def request(self,
+                method,
+                uri,
+                access_token=None,
+                access_token_secret=None,
+                header_auth=False,
+                allow_redirects=False,
+                **kwargs):
+        '''Makes a proper OAuth 1.0/a request.
 
         :param method: A string representation of the HTTP method to be
             used.
@@ -588,17 +574,7 @@ class OAuth1Service(Service):
         :param allow_redirects: Allows a request to redirect, defaults to True.
         :param \*\*kwargs: Optional arguments. Same as Requests.
         '''
-        header_auth = kwargs.pop('header_auth', self.header_auth)
-
-        kwargs.setdefault('allow_redirects', True)
-        kwargs.setdefault('headers', {})
-        kwargs.setdefault('params', {})
-        kwargs.setdefault('timeout', DEFAULT_TIMEOUT)
-
-        # set the Content-Type if unspecified
-        if method in ('POST', 'PUT'):
-            kwargs['headers'].setdefault('Content-Type',
-                                         'application/x-www-form-urlencoded')
+        header_auth = header_auth or self.header_auth
 
         # prepend a base_url to the uri if we can
         if self.base_url is not None and not absolute_url(uri):
@@ -616,13 +592,13 @@ class OAuth1Service(Service):
             access_token = self.access_token
             access_token_secret = self.access_token_secret
 
-        session_params = dict(access_token=access_token,
-                              access_token_secret=access_token_secret,
-                              header_auth=header_auth)
-        auth_session = self._construct_session(**session_params)
-
-        response = auth_session.request(method,
-                                        uri,
-                                        **kwargs)
+        response = OAuth1Request(method=method,
+                                 url=uri,
+                                 consumer_key=self.consumer_key,
+                                 consumer_secret=self.consumer_secret,
+                                 access_token=access_token,
+                                 access_token_secret=access_token_secret,
+                                 header_auth=header_auth,
+                                 **kwargs).send()
 
         return Response(response)
