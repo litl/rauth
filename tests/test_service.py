@@ -204,6 +204,12 @@ class OAuth2ServiceTestCase(RauthTestCase):
         self.assertEqual(response['access_token'], '321')
 
     @patch.object(requests.Session, 'request')
+    def test_get_access_token_sets_local_var(self, mock_request):
+        mock_request.return_value = self.response
+        self.service.get_access_token(data=dict(code='4242'))
+        self.assertEqual(self.service.access_token, '321')
+
+    @patch.object(requests.Session, 'request')
     def test_get_access_token_params(self, mock_request):
         mock_request.return_value = self.response
         response = \
