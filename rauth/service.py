@@ -345,13 +345,8 @@ class OAuth2Service(Service):
 
         grant_type = kwargs[key].get('grant_type', 'authorization_code')
 
-        # client_credentials flow uses basic authentication for a token
-        if grant_type == 'client_credentials':
-            kwargs['auth'] = (self.consumer_key, self.consumer_secret)
-        else:
-            kwargs[key].update(client_id=self.consumer_key,
-                               client_secret=self.consumer_secret,
-                               grant_type=grant_type)
+        kwargs['auth'] = (self.consumer_key, self.consumer_secret)
+        kwargs[key].update(grant_type=grant_type)
 
         response = Response(self.session.request(method,
                                                  self.access_token_url,
