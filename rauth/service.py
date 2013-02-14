@@ -353,11 +353,16 @@ class OAuth2Service(Service):
                                client_secret=self.consumer_secret,
                                grant_type=grant_type)
 
-        response = self.session.request(method,
-                                        self.access_token_url,
-                                        **kwargs)
+        response = Response(self.session.request(method,
+                                                 self.access_token_url,
+                                                 **kwargs))
 
-        return Response(response)
+        new_access_token = response.content.get('access_token', None)
+
+        if new_access_token:
+            self.access_token = new_access_token
+
+        return response
 
     def request(self, method, uri, access_token=None, **kwargs):
         '''Sends a request to an OAuth 2.0 endpoint, properly wrapped around

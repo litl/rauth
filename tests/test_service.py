@@ -138,6 +138,13 @@ class OAuth2ServiceTestCase(RauthTestCase):
     def setUp(self):
         RauthTestCase.setUp(self)
 
+        # Use JSON as the response type for OAuth2.  RauthTestCase sets up
+        # for OAuth1.
+        self.response.content = \
+            '{"access_token": "321", "token_type": "Bearer"}'
+        self.response.headers = \
+            {'content-type': 'application/json;charset=ISO-8859-1'}
+
         # mock service for testing
         service = OAuth2Service(
             name='example',
@@ -202,6 +209,12 @@ class OAuth2ServiceTestCase(RauthTestCase):
         response = \
             self.service.get_access_token(data=dict(code='4242')).content
         self.assertEqual(response['access_token'], '321')
+
+    @patch.object(requests.Session, 'request')
+    def test_get_access_token_sets_local_var(self, mock_request):
+        mock_request.return_value = self.response
+        self.service.get_access_token(data=dict(code='4242'))
+        self.assertEqual(self.service.access_token, '321')
 
     @patch.object(requests.Session, 'request')
     def test_get_access_token_params(self, mock_request):
