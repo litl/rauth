@@ -9,7 +9,7 @@ linkedin = OAuth1Service(
     request_token_url='https://api.linkedin.com/uas/oauth/requestToken',
     authorize_url='https://api.linkedin.com/uas/oauth/authorize',
     access_token_url='https://api.linkedin.com/uas/oauth/accessToken',
-    header_auth=True)
+    base_url=LINKEDIN_API_BASE)
 
 request_token, request_token_secret = \
     linkedin.get_request_token(method='GET')
@@ -19,23 +19,22 @@ authorize_url = linkedin.get_authorize_url(request_token)
 print 'Visit this URL in your browser: ' + authorize_url
 pin = raw_input('Enter PIN from browser: ')
 
-response = linkedin.get_access_token('POST',
-                                     request_token=request_token,
-                                     request_token_secret=request_token_secret,
-                                     data={'oauth_verifier': pin})
-
-data = response.content
+data = linkedin.get_access_token(request_token,
+                                 request_token_secret,
+                                 method='POST',
+                                 data={'oauth_verifier': pin},
+                                 header_auth=True)
 
 access_token = data['oauth_token']
 access_token_secret = data['oauth_token_secret']
 
-response = linkedin.get(
-    LINKEDIN_API_BASE + 'people/~/network/updates',
-    params={'type': 'SHAR', 'format': 'json'},
-    access_token=access_token,
-    access_token_secret=access_token_secret)
+response = linkedin.get('people/~/network/updates',
+                        params={'type': 'SHAR', 'format': 'json'},
+                        access_token=access_token,
+                        access_token_secret=access_token_secret,
+                        header_auth=True)
 
-updates = response.content
+updates = response.json()
 
 for i, update in enumerate(updates['values'], 1):
     if 'currentShare' not in update['updateContent']['person']:

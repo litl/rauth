@@ -8,6 +8,8 @@
 
 from urlparse import parse_qsl
 
+FORM_URLENCODED = 'application/x-www-form-urlencoded'
+
 
 def absolute_url(url):
     return url.startswith(('http://', 'https://'))

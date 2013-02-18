@@ -10,8 +10,10 @@ import base64
 import hmac
 
 from hashlib import sha1
-from urlparse import parse_qsl, urlsplit, urlunsplit
 from urllib import quote, urlencode
+from urlparse import parse_qsl, urlsplit, urlunsplit
+
+from rauth.utils import FORM_URLENCODED
 
 
 class SignatureMethod(object):
@@ -42,8 +44,9 @@ class SignatureMethod(object):
         # and return our query-string-less URL!
         return urlunsplit((scheme, netloc, path, query, fragment))
 
-    def _normalize_request_parameters(self, request):
-        '''The OAuth 1.0/a specs indicate that parameter and body data must be
+    def _normalize_request_parameters(self, session, req_kwargs):
+        '''
+        The OAuth 1.0/a specs indicate that parameter and body data must be
         normalized. The specifics of this operation are detailed in the
         respective specs.
 
@@ -62,40 +65,40 @@ class SignatureMethod(object):
         '''
         normalized = []
 
+        params = req_kwargs.get('params', {})
+        data = req_kwargs.get('data', {})
+        headers = req_kwargs.get('headers', {})
+
         # processing request parameters
-        if type(request.params) == str:
+        if type(params) == str:
             # parse the string into a list of tuples
-            normalized_params = parse_qsl(request.params)
+            normalized_params = parse_qsl(params)
             for k, v in normalized_params:
                 normalized += [(k, v)]
         else:
-            # assume request.params is a list and extract the items
-            for k, v in request.params.items():
+            # assume params is a list and extract the items
+            for k, v in params.items():
                 normalized += [(k, v)]
 
         # processing request data
-        if 'Content-Type' in request.headers and \
-                request.headers['Content-Type'] == \
-                'application/x-www-form-urlencoded':
-            if type(request.data) == str:
-                normalized_data = parse_qsl(request.data)
+        if 'Content-Type' in headers and \
+                headers['Content-Type'] == FORM_URLENCODED:
+            if type(data) == str:
+                normalized_data = parse_qsl(data)
                 for k, v in normalized_data:
                     normalized += [(k, v)]
             else:
-                for k, v in request.data.items():
+                for k, v in data.items():
                     normalized += [(k, v)]
 
         # extract values from our list of tuples
         all_normalized = []
         for t in normalized:
             k, v = t
-
-            # save key/value pairs to the request and our list
-            request.params_and_data[k] = v
             all_normalized += [(k, v)]
 
-        # add in the params from data_and_params for signing
-        for k, v in request.params_and_data.items():
+        # add in the params from oauth_params for signing
+        for k, v in session.oauth_params.items():
             if (k, v) in all_normalized:
                 continue
             all_normalized += [(k, v)]
@@ -108,27 +111,33 @@ class SignatureMethod(object):
 
 
 class HmacSha1Signature(SignatureMethod):
-    '''HMAC-SHA1 Signature Method.
+    '''
+    HMAC-SHA1 Signature Method.
 
-    This is a signature method, as per the OAuth 1.0/a and 2.0 specs. As the
-    name might suggest, this method signs parameters with HMAC using SHA1.
+    This is a signature method, as per the OAuth 1.0/a specs. As the name
+    might suggest, this method signs parameters with HMAC using SHA1.
     '''
     NAME = 'HMAC-SHA1'
 
-    def sign(self, request, consumer_secret, access_token_secret=None):
+    def sign(self, session, method, url, req_kwargs):
         '''Sign request parameters.
 
-        :param request: The request to sign.
-        :param consumer: The consumer token object.
-        :param token: The access token object.
+        :param session: The session object to sign over.
+        :param method: The method of this particular request.
+        :param url: The URL of this particular request.
+        :param req_kwargs: Keyworded args that will be sent to the request
+            method.
         '''
 
+        consumer_secret = session.consumer_secret
+        access_token_secret = session.access_token_secret
+
         # the necessary parameters we'll sign
-        url = self._remove_qs(request.url)
-        params_and_data = self._normalize_request_parameters(request)
-        parameters = map(self._escape, [request.method,
+        url = self._remove_qs(url)
+        oauth_params = self._normalize_request_parameters(session, req_kwargs)
+        parameters = map(self._escape, [method,
                                         url,
-                                        params_and_data])
+                                        oauth_params])
 
         # set our key
         key = self._escape(consumer_secret) + '&'
