@@ -70,7 +70,8 @@ def index():
 @app.route('/facebook/login')
 def login():
     redirect_uri = url_for('authorized', _external=True)
-    return redirect(facebook.get_authorize_url(redirect_uri=redirect_uri))
+    params = {'redirect_uri': redirect_uri}
+    return redirect(facebook.get_authorize_url(**params))
 
 
 @app.route('/facebook/authorized')
@@ -83,11 +84,11 @@ def authorized():
     # make a request for the access token credentials using code
     redirect_uri = url_for('authorized', _external=True)
     data = dict(code=request.args['code'], redirect_uri=redirect_uri)
-    auth = facebook.get_access_token(data=data).content
+    auth = facebook.get_access_token(data=data)
     facebook.access_token = auth['access_token']
 
     # the "me" response
-    me = facebook.get('/me').content
+    me = facebook.get('me').json()
 
     User.get_or_create(me['username'], me['id'])
 

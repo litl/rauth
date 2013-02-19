@@ -1,18 +1,15 @@
 from rauth.service import OAuth1Service
 
-LINKEDIN_API_BASE = 'http://api.linkedin.com/v1/'
-
 linkedin = OAuth1Service(
-    name='linkedin',
     consumer_key='tjm826j6uzio',
     consumer_secret='1XbHsC7UxtC6EzqW',
+    name='linkedin',
     request_token_url='https://api.linkedin.com/uas/oauth/requestToken',
     authorize_url='https://api.linkedin.com/uas/oauth/authorize',
     access_token_url='https://api.linkedin.com/uas/oauth/accessToken',
-    base_url=LINKEDIN_API_BASE)
+    base_url='http://api.linkedin.com/v1/')
 
-request_token, request_token_secret = \
-    linkedin.get_request_token(method='GET')
+request_token, request_token_secret = linkedin.get_request_token()
 
 authorize_url = linkedin.get_authorize_url(request_token)
 

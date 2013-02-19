@@ -7,17 +7,20 @@ import webbrowser
 # https://developers.facebook.com/apps
 
 facebook = OAuth2Service(
+    client_id='440483442642551',
+    client_secret='cd54f1ace848fa2a7ac89a31ed9c1b61',
     name='facebook',
     authorize_url='https://graph.facebook.com/oauth/authorize',
     access_token_url='https://graph.facebook.com/oauth/access_token',
-    base_url='https://graph.facebook.com/',
-    client_id='440483442642551',
-    client_secret='cd54f1ace848fa2a7ac89a31ed9c1b61')
+    base_url='https://graph.facebook.com/')
 
 redirect_uri = 'https://www.facebook.com/connect/login_success.html'
-authorize_url = facebook.get_authorize_url(redirect_uri=redirect_uri,
-                                           scope='read_stream',
-                                           response_type='token')
+
+params = {'scope': 'read_stream',
+          'response_type': 'token',
+          'redirect_uri': redirect_uri}
+
+authorize_url = facebook.get_authorize_url(**params)
 
 print 'Visit this URL in your browser: ' + authorize_url
 webbrowser.open(authorize_url);
