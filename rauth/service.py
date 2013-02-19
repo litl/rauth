@@ -389,8 +389,7 @@ class OAuth2Service(Service):
 
         super(OAuth2Service, self).__init__(name,
                                             base_url,
-                                            authorize_url,
-                                            access_token=access_token)
+                                            authorize_url)
 
     def get_session(self, token=None):
         '''
