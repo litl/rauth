@@ -45,7 +45,11 @@ authorization URL:
 
 .. code-block:: python
 
-    url = facebook.get_authorize_url()
+    params = {'scope': 'read_stream',
+              'response_type': 'code',
+              'redirect_uri': 'http://example.com/'}
+
+    url = facebook.get_authorize_url(**params)
 
 Once this URL has been visited and (presumably) the client authorizes the
 application an access token can be obtained::
