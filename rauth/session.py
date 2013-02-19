@@ -22,6 +22,47 @@ OAUTH1_DEFAULT_TIMEOUT = OAUTH2_DEFAULT_TIMEOUT = OFLY_DEFAULT_TIMEOUT = 300.0
 
 
 class OAuth1Session(Session):
+    '''
+    A specialized `requests.sessions.Session` object, wrapping OAuth 1.0/a
+    logic.
+
+    This object is utilized by the `OAuth1Service` wrapper but can be used
+    independently of that infrastructure. Essentially this is a loose wrapping
+    around the standard Requests codepath. State may be tracked at this layer,
+    especially if the instance is kept around and tracked via some unique
+    identifier, e.g. access tokens. Things like request cookies will be
+    preserved between requests and in fact all functionality provided by
+    a Requests' `Session` object should be exposed here.
+
+    If you were to use this object by itself you could do so by instantiating
+    it like this::
+
+        session = OAuth1Session('123',
+                                '456',
+                                access_token='321',
+                                access_token_secret'654')
+
+    You now have a session object which can be used to make requests exactly as
+    you would with a normal Requests `Session` instance. This anticipates that
+    the standard OAuth 1.0/a flow will be modeled outside of the scope of this
+    class. In other words, if the fully qualified flow is useful to you then
+    this object probably need not be used directly, instead consider using
+    `OAuth1Service`.
+
+    Once the session object is setup, you may start making requests::
+
+        r = session.get('http://example/com/api/resource',
+                        params={'format': 'json'})
+        print r.json()
+
+    :param consumer_key: Client consumer key.
+    :param consumer_secret: Client consumer secret.
+    :param access_token: Access token, defaults to None.
+    :param access_token_secret: Access token secret, defaults to None.
+    :param signature: A signature producing object, defaults to
+        HmacSha1Signature.
+    :param service: A back reference to the service wrapper, defaults to None.
+    '''
     VERSION = '1.0'
 
     def __init__(self,
@@ -32,15 +73,19 @@ class OAuth1Session(Session):
                  signature=None,
                  service=None):
 
+        # consumer credentials
         self.consumer_key = consumer_key
         self.consumer_secret = consumer_secret
 
+        # access token credentials
         self.access_token = access_token
         self.access_token_secret = access_token_secret
 
+        # signing method
         if signature is None:
             self.signature = HmacSha1Signature()
 
+        # a back reference to a service wrapper, if we're using one
         self.service = service
 
         super(OAuth1Session, self).__init__()
@@ -51,6 +96,16 @@ class OAuth1Session(Session):
                 header_auth=False,
                 realm=None,
                 **req_kwargs):
+        '''
+        A loose wrapper around `requests.sessions.Session` which injects OAuth
+        1.0/a params.
+
+        :param method: A string representation of the HTTP method to be used.
+        :param url: The resource to be requested.
+        :param header_auth: Authenication via header, defaults to False.
+        :param realm: The auth header realm, defaults to None.
+        :param \*\*req_kwargs: Keyworded args to be passed down to Requests.
+        '''
 
         req_kwargs.setdefault('timeout', OAUTH1_DEFAULT_TIMEOUT)
 
@@ -85,7 +140,8 @@ class OAuth1Session(Session):
         return super(OAuth1Session, self).request(method, url, **req_kwargs)
 
     def _parse_optional_params(self, oauth_param, req_kwargs):
-        '''Parses and sets optional OAuth parameters on a request.
+        '''
+        Parses and sets optional OAuth parameters on a request.
 
         :param oauth_param: The OAuth parameter to parse.
         :param req_kwargs: The keyworded arguments passed to the request
@@ -124,6 +180,7 @@ class OAuth1Session(Session):
         self.oauth_params['oauth_version'] = self.VERSION
 
     def _get_auth_header(self, realm=None):
+        '''Constructs and returns an authentication header.'''
         oauth_params = self.__dict__.pop('oauth_params')
         auth_header = 'OAuth realm="{realm}"'.format(realm=realm)
         params = ''
@@ -134,6 +191,43 @@ class OAuth1Session(Session):
 
 
 class OAuth2Session(Session):
+    '''
+    A specialized `requests.sessions.Session` object, wrapping OAuth 2.0
+    logic.
+
+    This object is utilized by the `OAuth2Service` wrapper but can be used
+    independently of that infrastructure. Essentially this is a loose wrapping
+    around the standard Requests codepath. State may be tracked at this layer,
+    especially if the instance is kept around and tracked via some unique
+    identifier, e.g. access token. Things like request cookies will be
+    preserved between requests and in fact all functionality provided by
+    a Requests' `Session` object should be exposed here.
+
+    If you were to use this object by itself you could do so by instantiating
+    it like this::
+
+        session = OAuth2Session('123', '456', access_token='321')
+
+    You now have a session object which can be used to make requests exactly as
+    you would with a normal Requests `Session` instance. This anticipates that
+    the standard OAuth 2.0 flow will be modeled outside of the scope of this
+    class. In other words, if the fully qualified flow is useful to you then
+    this object probably need not be used directly, instead consider using
+    `OAuth2Service`.
+
+    Once the session object is setup, you may start making requests::
+
+        r = session.get('https://example/com/api/resource',
+                        params={'format': 'json'})
+        print r.json()
+
+    :param client_id: Client id.
+    :param consumer_secret: Client secret.
+    :param access_token: Access token, defaults to None.
+    :param signature: A signature producing object, defaults to
+        HmacSha1Signature.
+    :param service: A back reference to the service wrapper, defaults to None.
+    '''
     def __init__(self,
                  client_id,
                  client_secret,
@@ -149,6 +243,14 @@ class OAuth2Session(Session):
         super(OAuth2Session, self).__init__()
 
     def request(self, method, url, **req_kwargs):
+        '''
+        A loose wrapper around `requests.sessions.Session` which injects OAuth
+        2.0 params.
+
+        :param method: A string representation of the HTTP method to be used.
+        :param url: The resource to be requested.
+        :param \*\*req_kwargs: Keyworded args to be passed down to Requests.
+        '''
         req_kwargs.setdefault('params', {}).update({'access_token':
                                                     self.access_token})
         req_kwargs.setdefault('timeout', OAUTH2_DEFAULT_TIMEOUT)
@@ -157,6 +259,40 @@ class OAuth2Session(Session):
 
 
 class OflySession(Session):
+    '''
+    A specialized `requests.sessions.Session` object, wrapping OAuth 2.0
+    logic.
+
+    This object is utilized by the `OAuth2Service` wrapper but can be used
+    independently of that infrastructure. Essentially this is a loose wrapping
+    around the standard Requests codepath. State may be tracked at this layer,
+    especially if the instance is kept around and tracked via some unique
+    identifier, e.g. access token. Things like request cookies will be
+    preserved between requests and in fact all functionality provided by
+    a Requests' `Session` object should be exposed here.
+
+    If you were to use this object by itself you could do so by instantiating
+    it like this::
+
+        session = OAuth2Session('123', '456', access_token='321')
+
+    You now have a session object which can be used to make requests exactly as
+    you would with a normal Requests `Session` instance. This anticipates that
+    the standard OAuth 2.0 flow will be modeled outside of the scope of this
+    class. In other words, if the fully qualified flow is useful to you then
+    this object probably need not be used directly, instead consider using
+    `OAuth2Service`.
+
+    Once the session object is setup, you may start making requests::
+
+        r = session.get('https://example/com/api/resource',
+                        params={'format': 'json'})
+        print r.json()
+
+    :param app_id: The oFlyAppId, i.e. "application ID".
+    :param app_secret: The oFlyAppSecret, i.e. "shared secret".
+    :param service: A back reference to the service wrapper, defaults to None.
+    '''
     def __init__(self,
                  app_id,
                  app_secret,
@@ -169,6 +305,15 @@ class OflySession(Session):
         super(OflySession, self).__init__()
 
     def request(self, method, url, header_auth=False, **req_kwargs):
+        '''
+        A loose wrapper around `requests.sessions.Session` which injects Ofly
+        params.
+
+        :param method: A string representation of the HTTP method to be used.
+        :param url: The resource to be requested.
+        :param header_auth: Authenication via header, defaults to False.
+        :param \*\*req_kwargs: Keyworded args to be passed down to Requests.
+        '''
         req_kwargs.setdefault('params', {})
         req_kwargs.setdefault('headers', {})
         req_kwargs.setdefault('timeout', OFLY_DEFAULT_TIMEOUT)
@@ -187,6 +332,15 @@ class OflySession(Session):
 
     @staticmethod
     def sign(url, app_id, app_secret, hash_meth='sha1', **params):
+        '''
+        A signature method which generates the necessary Ofly parameters.
+
+        :param app_id: The oFlyAppId, i.e. "application ID".
+        :param app_secret: The oFlyAppSecret, i.e. "shared secret".
+        :param hash_meth: The hash method to use for signing, defaults to
+            "sha1".
+        :param \*\*params: Additional parameters.
+        '''
         if hash_meth == 'sha1':
             hash_meth = sha1
         elif hash_meth == 'md5':

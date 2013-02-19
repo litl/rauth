@@ -24,25 +24,22 @@ class SignatureMethod(object):
         return unicode(s, 'utf-8').encode('utf-8')
 
     def _escape(self, s):
-        '''Escapes a string, ensuring it is encoded as a UTF-8 octet.
+        '''
+        Escapes a string, ensuring it is encoded as a UTF-8 octet.
 
         :param s: A string to be encoded.
         '''
         return quote(self._encode_utf8(s), safe='~')
 
     def _remove_qs(self, url):
-        '''Removes a query string from a URL before signing.
+        '''
+        Removes a query string from a URL before signing.
 
         :param url: The URL to strip.
         '''
-        # split 'em up
         scheme, netloc, path, query, fragment = urlsplit(url)
 
-        # the query string can't be sign as per the spec, kill it
-        query = ''
-
-        # and return our query-string-less URL!
-        return urlunsplit((scheme, netloc, path, query, fragment))
+        return urlunsplit((scheme, netloc, path, '', fragment))
 
     def _normalize_request_parameters(self, session, req_kwargs):
         '''
