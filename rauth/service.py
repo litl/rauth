@@ -72,6 +72,13 @@ class Service(Request):
         # the authorization URL
         self.authorize_url = authorize_url
 
+    def request(self, session, method, url, **kwargs):
+        if self.base_url is not None and not absolute_url(url):
+            url = urljoin(self.base_url, url)
+
+        return session.request(method, url, **kwargs)
+
+
 
 class OAuth1Service(Service):
     '''
@@ -283,10 +290,6 @@ class OAuth1Service(Service):
         :param header_auth: Authenication via header, defaults to False.
         :param \*\*kwargs: Optional arguments. Same as Requests.
         '''
-        # prepend a base_url to the uri if we can
-        if self.base_url is not None and not absolute_url(url):
-            url = urljoin(self.base_url, url)
-
         # check user supplied tokens
         access_tokens = (access_token, access_token_secret)
         all_tokens_none = all(v is None for v in access_tokens)
@@ -301,7 +304,11 @@ class OAuth1Service(Service):
 
         session = self.get_session(access_tokens)
 
-        return session.request(method, url, header_auth=header_auth, **kwargs)
+        return super(OAuth1Service, self).request(session,
+                                                  method,
+                                                  url,
+                                                  header_auth=header_auth,
+                                                  **kwargs)
 
 
 class OAuth2Service(Service):
@@ -466,19 +473,19 @@ class OAuth2Service(Service):
             to None.
         :param \*\*kwargs: Optional arguments. Same as Requests.
         '''
-
-        # see if we can prepend base_url
-        if self.base_url is not None and not absolute_url(url):
-            url = urljoin(self.base_url, url)
-
         access_token = access_token or self.access_token
 
         session = self.get_session(access_token)
-        return session.request(method, url, **kwargs)
+
+        return super(OAuth2Service, self).request(session,
+                                                  method,
+                                                  url,
+                                                  **kwargs)
 
 
 class OflyService(Service):
-    '''An Ofly Service container.
+    '''
+    An Ofly Service container.
 
     This class wraps an Ofly service. Most commonly, Shutterfly. The process
     is similar to that of OAuth 1.0 but simplified. Here we use Requests
@@ -555,9 +562,10 @@ class OflyService(Service):
         :param header_auth: Authenication via header, defaults to False.
         :param \*\*kwargs: Optional arguments. Same as Requests.
         '''
-        if self.base_url is not None and not absolute_url(url):
-            url = urljoin(self.base_url, url)
-
         session = self.get_session()
 
-        return session.request(method, url, header_auth, **kwargs)
+        return super(OflyService, self).request(session,
+                                                  method,
+                                                  url,
+                                                  header_auth=header_auth,
+                                                  **kwargs)
