@@ -14,18 +14,15 @@ Installation
 ------------
 Install the extension with one of the following commands::
 
-    $ easy_install rauth
-
-or alternatively if you have pip installed::
-
     $ pip install rauth
+
+Or if you must::
+
+    $ easy_install rauth
 
 
 Usage
 -----
-
-Using the package is quite simple. Ensure that Python Requests is installed.
-Import the relavent module and start utilizing OAuth endpoints!
 
 The easiest way to get started is by setting up a service wrapper. To do so
 simply import the service container object:
@@ -34,13 +31,13 @@ simply import the service container object:
     
     from rauth.service import OAuth2Service
 
-    service = OAuth2Service(
-               name='example',
-               client_id='123',
-               client_secret='456',
-               base_url='http://example.com/api/'
-               access_token_url='http://example.com/token',
-               authorize_url='http://example.com/authorize')
+    facebook = OAuth2Service(
+        client_id='440483442642551',
+        client_secret='cd54f1ace848fa2a7ac89a31ed9c1b61'
+        name='facebook',
+        authorize_url='https://graph.facebook.com/oauth/authorize',
+        access_token_url='https://graph.facebook.com/oauth/access_token',
+        base_url='https://graph.facebook.com/')
 
 Using the service wrapper API we can obtain an access token after the
 authorization URL has been visited by the client. First generate the
@@ -48,14 +45,14 @@ authorization URL:
 
 .. code-block:: python
 
-    url = service.get_authorize_url()
+    url = facebook.get_authorize_url()
 
 Once this URL has been visited and (presumably) the client authorizes the
 application an access token can be obtained::
 
     # the code should be returned upon the redirect from the authorize step,
     # be sure to use it here
-    token = service.get_access_token(code='foobar')
+    token = facebook.get_access_token(code='foobar')
 
 Here is an example using the OAuth 1.0/a service wrapper:
 
@@ -63,51 +60,28 @@ Here is an example using the OAuth 1.0/a service wrapper:
 
     from rauth.service import OAuth1Service
 
-    service = OAuth1Service(
-                    name='example',
-                    consumer_key='123',
-                    consumer_secret='456',
-                    base_url='http://example.com/api/',
-                    request_token_url='http://example.com/request_token',
-                    access_token_url='http://example.com/access_token',
-                    authorize_url='http://example.com/authorize')
+    twitter = OAuth1Service(
+        consumer_key='J8MoJG4bQ9gcmGh8H7XhMg',
+        consumer_secret='7WAscbSy65GmiVOvMU5EBYn5z80fhQkcFWSLMJJu4',
+        name='twitter',
+        access_token_url='https://api.twitter.com/oauth/access_token',
+        authorize_url='https://api.twitter.com/oauth/authorize',
+        request_token_url='https://api.twitter.com/oauth/request_token',
+        base_url='https://api.twitter.com/1/')
 
 Now it's possible to obtain request tokens via 
-`service.get_request_token('GET')`, generate authorization URIs 
-`service.get_authorize_url(request_token)`, and finally obtain access
-tokens `service.get_access_token(request_token, request_token_secret, 'GET')`.
-
-Additionally, an authenticated session, wrapped with the necessary OAuth data
-can be returned via `service.get_authenticated_session(access_token,
-access_token_secret)`. Bind this to a variable and then call it to make
-authenticated requests to service endpoints.
-
-The OAuth hook object is also available if the service wrapper is not needed or
-wanted. It can be used as follows:
-
-.. code-block:: python
-
-    from rauth.service import OAuthHook
-    import requests
-    
-    # setup the OAuth Hook
-    oauth = OAuthHook(consumer_key='123', consumer_secret='456')
-    # attach it to a pre-request hook
-    oauth_requests = requests.session(hooks={'pre_request': oauth})
-
-    # begin by getting a request token
-    oauth_requests.get('http://example.com/request_token').content
-
-Once the request token is acquired you'll want to update the OAuth Hook and
-request session accordingly, providing the `token` and `token_key` parameters
-to `OAuth1Hook`.
+`request_token = twitter.get_request_token()`, generate authorization URIs 
+`twitter.get_authorize_url(request_token)`, and finally obtain access
+tokens `twitter.get_access_token(request_token, request_token_secret)`.
 
 
 API
 ---
 
-The API is split up into service wrappers which provide convenient methods for
-interacting with various service providers.
+The API is exposed via service wrappers, which provide convenient OAuth 1.0,
+2.0, and Ofly flow methods as well as session management.
+
+Each service type has specialized Session objects, which may be used directly.
 
 OAuth 2.0 Services
 ------------------
@@ -115,8 +89,8 @@ OAuth 2.0 Services
 .. autoclass:: rauth.service.OAuth2Service
     :members:
 
-OAuth 1.0/1.0a Services
------------------------
+OAuth 1.0/a Services
+--------------------
 
 .. autoclass:: rauth.service.OAuth1Service
     :members:
@@ -127,11 +101,20 @@ Ofly Services
 .. autoclass:: rauth.service.OflyService
     :members:
 
-OAuth1 Hook
------------
+OAuth 2.0 Sessions
+------------------
 
-Additionally, for OAuth 1.0/a services, a Requests hook is available for direct
-use.
+.. autoclass:: rauth.session.OAuth2Session
+    :members:
 
-.. autoclass:: rauth.hook.OAuth1Hook
+OAuth 1.0 Sessions
+------------------
+
+.. autoclass:: rauth.session.OAuth1Session
+    :members:
+
+Ofly Sessions
+------------------
+
+.. autoclass:: rauth.session.OflySession
     :members:
