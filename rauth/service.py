@@ -79,7 +79,6 @@ class Service(Request):
         return session.request(method, url, **kwargs)
 
 
-
 class OAuth1Service(Service):
     '''
     An OAuth 1.0/a Service container.
@@ -108,12 +107,13 @@ class OAuth1Service(Service):
         request_token, request_token_secret = service.get_request_token()
 
     .. admonition:: Differing Request Token Formats
-        Some services provide different formatting when returning tokens. For 
+
+        Some services provide different formatting when returning tokens. For
         this reason the service wrapper provides a special method
         :class:`get_raw_request_token`. This will return the unparsed response.
         At this point it's up to you to extract the necessary data.
 
-    It's time to access the authorize URI and direct the client to authorize 
+    It's time to access the authorize URI and direct the client to authorize
     requests on their behalf. This URI is retrieved as follows::
 
         authorize_url = service.get_authorize_url(request_token)
@@ -262,13 +262,11 @@ class OAuth1Service(Service):
         if self.access_token_url is None:
             raise TypeError('access_token_url must not be None')
 
-        r = self.request(method,
-                         self.access_token_url,
-                         access_token=request_token,
-                         access_token_secret=request_token_secret,
-                         **kwargs)
-
-        return parse_utf8_qsl(r.content)
+        return self.request(method,
+                            self.access_token_url,
+                            access_token=request_token,
+                            access_token_secret=request_token_secret,
+                            **kwargs)
 
     def request(self,
                 method,
@@ -454,13 +452,14 @@ class OAuth2Service(Service):
                                grant_type=grant_type)
 
         r = self.request(method, self.access_token_url, **kwargs)
+
         data = parse_utf8_qsl(r.content)
 
         access_token = data.get('access_token')
         if access_token is not None:
             self.access_token = access_token
 
-        return data
+        return r
 
     def request(self, method, url, access_token=None, **kwargs):
         '''
@@ -545,11 +544,11 @@ class OflyService(Service):
         :param \*\*params: Additional keyworded arguments to be added to the
             request querystring.
         '''
-        params = '?' + self.session_obj.sign(self.authorize_url,
-                                             self.app_id,
-                                             self.app_secret,
-                                             **params)
-        return self.authorize_url + params
+        params, _ = self.session_obj.sign(self.authorize_url,
+                                          self.app_id,
+                                          self.app_secret,
+                                          **params)
+        return self.authorize_url + '?' + params
 
     def request(self, method, url, header_auth=False, **kwargs):
         '''
@@ -564,7 +563,7 @@ class OflyService(Service):
         session = self.get_session()
 
         return super(OflyService, self).request(session,
-                                                  method,
-                                                  url,
-                                                  header_auth=header_auth,
-                                                  **kwargs)
+                                                method,
+                                                url,
+                                                header_auth=header_auth,
+                                                **kwargs)

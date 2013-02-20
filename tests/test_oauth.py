@@ -15,133 +15,135 @@ from urllib import urlencode
 
 class OAuthTestHmacSha1Case(RauthTestCase):
     def test_hmacsha1_signature(self):
-        self.request.params = {'foo': 'bar'}
-        oauth_signature = HmacSha1Signature().sign(self.request,
-                                                   self.hook.consumer_key,
-                                                   self.hook.access_token)
+        req_kwargs = {'params': {'foo': 'bar'}}
+        oauth_signature = HmacSha1Signature().sign(self.oauth1session,
+                                                   'GET',
+                                                   'http://example.com/',
+                                                   req_kwargs)
         self.assertIsNotNone(oauth_signature)
         self.assertTrue(isinstance(oauth_signature, str))
+        self.assertEqual(oauth_signature, 'cYzjVXCOk62KoYmJ+iCvcAcgfp8=')
 
     def test_normalize_request_parameters_params(self):
         # params as a dict
-        self.request.params = {'foo': 'bar'}
-        normalized = \
-            HmacSha1Signature()._normalize_request_parameters(self.request)
+        req_kwargs = {'params': {'foo': 'bar'}}
+        normalized = HmacSha1Signature()\
+            ._normalize_request_parameters(self.oauth1session, req_kwargs)
         self.assertEqual('foo=bar',  normalized)
 
         # params as a dict with URL encodable chars
-        self.request.params_and_data = {}
-        self.request.params = {'foo+bar': 'baz'}
-        normalized = \
-            HmacSha1Signature()._normalize_request_parameters(self.request)
+        self.oauth1session.oauth_params = {}
+        req_kwargs = {'params': {'foo+bar': 'baz'}}
+        normalized = HmacSha1Signature()\
+            ._normalize_request_parameters(self.oauth1session, req_kwargs)
         self.assertEqual('foo%2Bbar=baz',  normalized)
-        self.assertTrue('+' not in normalized)
+        self.assertNotIn('+', normalized)
 
         # params as a string
-        self.request.params_and_data = {}
-        self.request.params = urlencode({'foo': 'bar'})
-        normalized = \
-            HmacSha1Signature()._normalize_request_parameters(self.request)
+        self.oauth1session.oauth_params = {}
+        req_kwargs = {'params': urlencode({'foo': 'bar'})}
+        normalized = HmacSha1Signature()\
+            ._normalize_request_parameters(self.oauth1session, req_kwargs)
         self.assertEqual('foo=bar',  normalized)
 
         # params as a string with URL encodable chars
-        self.request.params_and_data = {}
-        self.request.params = urlencode({'foo+bar': 'baz'})
-        normalized = \
-            HmacSha1Signature()._normalize_request_parameters(self.request)
+        self.oauth1session.oauth_params = {}
+        req_kwargs = {'params': urlencode({'foo+bar': 'baz'})}
+        normalized = HmacSha1Signature()\
+            ._normalize_request_parameters(self.oauth1session, req_kwargs)
         self.assertEqual('foo%2Bbar=baz',  normalized)
-        self.assertTrue('+' not in normalized)
+        self.assertNotIn('+', normalized)
 
         # params and dict as dicts
-        self.request.params_and_data = {}
-        self.request.params = {'a': 'b'}
-        self.request.data = {'foo': 'bar'}
-        self.request.headers = \
-            {'Content-Type': 'application/x-www-form-urlencoded'}
-        normalized = \
-            HmacSha1Signature()._normalize_request_parameters(self.request)
+        self.oauth1session.oauth_params = {}
+        req_kwargs = {'params': {'a': 'b'},
+                      'data': {'foo': 'bar'},
+                      'headers': {'Content-Type':
+                                  'application/x-www-form-urlencoded'}}
+        normalized = HmacSha1Signature()\
+            ._normalize_request_parameters(self.oauth1session, req_kwargs)
         self.assertEqual('a=b&foo=bar',  normalized)
 
     def test_normalize_request_parameters_data(self):
         # data as a dict
-        self.request.data = {'foo': 'bar'}
-        self.request.headers = \
-            {'Content-Type': 'application/x-www-form-urlencoded'}
-        normalized = \
-            HmacSha1Signature()._normalize_request_parameters(self.request)
+        req_kwargs = {'data': {'foo': 'bar'},
+                      'headers': {'Content-Type':
+                                  'application/x-www-form-urlencoded'}}
+        normalized = HmacSha1Signature()\
+            ._normalize_request_parameters(self.oauth1session, req_kwargs)
         self.assertEqual('foo=bar',  normalized)
 
         # data as a dict with URL encodable chars
-        self.request.params_and_data = {}
-        self.request.data = {'foo+bar': 'baz'}
-        self.request.headers = \
-            {'Content-Type': 'application/x-www-form-urlencoded'}
-        normalized = \
-            HmacSha1Signature()._normalize_request_parameters(self.request)
+        self.oauth1session.oauth_params = {}
+        req_kwargs = {'data': {'foo+bar': 'baz'},
+                      'headers': {'Content-Type':
+                                  'application/x-www-form-urlencoded'}}
+        normalized = HmacSha1Signature()\
+            ._normalize_request_parameters(self.oauth1session, req_kwargs)
         self.assertEqual('foo%2Bbar=baz',  normalized)
-        self.assertTrue('+' not in normalized)
+        self.assertNotIn('+', normalized)
 
         # data as a string with URL encodable chars
-        self.request.data = urlencode({'foo+bar': 'baz'})
-        self.request.headers = \
-            {'Content-Type': 'application/x-www-form-urlencoded'}
-        normalized = \
-            HmacSha1Signature()._normalize_request_parameters(self.request)
+        self.oauth1session.oauth_params = {}
+        req_kwargs = {'data': urlencode({'foo+bar': 'baz'}),
+                      'headers': {'Content-Type':
+                                  'application/x-www-form-urlencoded'}}
+        normalized = HmacSha1Signature()\
+            ._normalize_request_parameters(self.oauth1session, req_kwargs)
         self.assertEqual('foo%2Bbar=baz',  normalized)
-        self.assertTrue('+' not in normalized)
+        self.assertNotIn('+', normalized)
 
     def test_normalize_request_parameters_both_string(self):
         # params and data both as a string
-        self.request.params = urlencode({'a': 'b'})
-        self.request.data = urlencode({'foo': 'bar'})
-        self.request.headers = \
-            {'Content-Type': 'application/x-www-form-urlencoded'}
-        normalized = \
-            HmacSha1Signature()._normalize_request_parameters(self.request)
+        req_kwargs = {'params': urlencode({'a': 'b'}),
+                      'data': urlencode({'foo': 'bar'}),
+                      'headers': {'Content-Type':
+                                  'application/x-www-form-urlencoded'}}
+        normalized = HmacSha1Signature()\
+            ._normalize_request_parameters(self.oauth1session, req_kwargs)
+
         # this also demonstrates sorting
         self.assertEqual('a=b&foo=bar',  normalized)
 
     def test_normalize_request_parameters_params_string(self):
         # params is a string but data is a dict
-        self.request.params = urlencode({'a': 'b'})
-        self.request.data = {'foo': 'bar'}
-        self.request.headers = \
-            {'Content-Type': 'application/x-www-form-urlencoded'}
-        normalized = \
-            HmacSha1Signature()._normalize_request_parameters(self.request)
+        req_kwargs = {'params': urlencode({'a': 'b'}),
+                      'data': {'foo': 'bar'},
+                      'headers': {'Content-Type':
+                                  'application/x-www-form-urlencoded'}}
+        normalized = HmacSha1Signature()\
+            ._normalize_request_parameters(self.oauth1session, req_kwargs)
         self.assertEqual('a=b&foo=bar',  normalized)
 
     def test_normalize_request_parameters_data_string(self):
         # params is a dict but data is a string
-        self.request.params = {'a': 'b'}
-        self.request.data = urlencode({'foo': 'bar'})
-        self.request.headers = \
-            {'Content-Type': 'application/x-www-form-urlencoded'}
-        normalized = \
-            HmacSha1Signature()._normalize_request_parameters(self.request)
+        req_kwargs = {'params': {'a': 'b'},
+                      'data': urlencode({'foo': 'bar'}),
+                      'headers': {'Content-Type':
+                                  'application/x-www-form-urlencoded'}}
+        normalized = HmacSha1Signature()\
+            ._normalize_request_parameters(self.oauth1session, req_kwargs)
+
         self.assertEqual('a=b&foo=bar',  normalized)
 
     def test_normalize_request_parameters_whitespace(self):
-        self.request.data = dict(foo='bar baz')
-        self.request.headers = \
-            {'Content-Type': 'application/x-www-form-urlencoded'}
-        sig = HmacSha1Signature()._normalize_request_parameters(self.request)
-        self.assertEqual('foo=bar%20baz', sig)
-
-        # as a POST
-        self.request.method = 'POST'
-        self.request.data = dict(foo='bar baz')
-        self.request.headers = \
-            {'Content-Type': 'application/x-www-form-urlencoded'}
-        sig = HmacSha1Signature()._normalize_request_parameters(self.request)
-        self.assertEqual('foo=bar%20baz', sig)
+        req_kwargs = {'data': {'foo': 'bar baz'},
+                      'headers': {'Content-Type':
+                                  'application/x-www-form-urlencoded'}}
+        normalized = HmacSha1Signature()\
+            ._normalize_request_parameters(self.oauth1session, req_kwargs)
+        self.assertEqual('foo=bar%20baz', normalized)
 
     def test_utf8_encoded_string(self):
         # in the event a string is already UTF-8
-        self.request.params = {u'foo': u'bar'}
-        self.request.url = u'http://example.com/'
-        HmacSha1Signature().sign(self.request, self.hook.consumer_key)
-        self.assertEqual({'foo': 'bar'},  self.request.params)
+        req_kwargs = {'params': {u'foo': u'bar'}}
+        method = u'GET'
+        url = u'http://example.com/'
+        sig = HmacSha1Signature().sign(self.oauth1session,
+                                       method,
+                                       url,
+                                       req_kwargs)
+        self.assertEqual('cYzjVXCOk62KoYmJ+iCvcAcgfp8=',  sig)
 
     def test_remove_query_string(self):
         # can't sign the URL with the query string so
@@ -152,17 +154,17 @@ class OAuthTestHmacSha1Case(RauthTestCase):
     def test_normalize_request_parameters_data_not_urlencoded(self):
         # not sending the 'application/x-www-form-urlencoded' header
         # therefore the data will not be included in the signature
-        self.request.params_and_data = {}
-        self.request.data = {'foo': 'bar'}
-        normalized = \
-            HmacSha1Signature()._normalize_request_parameters(self.request)
+        self.oauth1session.oauth_params = {}
+        req_kwargs = {'data': {'foo': 'bar'}}
+        normalized = HmacSha1Signature()\
+            ._normalize_request_parameters(self.oauth1session, req_kwargs)
         self.assertEqual('',  normalized)
 
-        self.request.params_and_data = {}
-        self.request.params = {'a': 'b'}
-        self.request.data = {'foo': 'bar'}
-        normalized = \
-            HmacSha1Signature()._normalize_request_parameters(self.request)
+        self.oauth1session.oauth_params = {}
+        req_kwargs = {'params': {'a': 'b'},
+                      'data': {'foo': 'bar'}}
+        normalized = HmacSha1Signature()\
+            ._normalize_request_parameters(self.oauth1session, req_kwargs)
         self.assertEqual('a=b',  normalized)
 
 

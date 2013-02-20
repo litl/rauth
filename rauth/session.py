@@ -10,7 +10,7 @@ from datetime import datetime
 from hashlib import sha1, md5
 from random import random
 from time import time
-from urllib import quote, urlencode
+from urllib import quote
 from urlparse import parse_qsl, urlsplit
 
 from rauth.oauth import HmacSha1Signature
@@ -127,7 +127,7 @@ class OAuth1Session(Session):
         if header_auth:
             req_kwargs.setdefault('headers', {})
             req_kwargs['headers'].update({'Authorization':
-                                           self._get_auth_header()})
+                                          self._get_auth_header()})
         elif method.upper() in ('POST', 'PUT'):
             req_kwargs.setdefault('headers', {})
             req_kwargs['headers'].setdefault('Content-Type', FORM_URLENCODED)
@@ -157,15 +157,20 @@ class OAuth1Session(Session):
         if params_is_string and params:
             params = dict(parse_qsl(params))
 
+        if data_is_string and data:
+            data = dict(parse_qsl(data))
+
         # remove any oauth parameters and set them as attributes
         if oauth_param in params:
             self.oauth_params[oauth_param] = params.pop(oauth_param)
         if not data_is_string and oauth_param in data:
             self.oauth_params[oauth_param] = data.pop(oauth_param)
 
-        # re-encode the params if they were a string, without any oauth
-        if params_is_string:
-            req_kwargs['params'] = urlencode(params)
+        if params:
+            req_kwargs['params'] = params
+
+        if data:
+            req_kwargs['data'] = data
 
     def _set_oauth_params(self):
         '''Prepares OAuth params for signing.'''
@@ -304,7 +309,12 @@ class OflySession(Session):
 
         super(OflySession, self).__init__()
 
-    def request(self, method, url, header_auth=False, **req_kwargs):
+    def request(self,
+                method,
+                url,
+                header_auth=False,
+                hash_meth='sha1',
+                **req_kwargs):
         '''
         A loose wrapper around `requests.sessions.Session` which injects Ofly
         params.
@@ -312,6 +322,8 @@ class OflySession(Session):
         :param method: A string representation of the HTTP method to be used.
         :param url: The resource to be requested.
         :param header_auth: Authenication via header, defaults to False.
+        :param hash_meth: The hash method to use for signing, defaults to
+            "sha1".
         :param \*\*req_kwargs: Keyworded args to be passed down to Requests.
         '''
         req_kwargs.setdefault('params', {})
@@ -321,9 +333,10 @@ class OflySession(Session):
         params, headers = OflySession.sign(url,
                                            self.app_id,
                                            self.app_secret,
-                                           req_kwargs['params'])
+                                           heash_meth=hash_meth,
+                                           **req_kwargs['params'])
 
-        req_kwargs['params'].update(params)
+        req_kwargs['params'] = params
 
         if header_auth:
             req_kwargs['headers'].update(headers)
@@ -341,6 +354,7 @@ class OflySession(Session):
             "sha1".
         :param \*\*params: Additional parameters.
         '''
+        hash_meth_str = hash_meth
         if hash_meth == 'sha1':
             hash_meth = sha1
         elif hash_meth == 'md5':
@@ -359,8 +373,9 @@ class OflySession(Session):
 
         time_format = '%Y-%m-%dT%H:%M:%S.{0}Z'.format(milliseconds)
         ofly_params = {'oflyAppId': app_id,
-                       'oflyHashMeth': hash_meth.upper(),
+                       'oflyHashMeth': hash_meth_str.upper(),
                        'oflyTimestamp': now.strftime(time_format)}
+        params.update(ofly_params)
 
         url_path = urlsplit(url).path
 
