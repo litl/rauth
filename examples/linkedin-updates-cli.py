@@ -16,14 +16,12 @@ authorize_url = linkedin.get_authorize_url(request_token)
 print 'Visit this URL in your browser: ' + authorize_url
 pin = raw_input('Enter PIN from browser: ')
 
-data = linkedin.get_access_token(request_token,
-                                 request_token_secret,
-                                 method='POST',
-                                 data={'oauth_verifier': pin},
-                                 header_auth=True)
-
-access_token = data['oauth_token']
-access_token_secret = data['oauth_token_secret']
+access_token, access_token_secret = \
+        linkedin.get_access_token(request_token,
+                                  request_token_secret,
+                                  method='POST',
+                                  data={'oauth_verifier': pin},
+                                  header_auth=True)
 
 response = linkedin.get('people/~/network/updates',
                         params={'type': 'SHAR', 'format': 'json'},

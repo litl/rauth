@@ -84,8 +84,7 @@ def authorized():
     # make a request for the access token credentials using code
     redirect_uri = url_for('authorized', _external=True)
     data = dict(code=request.args['code'], redirect_uri=redirect_uri)
-    auth = facebook.get_access_token(data=data)
-    facebook.access_token = auth['access_token']
+    facebook.get_access_token(data=data)
 
     # the "me" response
     me = facebook.get('me').json()

@@ -17,13 +17,11 @@ authorize_url = twitter.get_authorize_url(request_token)
 print 'Visit this URL in your browser: ' + authorize_url
 pin = raw_input('Enter PIN from browser: ')
 
-data = twitter.get_access_token(method='POST',
-                                request_token=request_token,
-                                request_token_secret=request_token_secret,
-                                data={'oauth_verifier': pin})
-
-access_token = data['oauth_token']
-access_token_secret = data['oauth_token_secret']
+access_token, access_token_secret = \
+    twitter.get_access_token(method='POST',
+                             request_token=request_token,
+                             request_token_secret=request_token_secret,
+                             data={'oauth_verifier': pin})
 
 params = {'include_rts': 1,  # Include retweets
           'count': 10}       # 10 tweets
