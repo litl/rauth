@@ -202,11 +202,10 @@ class OAuth1Service(Service):
 
     def get_raw_request_token(self, method='GET', **kwargs):
         '''
-        Gets a response from the request token endpoint.
+        Returns a Requests' response over the :class:`request_token_url`.
 
-        Returns the entire parsed response, without trying to pull out the
-        token and secret.  Use this if your endpoint doesn't use the usual
-        names for 'oauth_token' and 'oauth_token_secret'.
+        Use this if your endpoint doesn't use the usual names for 'oauth_token'
+        and 'oauth_token_secret'.
 
         :param method: A string representation of the HTTP method to be used.
         :param \*\*kwargs: Optional arguments. Same as Requests.
@@ -215,13 +214,11 @@ class OAuth1Service(Service):
         if self.request_token_url is None:
             raise TypeError('request_token_url must not be None')
 
-        kwargs.setdefault('params', {'oauth_callback': 'oob'})
-
         return self.request(method, self.request_token_url, **kwargs)
 
     def get_request_token(self, method='GET', **kwargs):
         '''
-        Gets a request token from the request token endpoint.
+        Return a request token pair.
 
         :param method: A string representation of the HTTP method to be used.
         :param \*\*kwargs: Optional arguments. Same as Requests.
@@ -232,7 +229,7 @@ class OAuth1Service(Service):
 
     def get_authorize_url(self, request_token, **params):
         '''
-        Returns a proper authorize URL.
+        Returns a formatted authorize URL.
 
         :param request_token: The request token as returned by
             :class:`get_request_token`.
@@ -242,13 +239,16 @@ class OAuth1Service(Service):
         params.update({'oauth_token': quote(request_token)})
         return self.authorize_url + '?' + urlencode(params)
 
-    def get_access_token(self,
-                         request_token,
-                         request_token_secret,
-                         method='GET',
-                         **kwargs):
+    def get_raw_access_token(self,
+                             request_token,
+                             request_token_secret,
+                             method='GET',
+                             **kwargs):
         '''
-        Retrieves the access token pair.
+        Returns a Requests' response over the :class:`access_token_url`.
+
+        Use this if your endpoint doesn't use the usual names for 'oauth_token'
+        and 'oauth_token_secret'.
 
         :param request_token: The request token as returned by
             :class:`get_request_token`.
@@ -267,6 +267,30 @@ class OAuth1Service(Service):
                             access_token=request_token,
                             access_token_secret=request_token_secret,
                             **kwargs)
+
+
+    def get_access_token(self,
+                         request_token,
+                         request_token_secret,
+                         method='GET',
+                         **kwargs):
+        '''
+        Returns an access token pair.
+
+        :param request_token: The request token as returned by
+            :class:`get_request_token`.
+        :param request_token_secret: The request token secret as returned by
+            :class:`get_request_token`.
+        :param method: A string representation of the HTTP method to be
+            used. Defaults to 'GET'.
+        :param \*\*kwargs: Optional arguments. Same as Requests.
+        '''
+        r = self.get_raw_access_token(request_token,
+                                      request_token_secret,
+                                      method=method,
+                                      **kwargs)
+        data = parse_utf8_qsl(r.content)
+        return data['oauth_token'], data['oauth_token_secret']
 
     def request(self,
                 method,
