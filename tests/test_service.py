@@ -201,8 +201,8 @@ class OAuth2ServiceTestCase(RauthTestCase):
     @patch.object(requests.Session, 'request')
     def test_get_access_token(self, mock_request):
         mock_request.return_value = self.response
-        r = self.service.get_access_token(data={'code': '4242'})
-        self.assertEqual(r.content, 'access_token=321')
+        access_token = self.service.get_access_token(data={'code': '4242'})
+        self.assertEqual(access_token, '321')
 
     @patch.object(requests.Session, 'request')
     def test_get_access_token_sets_local_var(self, mock_request):
@@ -213,33 +213,23 @@ class OAuth2ServiceTestCase(RauthTestCase):
     @patch.object(requests.Session, 'request')
     def test_get_access_token_params(self, mock_request):
         mock_request.return_value = self.response
-        r = self.service.get_access_token('GET', params={'code': '4242'})
-        self.assertEqual(r.content, 'access_token=321')
-
-    @patch.object(requests.Session, 'request')
-    def test_get_access_token_bad_response(self, mock_request):
-        self.response.ok = False
-        self.response.raise_for_status = self.raise_for_status
-        mock_request.return_value = self.response
-
-        with self.assertRaises(NameError) as e:
-            self.service.get_access_token(code='4242')
-        self.assertEqual('Either params or data dict missing',
-                         str(e.exception))
+        access_token = \
+            self.service.get_access_token('GET', params={'code': '4242'})
+        self.assertEqual(access_token, '321')
 
     @patch.object(requests.Session, 'request')
     def test_get_access_token_grant_type(self, mock_request):
         mock_request.return_value = self.response
         data = {'code': '4242', 'grant_type': 'refresh_token'}
-        r = self.service.get_access_token(data=data)
-        self.assertEqual(r.content, 'access_token=321')
+        access_token = self.service.get_access_token(data=data)
+        self.assertEqual(access_token, '321')
 
     @patch.object(requests.Session, 'request')
     def test_get_access_token_client_credentials(self, mock_request):
         mock_request.return_value = self.response
         data = {'grant_type': 'client_credentials'}
-        r = self.service.get_access_token(data=data)
-        self.assertEqual(r.content, 'access_token=321')
+        access_token = self.service.get_access_token(data=data)
+        self.assertEqual(access_token, '321')
 
     @patch.object(requests.Session, 'request')
     def test_request_with_access_token_override(self, mock_request):
@@ -446,8 +436,10 @@ class OAuth1ServiceTestCase(RauthTestCase):
     def test_get_access_token(self, mock_request):
         mock_request.return_value = self.response
 
-        r = self.service.get_access_token('123', '456')
-        self.assertEqual(r.content, 'oauth_token=123&oauth_token_secret=456')
+        access_token, access_token_secret = \
+            self.service.get_access_token('123', '456')
+        self.assertEqual(access_token, '123')
+        self.assertEqual(access_token_secret, '456')
 
     @patch.object(requests.Session, 'request')
     def test_request(self, mock_request):
@@ -533,32 +525,13 @@ class OAuth1ServiceTestCase(RauthTestCase):
         self.assertEqual('oauth_token=123&oauth_token_secret=456', r.content)
 
     @patch.object(requests.Session, 'request')
-    def test_json_response(self, mock_request):
-        self.response.headers['content-type'] = 'json'
-        mock_request.return_value = self.response
-
-        self.response.content = json.dumps({'a': 'b'})
-        r = self.service.get_access_token(method='GET',
-                                          request_token='123',
-                                          request_token_secret='456')
-        self.assertEqual({'a': 'b'}, json.loads(r.content))
-
-        # test the case of a non-list, non-dict
-        self.response.content = json.dumps(42)
-        r = self.service.get_access_token(method='GET',
-                                          request_token='123',
-                                          request_token_secret='456')
-        self.assertEqual(42, json.loads(r.content))
-
-    @patch.object(requests.Session, 'request')
     def test_other_response(self, mock_request):
         mock_request.return_value = self.response
 
-        self.response.content = {'a': 'b'}
-        r = self.service.get_access_token(method='GET',
-                                          request_token='123',
-                                          request_token_secret='456')
-        self.assertEqual({'a': 'b'}, r.content)
+        self.response.content = {'foo': '123', 'bar': '456'}
+        r = self.service.get_raw_access_token(request_token='123',
+                                              request_token_secret='456')
+        self.assertEqual({'foo': '123', 'bar': '456'}, r.content)
 
     @patch.object(requests.Session, 'request')
     def test_parse_utf8_qsl_non_unicode(self, mock_request):

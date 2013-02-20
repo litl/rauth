@@ -282,7 +282,6 @@ class OAuth1Service(Service):
                             access_token_secret=request_token_secret,
                             **kwargs)
 
-
     def get_access_token(self,
                          request_token,
                          request_token_secret,
