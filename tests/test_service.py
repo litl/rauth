@@ -302,33 +302,28 @@ class OAuth1ServiceTestCase(RauthTestCase, HttpMixin):
         r = self.service.request('GET', 'http://example.com/', params=params)
         self.assert_ok(r)
 
-    @patch.object(requests.Session, 'request')
-    def test_request_with_optional_params_as_string(self, mock_request):
+    def test_request_with_optional_params_as_string(self):
         params = 'oauth_callback=http://example.com/callback'
         r = self.service.request('GET', 'http://example.com/', params=params)
         self.assert_ok(r)
 
-    @patch.object(requests.Session, 'request')
-    def test_request_with_optional_data_as_string(self, mock_request):
+    def test_request_with_optional_data_as_string(self):
         data = 'oauth_callback=http://example.com/callback'
         r = self.service.request('POST', 'http://example.com/', data=data)
         self.assert_ok(r)
 
-    @patch.object(requests.Session, 'request')
-    def test_request_with_optional_params_with_data(self, mock_request):
+    def test_request_with_optional_params_with_data(self):
         data = {'oauth_callback': 'http://example.com/callback'}
         r = self.service.request('POST', 'http://example.com/', data=data)
         self.assert_ok(r)
 
-    @patch.object(requests.Session, 'request')
-    def test_request_with_header_auth(self, mock_request):
+    def test_request_with_header_auth(self):
         r = self.service.request('GET',
                                  'http://example.com/',
                                  header_auth=True)
         self.assert_ok(r)
 
-    @patch.object(requests.Session, 'request')
-    def test_request_with_header_auth_with_realm(self, mock_request):
+    def test_request_with_header_auth_with_realm(self):
         r = self.service.request('GET',
                                  'http://example.com/',
                                  header_auth=True,
