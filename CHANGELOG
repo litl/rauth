@@ -2,6 +2,8 @@ Changes in Version 0.5.0
 
   * Added CHANGELOG
 
+  * Added requirements.txt
+
   * Updated documentation
 
   * Updated README
@@ -49,3 +51,5 @@ Changes in Version 0.5.0
   * All request injection now happens on Session objects
 
   * Removed examples without correct, functioning credentials
+
+  * Test suite completely rewritten for more robust request checking
