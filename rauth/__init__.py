@@ -23,17 +23,13 @@ __author__ = 'Max Countryman'
 __license__ = 'MIT'
 __copyright__ = 'Copyright 2013 litl'
 
+# HACK: setup workaround for the need to have Requests at runtime
 try:
     from .service import OAuth1Service, OAuth2Service, OflyService
     from .session import OAuth1Session, OAuth2Session, OflySession
 
     # placate pyflakes
-    assert OAuth1Service
-    assert OAuth2Service
-    assert OflyService
-
-    assert OAuth1Session
-    assert OAuth2Session
-    assert OflySession
+    (OAuth1Service, OAuth2Service, OflyService, OAuth1Session, OAuth2Session,
+     OflySession)
 except ImportError:  # pragma: no cover
     pass
