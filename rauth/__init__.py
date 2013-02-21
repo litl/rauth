@@ -2,21 +2,38 @@
     rauth
     -----
 
-    OAuth 1.0/a, 2.0, and Ofly wrapped around Python Requests.
+    OAuth 1.0/a, 2.0, and Ofly wrapped around Python Requests. Basic usage:
+
+        >>> import rauth
+        >>> service = rauth.OAuth2Service(client_id='foo', client_secret='bar')
+        >>> authorize_url = service.get_authorize_url()
+
+        ...
+
+        >>> service.get_access_token(code='...')
+        >>> r = service.get('resource')
+        >>> print r.json
+
 '''
 
 __title__ = 'rauth'
-__version__ = '0.5.0'
+__version_info__ = ('0', '5', '0')
+__version__ = '.'.join(__version_info__)
+__author__ = 'Max Countryman'
 __license__ = 'MIT'
+__copyright__ = 'Copyright 2013 litl'
 
-from rauth.service import OAuth1Service, OAuth2Service, OflyService
-from rauth.session import OAuth1Session, OAuth2Session, OflySession
+try:
+    from .service import OAuth1Service, OAuth2Service, OflyService
+    from .session import OAuth1Session, OAuth2Session, OflySession
 
-# placate pyflakes
-assert OAuth1Service
-assert OAuth2Service
-assert OflyService
+    # placate pyflakes
+    assert OAuth1Service
+    assert OAuth2Service
+    assert OflyService
 
-assert OAuth1Session
-assert OAuth2Session
-assert OflySession
+    assert OAuth1Session
+    assert OAuth2Session
+    assert OflySession
+except ImportError:  # pragma: no cover
+    pass

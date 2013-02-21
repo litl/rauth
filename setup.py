@@ -1,5 +1,6 @@
 import os
 import sys
+
 from rauth import __version__
 
 from setuptools import setup, find_packages
