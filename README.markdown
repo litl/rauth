@@ -5,15 +5,16 @@ package is wrapped around the superb Python Requests.
 
 [![build status](https://secure.travis-ci.org/litl/rauth.png?branch=master)](https://travis-ci.org/#!/litl/rauth)
 
+
 ## Installation
 
-Install the package with one of the following commands:
-
-    $ easy_install rauth
-
-or
+Install the module with one of the following commands::
 
     $ pip install rauth
+
+Or if you must::
+
+    $ easy_install rauth
 
 
 ## Features
@@ -26,31 +27,27 @@ or
 
 ## Example Usage
 
-Using the package is quite simple. Ensure that Python Requests is installed.
-Import the relevant module and start utilizing OAuth endpoints!
-
 Let's get a user's Twitter timeline. Start by creating a service container 
 object:
 
 ```python
-from rauth.service import OAuth1Service
+from rauth import OAuth1Service
 
 # Get a real consumer key & secret from https://dev.twitter.com/apps/new
 twitter = OAuth1Service(
     name='twitter',
-    consumer_key='YOUR_CONSUMER_KEY',
-    consumer_secret='YOUR_CONSUMER_SECRET',
+    consumer_key='J8MoJG4bQ9gcmGh8H7XhMg',
+    consumer_secret='7WAscbSy65GmiVOvMU5EBYn5z80fhQkcFWSLMJJu4',
     request_token_url='https://api.twitter.com/oauth/request_token',
     access_token_url='https://api.twitter.com/oauth/access_token',
     authorize_url='https://api.twitter.com/oauth/authorize',
-    header_auth=True)
+    base_url='https://api.twitter.com/1/')
 ```
 
 Then get an OAuth 1.0 request token:
 
 ```python
-request_token, request_token_secret = \
-    twitter.get_request_token(method='GET')
+request_token, request_token_secret = twitter.get_request_token()
 ```
 
 Go through the authentication flow.  Since our example is a simple console
@@ -66,14 +63,11 @@ pin = raw_input('Enter PIN from browser: ')
 Exchange the authorized request token for an access token:
 
 ```python
-response = twitter.get_access_token('GET',
-                                    request_token=request_token,
-                                    request_token_secret=request_token_secret,
-                                    params={'oauth_verifier': pin})
-data = response.content
-
-access_token = data['oauth_token']
-access_token_secret = data['oauth_token_secret']
+access_token, access_token_secret = \
+    twitter.get_access_token(method='POST',
+                             request_token=request_token,
+                             request_token_secret=request_token_secret,
+                             data={'oauth_verifier': pin})
 ```
 
 And now we can fetch our Twitter timeline!
@@ -82,19 +76,18 @@ And now we can fetch our Twitter timeline!
 params = {'include_rts': 1,  # Include retweets
           'count': 10}       # 10 tweets
 
-response = twitter.get('https://api.twitter.com/1/statuses/home_timeline.json',
-                       params=params,
-                       access_token=access_token,
-                       access_token_secret=access_token_secret,
-                       header_auth=True)
+r = twitter.get('statuses/home_timeline.json',
+                params=params,
+                access_token=access_token,
+                access_token_secret=access_token_secret)
 
-for i, tweet in enumerate(response.content, 1):
+for i, tweet in enumerate(r.json(), 1):
     handle = tweet['user']['screen_name'].encode('utf-8')
     text = tweet['text'].encode('utf-8')
     print '{0}. @{1} - {2}'.format(i, handle, text)
 ```
 
-The full example is in [examples/twitter-timeline.py](https://github.com/litl/rauth/blob/master/examples/twitter-timeline.py).
+The full example is in [examples/twitter-timeline.py](https://github.com/litl/rauth/blob/master/examples/twitter-timeline-cli.py).
 
 
 ## Documentation
@@ -114,10 +107,10 @@ Basically there's just a few steps to getting started:
 Note: it's important that the code base remain well-tested so to this end it's
 generaly advisable to include a unit test. To make sure that we retain 100%
 coverage run `python setup.py test` before making a pull request. You'll need
-to make sure you have pyflakes, pep8, coverage, mock, and nose installed; `pip install
-pyflakes pep8 coverage mock nose`.
+to make sure you have pyflakes, pep8, coverage, mock, and nose installed;
+`pip install pyflakes pep8 coverage mock nose`.
 
 ## Copyright and License
 
-Rauth is Copyright (c) 2012 litl, LLC and licensed under the MIT license.
+Rauth is Copyright (c) 2013 litl, LLC and licensed under the MIT license.
 See the LICENSE file for full details.

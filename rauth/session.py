@@ -30,16 +30,17 @@ def _get_sorted_params(params):
 
 class OAuth1Session(Session):
     '''
-    A specialized `requests.sessions.Session` object, wrapping OAuth 1.0/a
-    logic.
+    A specialized :class:`~requests.sessions.Session` object, wrapping OAuth
+    1.0/a logic.
 
-    This object is utilized by the `OAuth1Service` wrapper but can be used
-    independently of that infrastructure. Essentially this is a loose wrapping
-    around the standard Requests codepath. State may be tracked at this layer,
-    especially if the instance is kept around and tracked via some unique
-    identifier, e.g. access tokens. Things like request cookies will be
+    This object is utilized by the :class:`OAuth1Service` wrapper but can
+    be used independently of that infrastructure. Essentially this is a loose
+    wrapping around the standard Requests codepath. State may be tracked at
+    this layer, especially if the instance is kept around and tracked via some
+    unique identifier, e.g. access tokens. Things like request cookies will be
     preserved between requests and in fact all functionality provided by
-    a Requests' `Session` object should be exposed here.
+    a Requests' :class:`~requests.sessions.Session` object should be exposed
+    here.
 
     If you were to use this object by itself you could do so by instantiating
     it like this::
@@ -50,11 +51,11 @@ class OAuth1Session(Session):
                                 access_token_secret'654')
 
     You now have a session object which can be used to make requests exactly as
-    you would with a normal Requests `Session` instance. This anticipates that
-    the standard OAuth 1.0/a flow will be modeled outside of the scope of this
-    class. In other words, if the fully qualified flow is useful to you then
-    this object probably need not be used directly, instead consider using
-    `OAuth1Service`.
+    you would with a normal Requests' :class:`~requests.sessions.Session`
+    instance. This anticipates that the standard OAuth 1.0/a flow will be
+    modeled outside of the scope of this class. In other words, if the fully
+    qualified flow is useful to you then this object probably need not be used
+    directly, instead consider using :class:`OAuth1Service`.
 
     Once the session object is setup, you may start making requests::
 
@@ -63,13 +64,19 @@ class OAuth1Session(Session):
         print r.json()
 
     :param consumer_key: Client consumer key.
+    :type consumer_key: str
     :param consumer_secret: Client consumer secret.
+    :type consumer_secret: str
     :param access_token: Access token, defaults to `None`.
+    :type access_token: str
     :param access_token_secret: Access token secret, defaults to `None`.
+    :type access_token_secret: str
     :param signature: A signature producing object, defaults to
-        HmacSha1Signature.
+        :class:`rauth.oauth.HmacSha1Signature`.
+    :type signature: :class:`rauth.oauth.Signature`
     :param service: A back reference to the service wrapper, defaults to
         `None`.
+    :type service: :class:`rauth.Service`
     '''
     VERSION = '1.0'
 
@@ -105,14 +112,19 @@ class OAuth1Session(Session):
                 realm=None,
                 **req_kwargs):
         '''
-        A loose wrapper around `requests.sessions.Session` which injects OAuth
-        1.0/a params.
+        A loose wrapper around Requests' :class:`~requests.sessions.Session`
+        which injects OAuth 1.0/a parameters.
 
         :param method: A string representation of the HTTP method to be used.
+        :type method: str
         :param url: The resource to be requested.
-        :param header_auth: Authenication via header, defaults to False.
+        :type url: str
+        :param header_auth: Authenication via header, defaults to `False.`
+        :type header_auth: bool
         :param realm: The auth header realm, defaults to `None`.
+        :type realm: str
         :param \*\*req_kwargs: Keyworded args to be passed down to Requests.
+        :type \*\*req_kwargs: dict
         '''
 
         req_kwargs.setdefault('timeout', OAUTH1_DEFAULT_TIMEOUT)
@@ -152,8 +164,10 @@ class OAuth1Session(Session):
         Parses and sets optional OAuth parameters on a request.
 
         :param oauth_param: The OAuth parameter to parse.
+        :type oauth_param: str
         :param req_kwargs: The keyworded arguments passed to the request
             method.
+        :type req_kwargs: dict
         '''
         params_is_string = type(req_kwargs.get('params')) == str
         data_is_string = type(req_kwargs.get('data')) == str
@@ -205,11 +219,11 @@ class OAuth1Session(Session):
 
 class OAuth2Session(Session):
     '''
-    A specialized `requests.sessions.Session` object, wrapping OAuth 2.0
-    logic.
+    A specialized :class:`~requests.sessions.Session` object, wrapping OAuth
+    2.0 logic.
 
-    This object is utilized by the :class:`OAuth2Service` wrapper but can be
-    used independently of that infrastructure. Essentially this is a loose
+    This object is utilized by the :class:`OAuth2Service` wrapper but can
+    be used independently of that infrastructure. Essentially this is a loose
     wrapping around the standard Requests codepath. State may be tracked at
     this layer, especially if the instance is kept around and tracked via some
     unique identifier, e.g. access token. Things like request cookies will be
@@ -223,11 +237,11 @@ class OAuth2Session(Session):
         session = OAuth2Session('123', '456', access_token='321')
 
     You now have a session object which can be used to make requests exactly as
-    you would with a normal Requests `Session` instance. This anticipates that
-    the standard OAuth 2.0 flow will be modeled outside of the scope of this
-    class. In other words, if the fully qualified flow is useful to you then
-    this object probably need not be used directly, instead consider using
-    `OAuth2Service`.
+    you would with a normal Requests :class:`~requests.sessions.Session`
+    instance. This anticipates that the standard OAuth 2.0 flow will be modeled
+    outside of the scope of this class. In other words, if the fully qualified
+    flow is useful to you then this object probably need not be used directly,
+    instead consider using :class:`OAuth2Service`.
 
     Once the session object is setup, you may start making requests::
 
@@ -236,12 +250,17 @@ class OAuth2Session(Session):
         print r.json()
 
     :param client_id: Client id.
-    :param consumer_secret: Client secret.
+    :type client_id: str
+    :param client_secret: Client secret.
+    :type client_secret: str
     :param access_token: Access token, defaults to `None`.
+    :type access_token: str
     :param signature: A signature producing object, defaults to
         :class:`rauth.oauth.HmacSha1Signature`.
+    :type signature: :class:`rauth.oauth.Signature`
     :param service: A back reference to the service wrapper, defaults to
         `None`.
+    :type service: :class:`rauth.Service`
     '''
     def __init__(self,
                  client_id,
@@ -259,12 +278,15 @@ class OAuth2Session(Session):
 
     def request(self, method, url, **req_kwargs):
         '''
-        A loose wrapper around `requests.sessions.Session` which injects OAuth
-        2.0 params.
+        A loose wrapper around Requests' :class:`~requests.sessions.Session`
+        which injects OAuth 2.0 parameters.
 
         :param method: A string representation of the HTTP method to be used.
+        :type method: str
         :param url: The resource to be requested.
+        :type url: str
         :param \*\*req_kwargs: Keyworded args to be passed down to Requests.
+        :type \*\*req_kwargs: dict
         '''
         req_kwargs.setdefault('params', {}).update({'access_token':
                                                     self.access_token})
@@ -275,28 +297,28 @@ class OAuth2Session(Session):
 
 class OflySession(Session):
     '''
-    A specialized `requests.sessions.Session` object, wrapping OAuth 2.0
+    A specialized :class:`~requests.sessions.Session` object, wrapping Ofly
     logic.
 
-    This object is utilized by the `OAuth2Service` wrapper but can be used
-    independently of that infrastructure. Essentially this is a loose wrapping
-    around the standard Requests codepath. State may be tracked at this layer,
-    especially if the instance is kept around and tracked via some unique
-    identifier, e.g. access token. Things like request cookies will be
-    preserved between requests and in fact all functionality provided by
-    a Requests' `Session` object should be exposed here.
+    This object is utilized by the :class:`OflyService` wrapper
+    but can be used independently of that infrastructure. Essentially this is a
+    loose wrapping around the standard Requests codepath. State may be tracked
+    at this layer, especially if the instance is kept around and tracked via
+    some unique identifier. Things like request cookies will be preserved
+    between requests and in fact all functionality provided by a Requests'
+    :class:`~requests.sessions.Session` object should be exposed here.
 
     If you were to use this object by itself you could do so by instantiating
     it like this::
 
-        session = OAuth2Session('123', '456', access_token='321')
+        session = OflySession('123', '456')
 
     You now have a session object which can be used to make requests exactly as
-    you would with a normal Requests `Session` instance. This anticipates that
-    the standard OAuth 2.0 flow will be modeled outside of the scope of this
-    class. In other words, if the fully qualified flow is useful to you then
-    this object probably need not be used directly, instead consider using
-    `OAuth2Service`.
+    you would with a normal Requests :class:`~requests.sessions.Session`
+    instance. This anticipates that the standard Ofly flow will be modeled
+    outside of the scope of this class. In other words, if the fully qualified
+    flow is useful to you then this object probably need not be used directly,
+    instead consider using :class:`OflyService`.
 
     Once the session object is setup, you may start making requests::
 
@@ -305,9 +327,12 @@ class OflySession(Session):
         print r.json()
 
     :param app_id: The oFlyAppId, i.e. "application ID".
+    :type app_id: str
     :param app_secret: The oFlyAppSecret, i.e. "shared secret".
+    :type app_secret: str
     :param service: A back reference to the service wrapper, defaults to
         `None`.
+    :type service: :class:`rauth.Service`
     '''
     def __init__(self,
                  app_id,
@@ -327,15 +352,20 @@ class OflySession(Session):
                 hash_meth='sha1',
                 **req_kwargs):
         '''
-        A loose wrapper around `requests.sessions.Session` which injects Ofly
-        params.
+        A loose wrapper around Requests' :class:`~requests.sessions.Session`
+        which injects Ofly parameters.
 
         :param method: A string representation of the HTTP method to be used.
+        :type method: str
         :param url: The resource to be requested.
+        :type url: str
         :param header_auth: Authenication via header, defaults to False.
+        :type header_auth: bool
         :param hash_meth: The hash method to use for signing, defaults to
             "sha1".
+        :type hash_meth: str
         :param \*\*req_kwargs: Keyworded args to be passed down to Requests.
+        :type \*\*req_kwargs: dict
         '''
         req_kwargs.setdefault('params', {})
         req_kwargs.setdefault('timeout', OFLY_DEFAULT_TIMEOUT)
@@ -360,10 +390,14 @@ class OflySession(Session):
         A signature method which generates the necessary Ofly parameters.
 
         :param app_id: The oFlyAppId, i.e. "application ID".
+        :type app_id: str
         :param app_secret: The oFlyAppSecret, i.e. "shared secret".
+        :type app_secret: str
         :param hash_meth: The hash method to use for signing, defaults to
             "sha1".
+        :type hash_meth: str
         :param \*\*params: Additional parameters.
+        :type \*\*\params: dict
         '''
         hash_meth_str = hash_meth
         if hash_meth == 'sha1':

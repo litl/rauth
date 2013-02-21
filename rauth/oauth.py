@@ -28,6 +28,7 @@ class SignatureMethod(object):
         Escapes a string, ensuring it is encoded as a UTF-8 octet.
 
         :param s: A string to be encoded.
+        :type s: str
         '''
         return quote(self._encode_utf8(s), safe='~')
 
@@ -36,6 +37,7 @@ class SignatureMethod(object):
         Removes a query string from a URL before signing.
 
         :param url: The URL to strip.
+        :type url: str
         '''
         scheme, netloc, path, query, fragment = urlsplit(url)
 
@@ -43,22 +45,26 @@ class SignatureMethod(object):
 
     def _normalize_request_parameters(self, session, req_kwargs):
         '''
-        The OAuth 1.0/a specs indicate that parameter and body data must be
-        normalized. The specifics of this operation are detailed in the
-        respective specs.
+        This process normalizes the request parameters as detailed in the OAuth
+        1.0 spec.
 
-        Here we have to ensure that parameter and body data is properly
-        handled. This means that the case of params or data being strings is
-        taken care of.
+        Essentially we inspect params and data dicts and parse them
+        conditionally if they happen to be strings. This is done as Requests
+        automatically parses params or data as strings and it is necessary to
+        extract all parameters and sort them for signing.
 
-        Essentially this is achieved by checking that `request.data` and
-        `request.params` are not strings. This being the case we can then
-        construct a unified list of tuples from them.
+        Additionally we apply a `Content-Type` header to the request of the
+        `FORM_URLENCODE` type if the `Content-Type` was previously set, i.e. if
+        this is a `POST` or `PUT` request. This ensures the correct header is
+        set as per spec.
 
-        Otherwise we build a series intermediary lists of tuples depending on
-        the type of `request.params` and `request.data`.
+        Finally we sort the parameters in preparation for signing and return
+        a URL encoded string of all normalized parameters.
 
-        :param request: The request object that will be normalized.
+        :param session: The session object over which to sign the request.
+        :type session: :class:`~requests.sessions.Session`
+        :param req_kwargs: Request kwargs to normalize.
+        :type req_kwargs: dict
         '''
         normalized = []
 
@@ -120,10 +126,14 @@ class HmacSha1Signature(SignatureMethod):
         '''Sign request parameters.
 
         :param session: The session object to sign over.
+        :type session: :class:`~requests.sessions.Session`
         :param method: The method of this particular request.
+        :type method: str
         :param url: The URL of this particular request.
+        :type url: str
         :param req_kwargs: Keyworded args that will be sent to the request
             method.
+        :type req_kwargs: dict
         '''
 
         consumer_secret = session.consumer_secret

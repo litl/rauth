@@ -1,10 +1,10 @@
 Rauth
-=======
+=====
 
 .. module:: rauth
 
-Rauth is a package that delivers client support for OAuth 1.0/a, 2.0, and
-Ofly. It is built on top of the superb Python Requests.
+A simple Python OAuth 1.0/a, OAuth 2.0, and Ofly consumer library built on top
+of `Requests`_.
 
 .. _rauth: https://github.com/litl/rauth
 .. _Requests: https://github.com/kennethreitz/requests
@@ -12,7 +12,7 @@ Ofly. It is built on top of the superb Python Requests.
 
 Installation
 ------------
-Install the extension with one of the following commands::
+Install the module with one of the following commands::
 
     $ pip install rauth
 
@@ -29,7 +29,7 @@ simply import the service container object:
 
 .. code-block:: python
     
-    from rauth.service import OAuth2Service
+    from rauth import OAuth2Service
 
     facebook = OAuth2Service(
         client_id='440483442642551',
@@ -62,7 +62,7 @@ Here is an example using the OAuth 1.0/a service wrapper:
 
 .. code-block:: python
 
-    from rauth.service import OAuth1Service
+    from rauth import OAuth1Service
 
     twitter = OAuth1Service(
         consumer_key='J8MoJG4bQ9gcmGh8H7XhMg',
@@ -87,38 +87,38 @@ The API is exposed via service wrappers, which provide convenient OAuth 1.0,
 
 Each service type has specialized Session objects, which may be used directly.
 
+OAuth 1.0 Services
+--------------------
+
+.. autoclass:: rauth.OAuth1Service
+    :inherited-members:
+
 OAuth 2.0 Services
 ------------------
 
-.. autoclass:: rauth.service.OAuth2Service
-    :members:
-
-OAuth 1.0/a Services
---------------------
-
-.. autoclass:: rauth.service.OAuth1Service
-    :members:
+.. autoclass:: rauth.OAuth2Service
+    :inherited-members:
 
 Ofly Services
 -------------
 
-.. autoclass:: rauth.service.OflyService
-    :members:
-
-OAuth 2.0 Sessions
-------------------
-
-.. autoclass:: rauth.session.OAuth2Session
-    :members:
+.. autoclass:: rauth.OflyService
+    :inherited-members:
 
 OAuth 1.0 Sessions
 ------------------
 
-.. autoclass:: rauth.session.OAuth1Session
-    :members:
+.. autoclass:: rauth.OAuth1Session
+    :inherited-members:
+
+OAuth 2.0 Sessions
+------------------
+
+.. autoclass:: rauth.OAuth2Session
+    :inherited-members:
 
 Ofly Sessions
 ------------------
 
-.. autoclass:: rauth.session.OflySession
-    :members:
+.. autoclass:: rauth.OflySession
+    :inherited-members:
