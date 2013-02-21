@@ -21,6 +21,13 @@ from requests.sessions import Session
 OAUTH1_DEFAULT_TIMEOUT = OAUTH2_DEFAULT_TIMEOUT = OFLY_DEFAULT_TIMEOUT = 300.0
 
 
+def _get_sorted_params(params):
+    def sorting_gen():
+        for k in sorted(params.keys()):
+            yield '='.join((k, params[k]))
+    return '&'.join(sorting_gen())
+
+
 class OAuth1Session(Session):
     '''
     A specialized `requests.sessions.Session` object, wrapping OAuth 1.0/a
@@ -57,11 +64,12 @@ class OAuth1Session(Session):
 
     :param consumer_key: Client consumer key.
     :param consumer_secret: Client consumer secret.
-    :param access_token: Access token, defaults to None.
-    :param access_token_secret: Access token secret, defaults to None.
+    :param access_token: Access token, defaults to `None`.
+    :param access_token_secret: Access token secret, defaults to `None`.
     :param signature: A signature producing object, defaults to
         HmacSha1Signature.
-    :param service: A back reference to the service wrapper, defaults to None.
+    :param service: A back reference to the service wrapper, defaults to
+        `None`.
     '''
     VERSION = '1.0'
 
@@ -103,7 +111,7 @@ class OAuth1Session(Session):
         :param method: A string representation of the HTTP method to be used.
         :param url: The resource to be requested.
         :param header_auth: Authenication via header, defaults to False.
-        :param realm: The auth header realm, defaults to None.
+        :param realm: The auth header realm, defaults to `None`.
         :param \*\*req_kwargs: Keyworded args to be passed down to Requests.
         '''
 
@@ -127,7 +135,7 @@ class OAuth1Session(Session):
         if header_auth:
             req_kwargs.setdefault('headers', {})
             req_kwargs['headers'].update({'Authorization':
-                                          self._get_auth_header()})
+                                          self._get_auth_header(realm or '')})
         elif method.upper() in ('POST', 'PUT'):
             req_kwargs.setdefault('headers', {})
             req_kwargs['headers'].setdefault('Content-Type', FORM_URLENCODED)
@@ -200,13 +208,14 @@ class OAuth2Session(Session):
     A specialized `requests.sessions.Session` object, wrapping OAuth 2.0
     logic.
 
-    This object is utilized by the `OAuth2Service` wrapper but can be used
-    independently of that infrastructure. Essentially this is a loose wrapping
-    around the standard Requests codepath. State may be tracked at this layer,
-    especially if the instance is kept around and tracked via some unique
-    identifier, e.g. access token. Things like request cookies will be
+    This object is utilized by the :class:`OAuth2Service` wrapper but can be
+    used independently of that infrastructure. Essentially this is a loose
+    wrapping around the standard Requests codepath. State may be tracked at
+    this layer, especially if the instance is kept around and tracked via some
+    unique identifier, e.g. access token. Things like request cookies will be
     preserved between requests and in fact all functionality provided by
-    a Requests' `Session` object should be exposed here.
+    a Requests' :class:`~requests.sessions.Session` object should be exposed
+    here.
 
     If you were to use this object by itself you could do so by instantiating
     it like this::
@@ -228,10 +237,11 @@ class OAuth2Session(Session):
 
     :param client_id: Client id.
     :param consumer_secret: Client secret.
-    :param access_token: Access token, defaults to None.
+    :param access_token: Access token, defaults to `None`.
     :param signature: A signature producing object, defaults to
-        HmacSha1Signature.
-    :param service: A back reference to the service wrapper, defaults to None.
+        :class:`rauth.oauth.HmacSha1Signature`.
+    :param service: A back reference to the service wrapper, defaults to
+        `None`.
     '''
     def __init__(self,
                  client_id,
@@ -296,7 +306,8 @@ class OflySession(Session):
 
     :param app_id: The oFlyAppId, i.e. "application ID".
     :param app_secret: The oFlyAppSecret, i.e. "shared secret".
-    :param service: A back reference to the service wrapper, defaults to None.
+    :param service: A back reference to the service wrapper, defaults to
+        `None`.
     '''
     def __init__(self,
                  app_id,
@@ -327,19 +338,19 @@ class OflySession(Session):
         :param \*\*req_kwargs: Keyworded args to be passed down to Requests.
         '''
         req_kwargs.setdefault('params', {})
-        req_kwargs.setdefault('headers', {})
         req_kwargs.setdefault('timeout', OFLY_DEFAULT_TIMEOUT)
 
-        params, headers = OflySession.sign(url,
-                                           self.app_id,
-                                           self.app_secret,
-                                           heash_meth=hash_meth,
-                                           **req_kwargs['params'])
-
-        req_kwargs['params'] = params
+        params, auth_header = OflySession.sign(url,
+                                               self.app_id,
+                                               self.app_secret,
+                                               hash_meth=hash_meth,
+                                               **req_kwargs['params'])
 
         if header_auth:
-            req_kwargs['headers'].update(headers)
+            req_kwargs.setdefault('headers', {})
+            req_kwargs['headers'].update({'Authorization': auth_header})
+        else:
+            req_kwargs['params'] = params
 
         return super(OflySession, self).request(method, url, **req_kwargs)
 
@@ -362,12 +373,6 @@ class OflySession(Session):
         else:
             raise TypeError('hash_meth must be one of "sha1", "md5"')
 
-        def param_sorting(params):
-            def sorting_gen():
-                for k in sorted(params.keys()):
-                    yield '='.join((k, params[k]))
-            return '&'.join(sorting_gen())
-
         now = datetime.utcnow()
         milliseconds = now.microsecond / 1000
 
@@ -381,14 +386,13 @@ class OflySession(Session):
 
         signature_base_string = app_secret + url_path + '?'
 
-        # only append params if there are any, to avoid a leading ampersand
-        sorted_params = param_sorting(params)
-        if len(sorted_params):
-            signature_base_string += sorted_params + '&'
+        if len(params):
+            signature_base_string += _get_sorted_params(params) + '&'
 
-        signature_base_string += param_sorting(ofly_params)
+        signature_base_string += _get_sorted_params(ofly_params)
 
-        params['oflyApiSig'] = hash_meth(signature_base_string).hexdigest()
+        ofly_params['oflyApiSig'] = params['oflyApiSig'] = \
+            hash_meth(signature_base_string).hexdigest()
 
-        # return the raw ofly_params for use in the header
-        return param_sorting(params), ofly_params
+        return _get_sorted_params(params), \
+            _get_sorted_params(ofly_params)

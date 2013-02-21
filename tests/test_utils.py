@@ -23,3 +23,7 @@ class UtilsTestCase(RauthTestCase):
     def test_parse_utf8_qsl(self):
         d = parse_utf8_qsl('fü=bar&rauth=über')
         self.assertEqual(d, {u'rauth': u'\xfcber', u'f\xfc': u'bar'})
+
+    def test_both_kv_unicode(self):
+        d = parse_utf8_qsl(u'fü=bar&rauth=über')
+        self.assertEqual(d, {u'rauth': u'\xfcber', u'f\xfc': u'bar'})

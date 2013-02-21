@@ -6,6 +6,9 @@
     Test suite common infrastructure.
 '''
 
+import json
+
+import requests
 import unittest
 
 if not hasattr(unittest.TestCase, 'assertIsNotNone'):
@@ -15,33 +18,16 @@ if not hasattr(unittest.TestCase, 'assertIsNotNone'):
         raise Exception('unittest2 is required to run the rauth test suite')
 
 from mock import Mock
-from requests import Request
 
 
 class RauthTestCase(unittest.TestCase):
     def setUp(self):
-        # mock request object
-        request = Request()
-        request.method = 'GET'
-        request.url = 'http://example.com/'
-        request.params = {}
-        request.data = {}
-        request.params_and_data = {}
-        self.request = request
-
-        # mock response object
         response = Mock()
-        response.content = 'access_token=321'
-        response.headers = {'content-type': 'text/html; charset=UTF-8'}
+        response.content = json.dumps({'status': 'ok'})
+        response.headers = {'Content-Type': 'application/json'}
         response.ok = True
-        response.status_code = 200
+        response.status_code = requests.codes.ok
         self.response = response
-
-        # mock raise_for_status with an error
-        def raise_for_status():
-            raise Exception('Response not OK!')
-
-        self.raise_for_status = raise_for_status
 
         # mock session objects
         oauth1session = Mock()

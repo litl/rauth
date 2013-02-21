@@ -96,7 +96,7 @@ class SignatureMethod(object):
 
         # add in the params from oauth_params for signing
         for k, v in session.oauth_params.items():
-            if (k, v) in all_normalized:
+            if (k, v) in all_normalized:  # pragma: no cover
                 continue
             all_normalized += [(k, v)]
 
