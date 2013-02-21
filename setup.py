@@ -6,7 +6,7 @@ from rauth import __version__
 from setuptools import setup, find_packages
 
 if sys.argv[-1] == 'test':
-    status = os.system('NOCOLOR=1 make check')
+    status = os.system('make check')
     status >>= 8
     sys.exit(status)
 
