@@ -1,7 +1,7 @@
-# Rauth: OAuth 1.0/a, 2.0, and Ofly for Python
+# Rauth
 
-This package provides OAuth 1.0/a, 2.0, and Ofly consumer support. The
-package is wrapped around the superb Python Requests.
+A simple Python OAuth 1.0/a, OAuth 2.0, and Ofly consumer library built on top
+Requests.
 
 [![build status](https://secure.travis-ci.org/litl/rauth.png?branch=master)](https://travis-ci.org/#!/litl/rauth)
 
