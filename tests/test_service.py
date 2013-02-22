@@ -77,58 +77,100 @@ class HttpMixin(object):
 
 
 class RequestMixin(HttpMixin):
+    oauth_resource = 'foo'
+
     def test_request(self):
         r = self.service.request('GET', 'foo')
         self.assert_ok(r)
 
     def test_request_with_params(self):
-        r = self.service.get('foo', params={'format': 'json'})
+        r = self.service.get(self.oauth_resource, params={'format': 'json'})
         self.assert_ok(r)
 
     def test_request_with_data(self):
-        r = self.service.post('foo', data={'format': 'json'})
+        r = self.service.post(self.oauth_resource, data={'format': 'json'})
         self.assert_ok(r)
 
     def test_request_with_params_as_string(self):
-        r = self.service.get('foo', params='format=json')
+        r = self.service.get(self.oauth_resource, params='format=json')
         self.assert_ok(r)
 
     def test_request_with_data_as_string(self):
-        r = self.service.post('foo', data='format=json')
-        self.assert_ok(r)
-
-    def test_request_with_params_as_unicode_string(self):
-        r = self.service.get('foo', params=u'format=json')
-        self.assert_ok(r)
-
-    def test_request_with_data_as_unicode_string(self):
-        r = self.service.post('foo', data=u'format=json')
+        r = self.service.post(self.oauth_resource, data='format=json')
         self.assert_ok(r)
 
     def test_request_with_params_and_data_as_strings(self):
-        r = self.service.post('foo', params='format=json', data='format=json')
+        r = self.service.post(self.oauth_resource,
+                              params='format=json',
+                              data='format=json')
+        self.assert_ok(r)
+
+    def test_request_with_params_as_unicode_string(self):
+        r = self.service.get(self.oauth_resource, params=u'format=json')
+        self.assert_ok(r)
+
+    def test_request_with_data_as_unicode_string(self):
+        r = self.service.post(self.oauth_resource, data=u'format=json')
         self.assert_ok(r)
 
     def test_request_with_params_and_data_as_unicode_strings(self):
-        r = self.service.post('foo',
+        r = self.service.post(self.oauth_resource,
                               params=u'format=json',
-                              data=u'format=json')
+                              data=u'foo=bar')
         self.assert_ok(r)
 
     def test_request_with_header(self):
-        r = self.service.get('foo', headers={'x-foo-bar': 'baz'})
+        r = self.service.get(self.oauth_resource, headers={'x-foo-bar': 'baz'})
         self.assert_ok(r)
 
-    def test_request_with_params_and_headar(self):
-        r = self.service.get('foo',
+    def test_request_with_params_and_header(self):
+        r = self.service.get(self.oauth_resource,
                              params={'format': 'json'},
                              headers={'x-foo-bar': 'baz'})
         self.assert_ok(r)
 
+    def test_request_with_data_and_header(self):
+        r = self.service.post(self.oauth_resource,
+                              data={'format': 'json'},
+                              headers={'x-foo-bar': 'baz'})
+        self.assert_ok(r)
+
     def test_request_with_params_and_data_and_header(self):
-        r = self.service.post('foo',
+        r = self.service.post(self.oauth_resource,
                               params={'format': 'json'},
                               data={'foo': 'bar'},
+                              headers={'x-foo-bar': 'baz'})
+        self.assert_ok(r)
+
+    def test_request_with_params_as_string_and_header(self):
+        r = self.service.get(self.oauth_resource,
+                             params='format=json',
+                             headers={'x-foo-bar': 'baz'})
+        self.assert_ok(r)
+
+    def test_request_with_params_as_unicode_string_and_header(self):
+        r = self.service.get(self.oauth_resource,
+                             params=u'format=json',
+                             headers={'x-foo-bar': 'baz'})
+        self.assert_ok(r)
+
+    def test_request_with_data_as_string_and_header(self):
+        r = self.service.post(self.oauth_resource,
+                              data='foo=bar',
+                              headers={'x-foo-bar': 'baz'})
+        self.assert_ok(r)
+
+    def test_request_with_params_and_data_as_string_and_header(self):
+        r = self.service.post(self.oauth_resource,
+                              params='format=json',
+                              data='foo=bar',
+                              headers={'x-foo-bar': 'baz'})
+        self.assert_ok(r)
+
+    def test_request_with_params_and_data_as__unicode_string_and_header(self):
+        r = self.service.post(self.oauth_resource,
+                              params=u'format=json',
+                              data=u'foo=bar',
                               headers={'x-foo-bar': 'baz'})
         self.assert_ok(r)
 
