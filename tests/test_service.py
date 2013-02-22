@@ -11,7 +11,7 @@ from base import RauthTestCase
 from rauth.service import OAuth1Service, OAuth2Service, OflyService, Service
 from rauth.session import (OAUTH1_DEFAULT_TIMEOUT, OAUTH2_DEFAULT_TIMEOUT,
                            OFLY_DEFAULT_TIMEOUT, OAuth1Session, OAuth2Session,
-                           OflySession, _get_sorted_params)
+                           OflySession)
 from rauth.utils import FORM_URLENCODED
 
 from datetime import datetime
@@ -418,6 +418,12 @@ class OflyServiceTestCase(RauthTestCase, HttpMixin):
 
         self.service.request = self.fake_request
 
+    def _get_sorted_params(self, params):
+        def sorting_gen():
+            for k in sorted(params.keys()):
+                yield '='.join((k, params[k]))
+        return '&'.join(sorting_gen())
+
     def fake_sign(app_id):
         def wrap(func):
             @wraps(func)
@@ -464,14 +470,14 @@ class OflyServiceTestCase(RauthTestCase, HttpMixin):
         url = service._set_url(url)
 
         kwargs.setdefault('params', {})
+        ofly_params.update(kwargs['params'])
 
         if header_auth:
             kwargs.setdefault('headers', {})
-            auth_header = _get_sorted_params(ofly_params)
+            auth_header = self._get_sorted_params(ofly_params)
             kwargs['headers'].update({'Authorization': auth_header})
         else:
-            kwargs['params'].update(**ofly_params)
-            kwargs['params'] = _get_sorted_params(kwargs['params'])
+            kwargs['params'] = self._get_sorted_params(ofly_params)
 
         mock_request.assert_called_with(method,
                                         url,
@@ -486,7 +492,7 @@ class OflyServiceTestCase(RauthTestCase, HttpMixin):
     @fake_sign(app_id)
     def test_get_authorize_url(self, ofly_params):
         expected_url = 'http://example.com/authorize?'
-        params = _get_sorted_params(ofly_params)
+        params = self._get_sorted_params(ofly_params)
         url = self.service.get_authorize_url()
         self.assertEqual(url, expected_url + params)
 
@@ -509,3 +515,7 @@ class OflyServiceTestCase(RauthTestCase, HttpMixin):
                                  hash_meth='foo')
         self.assertEqual(str(e.exception),
                          'hash_meth must be one of "sha1", "md5"')
+
+    def test_request_with_params(self):
+        r = self.service.get('foo', params={'format': 'json'})
+        self.assert_ok(r)
