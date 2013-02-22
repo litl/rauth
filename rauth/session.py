@@ -3,7 +3,7 @@
     rauth.session
     -------------
 
-    Specially wrapped `request.Session` objects.
+    Specially wrapped Requests' :class:`~request.sessions.Session` objects.
 '''
 
 from datetime import datetime
@@ -109,7 +109,7 @@ class OAuth1Session(Session):
                 method,
                 url,
                 header_auth=False,
-                realm=None,
+                realm='',
                 **req_kwargs):
         '''
         A loose wrapper around Requests' :class:`~requests.sessions.Session`
@@ -121,7 +121,7 @@ class OAuth1Session(Session):
         :type url: str
         :param header_auth: Authentication via header, defaults to `False.`
         :type header_auth: bool
-        :param realm: The auth header realm, defaults to `None`.
+        :param realm: The auth header realm, defaults to `''`.
         :type realm: str
         :param \*\*req_kwargs: Keyworded args to be passed down to Requests.
         :type \*\*req_kwargs: dict
@@ -147,7 +147,7 @@ class OAuth1Session(Session):
         if header_auth:
             req_kwargs.setdefault('headers', {})
             req_kwargs['headers'].update({'Authorization':
-                                          self._get_auth_header(realm or '')})
+                                          self._get_auth_header(realm)})
         elif method.upper() in ('POST', 'PUT'):
             req_kwargs.setdefault('headers', {})
             req_kwargs['headers'].setdefault('Content-Type', FORM_URLENCODED)
@@ -206,7 +206,7 @@ class OAuth1Session(Session):
 
         self.oauth_params['oauth_version'] = self.VERSION
 
-    def _get_auth_header(self, realm=None):
+    def _get_auth_header(self, realm=''):
         '''Constructs and returns an authentication header.'''
         oauth_params = self.__dict__.pop('oauth_params')
         auth_header = 'OAuth realm="{realm}"'.format(realm=realm)

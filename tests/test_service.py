@@ -17,6 +17,7 @@ from rauth.utils import FORM_URLENCODED
 from datetime import datetime
 from functools import wraps
 from hashlib import sha1
+from urllib import quote
 from urlparse import parse_qsl
 
 from mock import patch
@@ -196,6 +197,14 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin):
         self.service.access_token = '123'
         self.service.access_token_secret = '456'
 
+    def fake_get_auth_header(self, oauth_params, realm=None):
+        auth_header = 'OAuth realm="{realm}"'.format(realm=realm)
+        params = ''
+        for k, v in oauth_params.iteritems():
+            params += ',{key}="{value}"'.format(key=k, value=quote(str(v)))
+        auth_header += params
+        return auth_header
+
     @patch.object(rauth.session.HmacSha1Signature, 'sign')
     @patch.object(rauth.session, 'time')
     @patch.object(rauth.session, 'random')
@@ -210,7 +219,7 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin):
                      access_token=None,
                      access_token_secret=None,
                      header_auth=False,
-                     realm=None,
+                     realm='',
                      **kwargs):
         fake_random = 1
         fake_time = 1
@@ -255,26 +264,8 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin):
                 kwargs['params'] = dict(parse_qsl(kwargs['params']))
 
         if header_auth:
-            auth_string = 'OAuth realm="{realm}",'
-            auth_string += 'oauth_nonce="{oauth_nonce}",'
-            auth_string += 'oauth_timestamp="{oauth_timestamp}",'
-            auth_string += 'oauth_consumer_key="{oauth_consumer_key}",'
-            auth_string += 'oauth_signature_method="{oauth_signature_method}",'
-            auth_string += 'oauth_version="{oauth_version}",'
-            auth_string += 'oauth_token="{oauth_token}",'
-            auth_string += 'oauth_signature="{oauth_signature}"'
-
-            auth_string = \
-                auth_string.format(realm=realm or '',
-                                   oauth_nonce=fake_nonce,
-                                   oauth_timestamp=fake_time,
-                                   oauth_consumer_key=session.consumer_key,
-                                   oauth_signature_method=fake_sig_meth,
-                                   oauth_version=session.VERSION,
-                                   oauth_token=access_token,
-                                   oauth_signature=fake_sig)
-
-            headers = {'Authorization': auth_string}
+            headers = {'Authorization':
+                       self.fake_get_auth_header(oauth_params, realm=realm)}
 
             kwargs.setdefault('headers', {})
             kwargs['headers'].update(**headers)
@@ -526,7 +517,7 @@ class OflyServiceTestCase(RauthTestCase, RequestMixin):
 
         self.service.request = self.fake_request
 
-    def _get_sorted_params(self, params):
+    def fake_get_sorted_params(self, params):
         def sorting_gen():
             for k in sorted(params.keys()):
                 yield '='.join((k, params[k]))
@@ -585,10 +576,10 @@ class OflyServiceTestCase(RauthTestCase, RequestMixin):
 
         if header_auth:
             kwargs.setdefault('headers', {})
-            auth_header = self._get_sorted_params(ofly_params)
+            auth_header = self.fake_get_sorted_params(ofly_params)
             kwargs['headers'].update({'Authorization': auth_header})
         else:
-            kwargs['params'] = self._get_sorted_params(ofly_params)
+            kwargs['params'] = self.fake_get_sorted_params(ofly_params)
 
         mock_request.assert_called_with(method,
                                         url,
@@ -603,7 +594,7 @@ class OflyServiceTestCase(RauthTestCase, RequestMixin):
     @fake_sign(app_id)
     def test_get_authorize_url(self, ofly_params):
         expected_url = 'http://example.com/authorize?'
-        params = self._get_sorted_params(ofly_params)
+        params = self.fake_get_sorted_params(ofly_params)
         url = self.service.get_authorize_url()
         self.assertEqual(url, expected_url + params)
 
