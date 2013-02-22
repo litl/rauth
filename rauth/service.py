@@ -15,17 +15,6 @@ from urlparse import urljoin
 
 class HttpMixin(object):
     '''A container for common HTTP request methods.'''
-    def head(self, url, **kwargs):
-        '''
-        Sends a `HEAD` request.
-
-        :param url: The resource to be requested.
-        :type url: str
-        :param \*\*kwargs: Optional arguments that :meth:`request` takes.
-        :type \*\*\kwargs: dict
-        '''
-        return self.request('HEAD', url, **kwargs)
-
     def get(self, url, **kwargs):
         '''
         Sends a `GET` request.
@@ -36,6 +25,28 @@ class HttpMixin(object):
         :type \*\*\kwargs: dict
         '''
         return self.request('GET', url, **kwargs)
+
+    def options(self, url, **kwargs):
+        '''
+        Sends a `OPTIONS` request.
+
+        :param url: The resource to be requested.
+        :type url: str
+        :param \*\*kwargs: Optional arguments that :meth:`request` takes.
+        :type \*\*\kwargs: dict
+        '''
+        return self.request('OPTIONS', url, **kwargs)
+
+    def head(self, url, **kwargs):
+        '''
+        Sends a `HEAD` request.
+
+        :param url: The resource to be requested.
+        :type url: str
+        :param \*\*kwargs: Optional arguments that :meth:`request` takes.
+        :type \*\*\kwargs: dict
+        '''
+        return self.request('HEAD', url, **kwargs)
 
     def post(self, url, **kwargs):
         '''
@@ -58,6 +69,17 @@ class HttpMixin(object):
         :type \*\*\kwargs: dict
         '''
         return self.request('PUT', url, **kwargs)
+
+    def patch(self, url, **kwargs):
+        '''
+        Sends a `PATCH` request.
+
+        :param url: The resource to be requested.
+        :type url: str
+        :param \*\*kwargs: Optional arguments that :meth:`request` takes.
+        :type \*\*\kwargs: dict
+        '''
+        return self.request('PATCH', url, **kwargs)
 
     def delete(self, url, **kwargs):
         '''

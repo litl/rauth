@@ -47,12 +47,16 @@ class HttpMixin(object):
     def assert_ok(self, r):
         self.assertEqual(json.loads(r.content), {'status': 'ok'})
 
-    def test_head(self):
-        r = self.service.head(self.http_url)
-        self.assert_ok(r)
-
     def test_get(self):
         r = self.service.get(self.http_url)
+        self.assert_ok(r)
+
+    def test_options(self):
+        r = self.service.options(self.http_url)
+        self.assert_ok(r)
+
+    def test_head(self):
+        r = self.service.head(self.http_url)
         self.assert_ok(r)
 
     def test_post(self):
@@ -61,6 +65,10 @@ class HttpMixin(object):
 
     def test_put(self):
         r = self.service.put(self.http_url)
+        self.assert_ok(r)
+
+    def test_patch(self):
+        r = self.service.patch(self.http_url)
         self.assert_ok(r)
 
     def test_delete(self):
@@ -77,16 +85,51 @@ class RequestMixin(HttpMixin):
         r = self.service.get('foo', params={'format': 'json'})
         self.assert_ok(r)
 
-    def test_request_with_params_as_string(self):
-        r = self.service.get('foo', params='format=json')
-        self.assert_ok(r)
-
     def test_request_with_data(self):
         r = self.service.post('foo', data={'format': 'json'})
         self.assert_ok(r)
 
+    def test_request_with_params_as_string(self):
+        r = self.service.get('foo', params='format=json')
+        self.assert_ok(r)
+
     def test_request_with_data_as_string(self):
         r = self.service.post('foo', data='format=json')
+        self.assert_ok(r)
+
+    def test_request_with_params_as_unicode_string(self):
+        r = self.service.get('foo', params=u'format=json')
+        self.assert_ok(r)
+
+    def test_request_with_data_as_unicode_string(self):
+        r = self.service.post('foo', data=u'format=json')
+        self.assert_ok(r)
+
+    def test_request_with_params_and_data_as_strings(self):
+        r = self.service.post('foo', params='format=json', data='format=json')
+        self.assert_ok(r)
+
+    def test_request_with_params_and_data_as_unicode_strings(self):
+        r = self.service.post('foo',
+                              params=u'format=json',
+                              data=u'format=json')
+        self.assert_ok(r)
+
+    def test_request_with_header(self):
+        r = self.service.get('foo', headers={'x-foo-bar': 'baz'})
+        self.assert_ok(r)
+
+    def test_request_with_params_and_headar(self):
+        r = self.service.get('foo',
+                             params={'format': 'json'},
+                             headers={'x-foo-bar': 'baz'})
+        self.assert_ok(r)
+
+    def test_request_with_params_and_data_and_header(self):
+        r = self.service.post('foo',
+                              params={'format': 'json'},
+                              data={'foo': 'bar'},
+                              headers={'x-foo-bar': 'baz'})
         self.assert_ok(r)
 
 
@@ -165,6 +208,10 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin):
                         'oauth_version': session.VERSION,
                         'oauth_signature': fake_sig}
 
+        if 'params' in kwargs:
+            if isinstance(kwargs['params'], basestring):
+                kwargs['params'] = dict(parse_qsl(kwargs['params']))
+
         if header_auth:
             auth_string = 'OAuth realm="{realm}",'
             auth_string += 'oauth_nonce="{oauth_nonce}",'
@@ -192,15 +239,13 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin):
         elif method in ('POST', 'PUT'):
             headers = {'Content-Type': FORM_URLENCODED}
             kwargs.setdefault('data', {})
-            if isinstance(kwargs['data'], str):
+            if isinstance(kwargs['data'], basestring):
                 kwargs['data'] = dict(parse_qsl(kwargs['data']))
             kwargs['data'].update(**oauth_params)
             kwargs.setdefault('headers', {})
             kwargs['headers'].update(**headers)
         else:
             kwargs.setdefault('params', {})
-            if isinstance(kwargs['params'], str):
-                kwargs['params'] = dict(parse_qsl(kwargs['params']))
             kwargs['params'].update(**oauth_params)
 
         mock_request.assert_called_with(method,
@@ -376,7 +421,7 @@ class OAuth2ServiceTestCase(RauthTestCase, RequestMixin):
                           self.service.authorize_url)
         r = service.request(session, method, url, **kwargs)
 
-        if isinstance(kwargs.get('params', {}), str):
+        if isinstance(kwargs.get('params', {}), basestring):
             kwargs['params'] = dict(parse_qsl(kwargs['params']))
 
         kwargs.setdefault('params', {})
@@ -491,7 +536,7 @@ class OflyServiceTestCase(RauthTestCase, RequestMixin):
         url = service._set_url(url)
 
         kwargs.setdefault('params', {})
-        if isinstance(kwargs['params'], str):
+        if isinstance(kwargs['params'], basestring):
             kwargs['params'] = dict(parse_qsl(kwargs['params']))
 
         ofly_params.update(kwargs['params'])

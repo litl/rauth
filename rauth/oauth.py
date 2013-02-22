@@ -73,7 +73,7 @@ class SignatureMethod(object):
         headers = req_kwargs.get('headers', {})
 
         # processing request parameters
-        if type(params) == str:
+        if isinstance(params, basestring):
             # parse the string into a list of tuples
             normalized_params = parse_qsl(params)
             for k, v in normalized_params:
@@ -86,7 +86,7 @@ class SignatureMethod(object):
         # processing request data
         if 'Content-Type' in headers and \
                 headers['Content-Type'] == FORM_URLENCODED:
-            if type(data) == str:
+            if isinstance(data, basestring):
                 normalized_data = parse_qsl(data)
                 for k, v in normalized_data:
                     normalized += [(k, v)]

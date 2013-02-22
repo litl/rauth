@@ -119,7 +119,7 @@ class OAuth1Session(Session):
         :type method: str
         :param url: The resource to be requested.
         :type url: str
-        :param header_auth: Authenication via header, defaults to `False.`
+        :param header_auth: Authentication via header, defaults to `False.`
         :type header_auth: bool
         :param realm: The auth header realm, defaults to `None`.
         :type realm: str
@@ -169,8 +169,8 @@ class OAuth1Session(Session):
             method.
         :type req_kwargs: dict
         '''
-        params_is_string = type(req_kwargs.get('params')) == str
-        data_is_string = type(req_kwargs.get('data')) == str
+        params_is_string = isinstance(req_kwargs.get('params'), basestring)
+        data_is_string = isinstance(req_kwargs.get('data'), basestring)
 
         params = req_kwargs.get('params', {})
         data = req_kwargs.get('data', {})
@@ -290,7 +290,7 @@ class OAuth2Session(Session):
         '''
         req_kwargs.setdefault('params', {})
 
-        if isinstance(req_kwargs['params'], str):
+        if isinstance(req_kwargs['params'], basestring):
             req_kwargs['params'] = dict(parse_qsl(req_kwargs['params']))
 
         req_kwargs['params'].update({'access_token': self.access_token})
@@ -363,7 +363,7 @@ class OflySession(Session):
         :type method: str
         :param url: The resource to be requested.
         :type url: str
-        :param header_auth: Authenication via header, defaults to False.
+        :param header_auth: Authentication via header, defaults to False.
         :type header_auth: bool
         :param hash_meth: The hash method to use for signing, defaults to
             "sha1".
@@ -374,7 +374,7 @@ class OflySession(Session):
         req_kwargs.setdefault('params', {})
         req_kwargs.setdefault('timeout', OFLY_DEFAULT_TIMEOUT)
 
-        if isinstance(req_kwargs['params'], str):
+        if isinstance(req_kwargs['params'], basestring):
             req_kwargs['params'] = dict(parse_qsl(req_kwargs['params']))
 
         params, auth_header = OflySession.sign(url,
