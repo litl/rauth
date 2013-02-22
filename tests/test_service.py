@@ -15,6 +15,7 @@ from rauth.session import (OAUTH1_DEFAULT_TIMEOUT, OAUTH2_DEFAULT_TIMEOUT,
 from rauth.utils import FORM_URLENCODED
 
 from datetime import datetime
+from functools import wraps
 from hashlib import sha1
 from urlparse import parse_qsl
 
@@ -32,21 +33,11 @@ class MutableDatetime(datetime):
         return datetime.__new__(datetime, *args, **kwargs)
 
 
-class MockSha1(object):
-    def __new__(cls, *args, **kwargs):
-            return cls
+class FakeHexdigest(object):
+    def __init__(self, *args):
+        pass
 
-    @staticmethod
-    def hexdigest():
-        return 'foo'
-
-
-class MockMd5(object):
-    def __new__(cls, *args, **kwargs):
-            return cls
-
-    @staticmethod
-    def hexdigest():
+    def hexdigest(self):
         return 'foo'
 
 
@@ -411,13 +402,15 @@ class OAuth2ServiceTestCase(RauthTestCase, HttpMixin):
 
 
 class OflyServiceTestCase(RauthTestCase, HttpMixin):
+    app_id = '000'
+
     def setUp(self):
         RauthTestCase.setUp(self)
 
         self.authorize_url = 'http://example.com/authorize'
         self.base_url = 'http://example.com/api/'
 
-        self.service = OflyService('000',
+        self.service = OflyService(self.app_id,
                                    '111',
                                    name='service',
                                    authorize_url=self.authorize_url,
@@ -425,24 +418,42 @@ class OflyServiceTestCase(RauthTestCase, HttpMixin):
 
         self.service.request = self.fake_request
 
-    @patch('rauth.session.datetime', MutableDatetime)
-    @patch('rauth.session.md5', MockMd5)
-    @patch('rauth.session.sha1', MockSha1)
+    def fake_sign(app_id):
+        def wrap(func):
+            @wraps(func)
+            @patch('rauth.session.datetime', MutableDatetime)
+            @patch('rauth.session.md5', FakeHexdigest)
+            @patch('rauth.session.sha1', FakeHexdigest)
+            def decorated(*args, **kwargs):
+                hash_meth = kwargs.get('hash_meth', 'sha1').upper()
+                ofly_params = {'oflyAppId': app_id,
+                               'oflyHashMeth': hash_meth,
+                               'oflyTimestamp': '1900-01-01T00:00:00.0Z',
+                               'oflyApiSig': 'foo'}
+
+                MutableDatetime.utcnow = \
+                    classmethod(lambda cls: datetime(1900, 1, 1))
+                return func(ofly_params=ofly_params, *args, **kwargs)
+            return decorated
+        return wrap
+
     @patch.object(requests.Session, 'request')
+    @fake_sign(app_id)
     def fake_request(self,
                      method,
                      url,
                      mock_request,
+                     ofly_params,
                      header_auth=False,
                      hash_meth='sha1',
                      **kwargs):
-        MutableDatetime.utcnow = classmethod(lambda cls: datetime(1900, 1, 1))
         mock_request.return_value = self.response
 
         session = self.service.get_session()
         service = Service('service',
                           self.service.base_url,
                           self.service.authorize_url)
+
         r = service.request(session,
                             method,
                             url,
@@ -451,11 +462,6 @@ class OflyServiceTestCase(RauthTestCase, HttpMixin):
                             **kwargs)
 
         url = service._set_url(url)
-
-        ofly_params = {'oflyAppId': self.service.app_id,
-                       'oflyHashMeth': hash_meth.upper(),
-                       'oflyTimestamp': '1900-01-01T00:00:00.0Z',
-                       'oflyApiSig': 'foo'}
 
         kwargs.setdefault('params', {})
 
@@ -477,18 +483,10 @@ class OflyServiceTestCase(RauthTestCase, HttpMixin):
         s = self.service.get_session()
         self.assertIsInstance(s, OflySession)
 
-    @patch('rauth.session.datetime', MutableDatetime)
-    @patch('rauth.session.sha1', MockSha1)
-    def test_get_authorize_url(self):
-        MutableDatetime.utcnow = classmethod(lambda cls: datetime(1900, 1, 1))
-
-        params = 'oflyApiSig=foo&'
-        params += 'oflyAppId={0}&'.format(self.service.app_id)
-        params += 'oflyHashMeth=SHA1&'
-        params += 'oflyTimestamp=1900-01-01T00:00:00.0Z'
-
+    @fake_sign(app_id)
+    def test_get_authorize_url(self, ofly_params):
         expected_url = 'http://example.com/authorize?'
-
+        params = _get_sorted_params(ofly_params)
         url = self.service.get_authorize_url()
         self.assertEqual(url, expected_url + params)
 
