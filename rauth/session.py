@@ -428,5 +428,4 @@ class OflySession(Session):
         ofly_params['oflyApiSig'] = params['oflyApiSig'] = \
             hash_meth(signature_base_string).hexdigest()
 
-        return _get_sorted_params(params), \
-            _get_sorted_params(ofly_params)
+        return _get_sorted_params(params), _get_sorted_params(ofly_params)

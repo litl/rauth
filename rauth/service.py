@@ -690,7 +690,7 @@ class OflyService(Service):
         :type method: str
         :param url: The resource to be requested.
         :type url: str
-        :param header_auth: Authenication via header, defaults to False.
+        :param header_auth: Authentication via header, defaults to False.
         :type header_auth: str
         :params hash_meth: A string representation of the hash method to use
             for signing. Either 'sha1' or 'md5', defaults to 'sha1'.
