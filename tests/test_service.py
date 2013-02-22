@@ -47,10 +47,6 @@ class HttpMixin(object):
     def assert_ok(self, r):
         self.assertEqual(json.loads(r.content), {'status': 'ok'})
 
-    def test_request(self):
-        r = self.service.request('GET', 'foo')
-        self.assert_ok(r)
-
     def test_head(self):
         r = self.service.head(self.http_url)
         self.assert_ok(r)
@@ -72,7 +68,29 @@ class HttpMixin(object):
         self.assert_ok(r)
 
 
-class OAuth1ServiceTestCase(RauthTestCase, HttpMixin):
+class RequestMixin(HttpMixin):
+    def test_request(self):
+        r = self.service.request('GET', 'foo')
+        self.assert_ok(r)
+
+    def test_request_with_params(self):
+        r = self.service.get('foo', params={'format': 'json'})
+        self.assert_ok(r)
+
+    def test_request_with_params_as_string(self):
+        r = self.service.get('foo', params='format=json')
+        self.assert_ok(r)
+
+    def test_request_with_data(self):
+        r = self.service.post('foo', data={'format': 'json'})
+        self.assert_ok(r)
+
+    def test_request_with_data_as_string(self):
+        r = self.service.post('foo', data='format=json')
+        self.assert_ok(r)
+
+
+class OAuth1ServiceTestCase(RauthTestCase, RequestMixin):
     def setUp(self):
         RauthTestCase.setUp(self)
 
@@ -322,7 +340,7 @@ class OAuth1ServiceTestCase(RauthTestCase, HttpMixin):
         self.assert_ok(r)
 
 
-class OAuth2ServiceTestCase(RauthTestCase, HttpMixin):
+class OAuth2ServiceTestCase(RauthTestCase, RequestMixin):
     def setUp(self):
         RauthTestCase.setUp(self)
 
@@ -357,6 +375,9 @@ class OAuth2ServiceTestCase(RauthTestCase, HttpMixin):
                           self.service.base_url,
                           self.service.authorize_url)
         r = service.request(session, method, url, **kwargs)
+
+        if isinstance(kwargs.get('params', {}), str):
+            kwargs['params'] = dict(parse_qsl(kwargs['params']))
 
         kwargs.setdefault('params', {})
         kwargs['params'].update(**{'access_token': access_token})
@@ -401,7 +422,7 @@ class OAuth2ServiceTestCase(RauthTestCase, HttpMixin):
         self.assertEqual(access_token, '123')
 
 
-class OflyServiceTestCase(RauthTestCase, HttpMixin):
+class OflyServiceTestCase(RauthTestCase, RequestMixin):
     app_id = '000'
 
     def setUp(self):
@@ -470,6 +491,9 @@ class OflyServiceTestCase(RauthTestCase, HttpMixin):
         url = service._set_url(url)
 
         kwargs.setdefault('params', {})
+        if isinstance(kwargs['params'], str):
+            kwargs['params'] = dict(parse_qsl(kwargs['params']))
+
         ofly_params.update(kwargs['params'])
 
         if header_auth:
@@ -515,7 +539,3 @@ class OflyServiceTestCase(RauthTestCase, HttpMixin):
                                  hash_meth='foo')
         self.assertEqual(str(e.exception),
                          'hash_meth must be one of "sha1", "md5"')
-
-    def test_request_with_params(self):
-        r = self.service.get('foo', params={'format': 'json'})
-        self.assert_ok(r)

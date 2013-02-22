@@ -288,8 +288,12 @@ class OAuth2Session(Session):
         :param \*\*req_kwargs: Keyworded args to be passed down to Requests.
         :type \*\*req_kwargs: dict
         '''
-        req_kwargs.setdefault('params', {}).update({'access_token':
-                                                    self.access_token})
+        req_kwargs.setdefault('params', {})
+
+        if isinstance(req_kwargs['params'], str):
+            req_kwargs['params'] = dict(parse_qsl(req_kwargs['params']))
+
+        req_kwargs['params'].update({'access_token': self.access_token})
         req_kwargs.setdefault('timeout', OAUTH2_DEFAULT_TIMEOUT)
 
         return super(OAuth2Session, self).request(method, url, **req_kwargs)
@@ -369,6 +373,9 @@ class OflySession(Session):
         '''
         req_kwargs.setdefault('params', {})
         req_kwargs.setdefault('timeout', OFLY_DEFAULT_TIMEOUT)
+
+        if isinstance(req_kwargs['params'], str):
+            req_kwargs['params'] = dict(parse_qsl(req_kwargs['params']))
 
         params, auth_header = OflySession.sign(url,
                                                self.app_id,
