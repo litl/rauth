@@ -28,7 +28,16 @@ def _get_sorted_params(params):
     return '&'.join(sorting_gen())
 
 
-class OAuth1Session(Session):
+class RauthSession(Session):
+    def __init__(self, service):
+        self.metadata = {}
+
+        # a back reference to a service wrapper, if we're using one
+        self.service = service
+        super(RauthSession, self).__init__()
+
+
+class OAuth1Session(RauthSession):
     '''
     A specialized :class:`~requests.sessions.Session` object, wrapping OAuth
     1.0/a logic.
@@ -100,10 +109,7 @@ class OAuth1Session(Session):
         if signature is None:
             self.signature = HmacSha1Signature()
 
-        # a back reference to a service wrapper, if we're using one
-        self.service = service
-
-        super(OAuth1Session, self).__init__()
+        super(OAuth1Session, self).__init__(service)
 
     def request(self,
                 method,
@@ -126,6 +132,29 @@ class OAuth1Session(Session):
         :param \*\*req_kwargs: Keyworded args to be passed down to Requests.
         :type \*\*req_kwargs: dict
         '''
+        req_kwargs.setdefault('headers', {})
+
+        # HACK: Some providers redirect to other domains but expect signing
+        # against the first domain, i.e. Photobucket. Here we store the first
+        # URL we recieved before redirecting. We also store the request
+        # arguments as those may be lost in the redirect process.
+        if not 'x-rauth-root-url' in req_kwargs['headers']:
+            req_kwargs['headers'].update({'x-rauth-root-url': url})
+
+        if not 'x-rauth-params-data' in req_kwargs['headers']:
+            p = req_kwargs.get('params', {})
+            if isinstance(p, basestring):
+                p = dict(parse_qsl(p))
+
+            d = req_kwargs.get('data', {})
+            if isinstance(d, basestring):
+                d = dict(parse_qsl(d))
+
+            req_kwargs['headers'].update({'x-rauth-params-data': (p, d)})
+
+        post_or_put = method.upper() in ('POST', 'PUT')
+        if post_or_put:
+            req_kwargs['headers'].setdefault('Content-Type', FORM_URLENCODED)
 
         req_kwargs.setdefault('timeout', OAUTH1_DEFAULT_TIMEOUT)
 
@@ -141,16 +170,12 @@ class OAuth1Session(Session):
         # sign the request
         self.oauth_params['oauth_signature'] = self.signature.sign(self,
                                                                    method,
-                                                                   url,
                                                                    req_kwargs)
 
         if header_auth:
-            req_kwargs.setdefault('headers', {})
             req_kwargs['headers'].update({'Authorization':
                                           self._get_auth_header(realm)})
-        elif method.upper() in ('POST', 'PUT'):
-            req_kwargs.setdefault('headers', {})
-            req_kwargs['headers'].setdefault('Content-Type', FORM_URLENCODED)
+        elif post_or_put:
             req_kwargs.setdefault('data', {})
             req_kwargs['data'].update(self.__dict__.pop('oauth_params'))
         else:
@@ -206,10 +231,10 @@ class OAuth1Session(Session):
 
         self.oauth_params['oauth_version'] = self.VERSION
 
-    def _get_auth_header(self, realm=''):
+    def _get_auth_header(self, realm=None):
         '''Constructs and returns an authentication header.'''
         oauth_params = self.__dict__.pop('oauth_params')
-        auth_header = 'OAuth realm="{realm}"'.format(realm=realm)
+        auth_header = 'OAuth realm="{realm}"'.format(realm=realm or '')
         params = ''
         for k, v in oauth_params.items():
             params += ',{key}="{value}"'.format(key=k, value=quote(str(v)))
@@ -217,7 +242,7 @@ class OAuth1Session(Session):
         return auth_header
 
 
-class OAuth2Session(Session):
+class OAuth2Session(RauthSession):
     '''
     A specialized :class:`~requests.sessions.Session` object, wrapping OAuth
     2.0 logic.
@@ -272,9 +297,7 @@ class OAuth2Session(Session):
 
         self.access_token = access_token
 
-        self.service = service
-
-        super(OAuth2Session, self).__init__()
+        super(OAuth2Session, self).__init__(service)
 
     def request(self, method, url, **req_kwargs):
         '''
@@ -299,7 +322,7 @@ class OAuth2Session(Session):
         return super(OAuth2Session, self).request(method, url, **req_kwargs)
 
 
-class OflySession(Session):
+class OflySession(RauthSession):
     '''
     A specialized :class:`~requests.sessions.Session` object, wrapping Ofly
     logic.
@@ -345,14 +368,11 @@ class OflySession(Session):
         self.app_id = app_id
         self.app_secret = app_secret
 
-        self.service = service
-
-        super(OflySession, self).__init__()
+        super(OflySession, self).__init__(service)
 
     def request(self,
                 method,
                 url,
-                header_auth=False,
                 hash_meth='sha1',
                 **req_kwargs):
         '''
@@ -363,8 +383,6 @@ class OflySession(Session):
         :type method: str
         :param url: The resource to be requested.
         :type url: str
-        :param header_auth: Authentication via header, defaults to False.
-        :type header_auth: bool
         :param hash_meth: The hash method to use for signing, defaults to
             "sha1".
         :type hash_meth: str
@@ -377,17 +395,12 @@ class OflySession(Session):
         if isinstance(req_kwargs['params'], basestring):
             req_kwargs['params'] = dict(parse_qsl(req_kwargs['params']))
 
-        params, auth_header = OflySession.sign(url,
-                                               self.app_id,
-                                               self.app_secret,
-                                               hash_meth=hash_meth,
-                                               **req_kwargs['params'])
-
-        if header_auth:
-            req_kwargs.setdefault('headers', {})
-            req_kwargs['headers'].update({'Authorization': auth_header})
-        else:
-            req_kwargs['params'] = params
+        params = OflySession.sign(url,
+                                  self.app_id,
+                                  self.app_secret,
+                                  hash_meth=hash_meth,
+                                  **req_kwargs['params'])
+        req_kwargs['params'] = str(params)
 
         return super(OflySession, self).request(method, url, **req_kwargs)
 
@@ -421,18 +434,17 @@ class OflySession(Session):
         ofly_params = {'oflyAppId': app_id,
                        'oflyHashMeth': hash_meth_str.upper(),
                        'oflyTimestamp': now.strftime(time_format)}
-        params.update(ofly_params)
 
         url_path = urlsplit(url).path
 
         signature_base_string = app_secret + url_path + '?'
-
         if len(params):
             signature_base_string += _get_sorted_params(params) + '&'
-
         signature_base_string += _get_sorted_params(ofly_params)
 
         ofly_params['oflyApiSig'] = params['oflyApiSig'] = \
             hash_meth(signature_base_string).hexdigest()
 
-        return _get_sorted_params(params), _get_sorted_params(ofly_params)
+        all_params = dict(ofly_params.items() + params.items())
+
+        return _get_sorted_params(all_params)

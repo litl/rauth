@@ -18,7 +18,7 @@ from datetime import datetime
 from functools import wraps
 from hashlib import sha1
 from urllib import quote
-from urlparse import parse_qsl
+from urlparse import parse_qsl, urlsplit
 
 from mock import patch
 
@@ -251,6 +251,22 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin):
                             realm=realm,
                             **kwargs)
 
+        kwargs.setdefault('headers', {})
+
+        if not 'x-rauth-root-url' in kwargs['headers']:
+            kwargs['headers'].update({'x-rauth-root-url': url})
+
+        if not 'x-rauth-params-data' in kwargs['headers']:
+            p = kwargs.get('params', {})
+            if isinstance(p, basestring):
+                p = dict(parse_qsl(p))
+
+            d = kwargs.get('data', {})
+            if isinstance(d, basestring):
+                d = dict(parse_qsl(d))
+
+            kwargs['headers'].update({'x-rauth-params-data': (p, d)})
+
         oauth_params = {'oauth_consumer_key': session.consumer_key,
                         'oauth_nonce': fake_nonce,
                         'oauth_signature_method': fake_sig_meth,
@@ -267,8 +283,7 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin):
             headers = {'Authorization':
                        self.fake_get_auth_header(oauth_params, realm=realm)}
 
-            kwargs.setdefault('headers', {})
-            kwargs['headers'].update(**headers)
+            kwargs['headers'].update(headers)
         elif method in ('POST', 'PUT'):
             headers = {'Content-Type': FORM_URLENCODED}
             kwargs.setdefault('data', {})
@@ -549,7 +564,6 @@ class OflyServiceTestCase(RauthTestCase, RequestMixin):
                      url,
                      mock_request,
                      ofly_params,
-                     header_auth=False,
                      hash_meth='sha1',
                      **kwargs):
         mock_request.return_value = self.response
@@ -562,7 +576,6 @@ class OflyServiceTestCase(RauthTestCase, RequestMixin):
         r = service.request(session,
                             method,
                             url,
-                            header_auth=header_auth,
                             hash_meth=hash_meth,
                             **kwargs)
 
@@ -572,14 +585,19 @@ class OflyServiceTestCase(RauthTestCase, RequestMixin):
         if isinstance(kwargs['params'], basestring):
             kwargs['params'] = dict(parse_qsl(kwargs['params']))
 
-        ofly_params.update(kwargs['params'])
+        url_path = urlsplit(url).path
 
-        if header_auth:
-            kwargs.setdefault('headers', {})
-            auth_header = self.fake_get_sorted_params(ofly_params)
-            kwargs['headers'].update({'Authorization': auth_header})
-        else:
-            kwargs['params'] = self.fake_get_sorted_params(ofly_params)
+        signature_base_string = self.service.app_secret + url_path + '?'
+
+        if len(kwargs['params']):
+            signature_base_string += \
+                self.fake_get_sorted_params(kwargs['params']) + '&'
+
+        signature_base_string += self.fake_get_sorted_params(ofly_params)
+
+        all_params = dict(ofly_params.items() + kwargs['params'].items())
+
+        kwargs['params'] = self.fake_get_sorted_params(all_params)
 
         mock_request.assert_called_with(method,
                                         url,
@@ -597,12 +615,6 @@ class OflyServiceTestCase(RauthTestCase, RequestMixin):
         params = self.fake_get_sorted_params(ofly_params)
         url = self.service.get_authorize_url()
         self.assertEqual(url, expected_url + params)
-
-    def test_request_with_header_auth(self):
-        r = self.service.request('GET',
-                                 'http://example.com/',
-                                 header_auth=True)
-        self.assert_ok(r)
 
     def test_request_with_md5(self):
         r = self.service.request('GET',

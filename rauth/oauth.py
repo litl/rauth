@@ -122,7 +122,7 @@ class HmacSha1Signature(SignatureMethod):
     '''
     NAME = 'HMAC-SHA1'
 
-    def sign(self, session, method, url, req_kwargs):
+    def sign(self, session, method, req_kwargs):
         '''Sign request parameters.
 
         :param session: The session object to sign over.
@@ -135,12 +135,27 @@ class HmacSha1Signature(SignatureMethod):
             method.
         :type req_kwargs: dict
         '''
+        url = req_kwargs['headers']['x-rauth-root-url']
+
+        p, d = req_kwargs['headers'].get('x-rauth-params-data', ({}, {}))
+        if p and 'params' in req_kwargs:
+            req_kwargs['params'].update(**p)
+        elif p:
+            req_kwargs.setdefault('params', {})
+            req_kwargs['params'].update(**p)
+
+        if d and 'data' in req_kwargs:
+            req_kwargs['data'].update(**d)
+        elif d:
+            req_kwargs.setdefault('data', {})
+            req_kwargs['data'].update(**d)
 
         consumer_secret = session.consumer_secret
         access_token_secret = session.access_token_secret
 
         # the necessary parameters we'll sign
         url = self._remove_qs(url)
+
         oauth_params = self._normalize_request_parameters(session, req_kwargs)
         parameters = map(self._escape, [method,
                                         url,

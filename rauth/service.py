@@ -692,16 +692,15 @@ class OflyService(Service):
             request querystring.
         :type \*\*params: dict
         '''
-        params, _ = self.session_obj.sign(self.authorize_url,
-                                          self.app_id,
-                                          self.app_secret,
-                                          **params)
+        params = self.session_obj.sign(self.authorize_url,
+                                       self.app_id,
+                                       self.app_secret,
+                                       **params)
         return self.authorize_url + '?' + params
 
     def request(self,
                 method,
                 url,
-                header_auth=False,
                 hash_meth='sha1',
                 **kwargs):  # pragma no cover
         '''
@@ -712,18 +711,13 @@ class OflyService(Service):
         :type method: str
         :param url: The resource to be requested.
         :type url: str
-        :param header_auth: Authentication via header, defaults to False.
-        :type header_auth: str
         :params hash_meth: A string representation of the hash method to use
             for signing. Either 'sha1' or 'md5', defaults to 'sha1'.
         :type hash_meth: str
         :param \*\*kwargs: Optional arguments. Same as Requests.
         :type \*\*kwargs: dict
         '''
-        session = self.get_session()
-
-        return super(OflyService, self).request(session,
+        return super(OflyService, self).request(self.get_session(),
                                                 method,
                                                 url,
-                                                header_auth=header_auth,
                                                 **kwargs)
