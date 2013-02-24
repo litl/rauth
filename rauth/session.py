@@ -400,7 +400,8 @@ class OflySession(RauthSession):
                                   self.app_secret,
                                   hash_meth=hash_meth,
                                   **req_kwargs['params'])
-        req_kwargs['params'] = str(params)
+
+        req_kwargs['params'] = params
 
         return super(OflySession, self).request(method, url, **req_kwargs)
 
