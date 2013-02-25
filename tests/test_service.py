@@ -59,35 +59,32 @@ class HttpMixin(object):
         self.assert_ok(r)
 
 
-def get_input_combos():
+def input_product_gen():
     all_params = [{},
+                  '',
                   {'foo': 'bar'},
-                  'foo=bar',
                   {u'foo': u'bar'},
-                  u'foo=bar',
-                  'føø=bår',
                   {'føø': 'bår'},
                   {u'føø': u'bår'},
+                  'foo=bar',
                   'foo=bar baz',
-                  {'foo': 'bar baz'}]
-    all_data = [{},
-                {'foo': 'bar'},
-                'foo=bar',
-                {u'foo': u'bar'},
-                u'foo=bar',
-                'føø=bår',
-                {'føø': 'bår'},
-                {u'føø': u'bår'},
-                'foo=bar baz',
-                {'foo': 'bar baz'}]
+                  'foo=bar&a=b',
+                  u'foo=bar',
+                  'føø=bår',
+                  'føø=bår']
+
+    all_data = all_params
+
     all_headers = [{},
                    {'x-foo-bar': 'baz'},
                    {u'x-foo-bar': u'baz'},
                    {'x-foo-bar': 'båz'},
                    {u'x-foo-bar': u'båz'},
-                   {'x-foo-bar': 'baz foo'}]
+                   {'x-foo-bar': 'baz foo'},
+                   {u'x-foo-bar': u'baz foo'},
+                   {'x-foo-bar': 'båz foo'},
+                   {u'x-foo-bar': u'båz foo'}]
 
-    input_combos = []
     for p in all_params:
         method = 'GET'
         for d in all_data:
@@ -95,8 +92,12 @@ def get_input_combos():
                 method = 'POST'
             for h in all_headers:
                 kwargs = {}
+
                 kwargs['params'] = p
                 kwargs['data'] = d
                 kwargs['headers'] = h
-                input_combos.append((method, kwargs))
-    return input_combos
+
+                f = lambda: (kwargs, method)
+                f.__args__ = kwargs
+
+                yield f

@@ -6,8 +6,8 @@
     Test suite for rauth.service.OAuth2Service.
 '''
 
-from base import RauthTestCase
-from test_service import HttpMixin, get_input_combos
+from base import RauthTestCase, parameterize
+from test_service import HttpMixin, input_product_gen
 
 from rauth.service import OAuth2Service, Service
 from rauth.session import OAUTH2_DEFAULT_TIMEOUT, OAuth2Session
@@ -15,7 +15,6 @@ from rauth.session import OAUTH2_DEFAULT_TIMEOUT, OAuth2Session
 from urlparse import parse_qsl
 
 from mock import patch
-from nose_parameterized import parameterized
 
 import requests
 
@@ -68,12 +67,6 @@ class OAuth2ServiceTestCase(RauthTestCase, HttpMixin):
                                         **kwargs)
         return r
 
-    @parameterized.expand((method, kwargs)
-                          for method, kwargs in get_input_combos())
-    def test_request(self, method, kwargs):
-        r = self.service.request(method, 'foo', **kwargs)
-        self.assert_ok(r)
-
     def test_get_session(self):
         s = self.service.get_session()
         self.assertIsInstance(s, OAuth2Session)
@@ -91,18 +84,30 @@ class OAuth2ServiceTestCase(RauthTestCase, HttpMixin):
         self.assertEqual(url, expected_fmt.format(self.service.client_id))
 
     def test_get_raw_access_token(self):
-        resp = 'access_token=123'
+        resp = 'access_token=123&expires_in=3600&refresh_token=456'
         self.response.content = resp
         r = self.service.get_raw_access_token()
         self.assertEqual(r.content, resp)
 
     def test_get_raw_access_token_with_params(self):
-        resp = 'access_token=123'
+        resp = 'access_token=123&expires_in=3600&refresh_token=456'
         self.response.content = resp
         r = self.service.get_raw_access_token(params={'a': 'b'})
         self.assertEqual(r.content, resp)
 
     def test_get_access_token(self):
-        self.response.content = 'access_token=123'
+        self.response.content = \
+            'access_token=123&expires_in=3600&refresh_token=456'
         access_token = self.service.get_access_token()
         self.assertEqual(access_token, '123')
+
+    def dispatch_request(self, func):
+        kwargs, method = func()
+        return self.service.request(method, 'foo', **kwargs)
+
+    @parameterize(input_product_gen())
+    def test_request(self, func):
+        kwargs, method = func()
+        kwargs = kwargs.copy()
+        r = self.service.request(method, 'foo', **kwargs)
+        self.assert_ok(r)

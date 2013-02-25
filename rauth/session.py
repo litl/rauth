@@ -134,6 +134,13 @@ class OAuth1Session(RauthSession):
         '''
         req_kwargs.setdefault('headers', {})
 
+        # inline query string conversion
+        if isinstance(req_kwargs.get('params'), basestring):
+            req_kwargs['params'] = dict(parse_qsl(req_kwargs['params']))
+
+        if isinstance(req_kwargs.get('data'), basestring):
+            req_kwargs['data'] = dict(parse_qsl(req_kwargs['data']))
+
         # HACK: Some providers redirect to other domains but expect signing
         # against the first domain, i.e. Photobucket. Here we store the first
         # URL we recieved before redirecting. We also store the request
@@ -142,14 +149,7 @@ class OAuth1Session(RauthSession):
             req_kwargs['headers'].update({'x-rauth-root-url': url})
 
         if not 'x-rauth-params-data' in req_kwargs['headers']:
-            p = req_kwargs.get('params', {})
-            if isinstance(p, basestring):
-                p = dict(parse_qsl(p))
-
-            d = req_kwargs.get('data', {})
-            if isinstance(d, basestring):
-                d = dict(parse_qsl(d))
-
+            p, d = req_kwargs.get('params', {}), req_kwargs.get('data', {})
             req_kwargs['headers'].update({'x-rauth-params-data': (p, d)})
 
         post_or_put = method.upper() in ('POST', 'PUT')
@@ -157,8 +157,6 @@ class OAuth1Session(RauthSession):
             req_kwargs['headers'].setdefault('Content-Type', FORM_URLENCODED)
 
         req_kwargs.setdefault('timeout', OAUTH1_DEFAULT_TIMEOUT)
-
-        self.oauth_params = {}
 
         # set the OAuth params on the oauth_params attribute
         self._set_oauth_params()
@@ -194,23 +192,12 @@ class OAuth1Session(RauthSession):
             method.
         :type req_kwargs: dict
         '''
-        params_is_string = isinstance(req_kwargs.get('params'), basestring)
-        data_is_string = isinstance(req_kwargs.get('data'), basestring)
-
         params = req_kwargs.get('params', {})
         data = req_kwargs.get('data', {})
 
-        # special handling if we're handed a string
-        if params_is_string and params:
-            params = dict(parse_qsl(params))
-
-        if data_is_string and data:
-            data = dict(parse_qsl(data))
-
-        # remove any oauth parameters and set them as attributes
         if oauth_param in params:
             self.oauth_params[oauth_param] = params.pop(oauth_param)
-        if not data_is_string and oauth_param in data:
+        if oauth_param in data:
             self.oauth_params[oauth_param] = data.pop(oauth_param)
 
         if params:
@@ -221,6 +208,8 @@ class OAuth1Session(RauthSession):
 
     def _set_oauth_params(self):
         '''Prepares OAuth params for signing.'''
+        self.oauth_params = {}
+
         self.oauth_params['oauth_consumer_key'] = self.consumer_key
         self.oauth_params['oauth_nonce'] = sha1(str(random())).hexdigest()
         self.oauth_params['oauth_signature_method'] = self.signature.NAME

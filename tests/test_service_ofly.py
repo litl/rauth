@@ -6,9 +6,9 @@
     Test suite for rauth.service.OflyService.
 '''
 
-from base import RauthTestCase
-from test_service import (FakeHexdigest, MutableDatetime, HttpMixin,
-                          get_input_combos)
+from base import RauthTestCase, parameterize
+from test_service import (FakeHexdigest, HttpMixin, MutableDatetime,
+                          input_product_gen)
 
 from rauth.service import OflyService, Service
 from rauth.session import OFLY_DEFAULT_TIMEOUT, OflySession
@@ -18,7 +18,6 @@ from functools import wraps
 from urlparse import parse_qsl, urlsplit
 
 from mock import patch
-from nose_parameterized import parameterized
 
 import requests
 
@@ -77,9 +76,6 @@ class OflyServiceTestCase(RauthTestCase, HttpMixin):
                      ofly_params,
                      hash_meth='sha1',
                      **kwargs):
-        print 'ofly'
-        print ofly_params
-        print kwargs
         mock_request.return_value = self.response
 
         session = self.service.get_session()
@@ -119,12 +115,6 @@ class OflyServiceTestCase(RauthTestCase, HttpMixin):
                                         **kwargs)
         return r
 
-    @parameterized.expand((method, kwargs)
-                          for method, kwargs in get_input_combos())
-    def test_request(self, method, kwargs):
-        r = self.service.request(method, 'foo', **kwargs)
-        self.assert_ok(r)
-
     def test_get_session(self):
         s = self.service.get_session()
         self.assertIsInstance(s, OflySession)
@@ -149,3 +139,9 @@ class OflyServiceTestCase(RauthTestCase, HttpMixin):
                                  hash_meth='foo')
         self.assertEqual(str(e.exception),
                          'hash_meth must be one of "sha1", "md5"')
+
+    @parameterize(input_product_gen())
+    def test_request(self, func):
+        kwargs, method = func()
+        r = self.service.request(method, 'foo', **kwargs)
+        self.assert_ok(r)

@@ -11,7 +11,7 @@ import hmac
 
 from hashlib import sha1
 from urllib import quote, urlencode
-from urlparse import parse_qsl, urlsplit, urlunsplit
+from urlparse import urlsplit, urlunsplit
 
 from rauth.utils import FORM_URLENCODED
 
@@ -72,27 +72,15 @@ class SignatureMethod(object):
         data = req_kwargs.get('data', {})
         headers = req_kwargs.get('headers', {})
 
-        # processing request parameters
-        if isinstance(params, basestring):
-            # parse the string into a list of tuples
-            normalized_params = parse_qsl(params)
-            for k, v in normalized_params:
-                normalized += [(k, v)]
-        else:
-            # assume params is a list and extract the items
-            for k, v in params.items():
-                normalized += [(k, v)]
+        # process request parameters
+        for k, v in params.items():
+            normalized += [(k, v)]
 
-        # processing request data
+        # process request data
         if 'Content-Type' in headers and \
                 headers['Content-Type'] == FORM_URLENCODED:
-            if isinstance(data, basestring):
-                normalized_data = parse_qsl(data)
-                for k, v in normalized_data:
-                    normalized += [(k, v)]
-            else:
-                for k, v in data.items():
-                    normalized += [(k, v)]
+            for k, v in data.items():
+                normalized += [(k, v)]
 
         # extract values from our list of tuples
         all_normalized = []
@@ -157,9 +145,7 @@ class HmacSha1Signature(SignatureMethod):
         url = self._remove_qs(url)
 
         oauth_params = self._normalize_request_parameters(session, req_kwargs)
-        parameters = map(self._escape, [method,
-                                        url,
-                                        oauth_params])
+        parameters = map(self._escape, [method, url, oauth_params])
 
         # set our key
         key = self._escape(consumer_secret) + '&'

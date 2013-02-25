@@ -6,8 +6,8 @@
     Test suite for rauth.service.OAuth1Service.
 '''
 
-from base import RauthTestCase
-from test_service import HttpMixin, get_input_combos
+from base import RauthTestCase, parameterize
+from test_service import HttpMixin, input_product_gen
 
 from rauth.service import OAuth1Service, Service
 from rauth.session import OAUTH1_DEFAULT_TIMEOUT, OAuth1Session
@@ -18,7 +18,6 @@ from urllib import quote
 from urlparse import parse_qsl
 
 from mock import patch
-from nose_parameterized import parameterized
 
 import rauth
 
@@ -100,20 +99,19 @@ class OAuth1ServiceTestCase(RauthTestCase, HttpMixin):
                             realm=realm,
                             **kwargs)
 
+        if isinstance(kwargs.get('params'), basestring):
+            kwargs['params'] = dict(parse_qsl(kwargs['params']))
+
+        if isinstance(kwargs.get('data'), basestring):
+            kwargs['data'] = dict(parse_qsl(kwargs['data']))
+
         kwargs.setdefault('headers', {})
 
         if not 'x-rauth-root-url' in kwargs['headers']:
             kwargs['headers'].update({'x-rauth-root-url': url})
 
         if not 'x-rauth-params-data' in kwargs['headers']:
-            p = kwargs.get('params', {})
-            if isinstance(p, basestring):
-                p = dict(parse_qsl(p))
-
-            d = kwargs.get('data', {})
-            if isinstance(d, basestring):
-                d = dict(parse_qsl(d))
-
+            p, d = kwargs.get('params', {}), kwargs.get('data', {})
             kwargs['headers'].update({'x-rauth-params-data': (p, d)})
 
         oauth_params = {'oauth_consumer_key': session.consumer_key,
@@ -124,23 +122,18 @@ class OAuth1ServiceTestCase(RauthTestCase, HttpMixin):
                         'oauth_version': session.VERSION,
                         'oauth_signature': fake_sig}
 
-        if 'params' in kwargs:
-            if isinstance(kwargs['params'], basestring):
-                kwargs['params'] = dict(parse_qsl(kwargs['params']))
-
         if header_auth:
             headers = {'Authorization':
                        self.fake_get_auth_header(oauth_params, realm=realm)}
 
             kwargs['headers'].update(headers)
-        elif method in ('POST', 'PUT'):
-            headers = {'Content-Type': FORM_URLENCODED}
+        elif method.upper() in ('POST', 'PUT'):
             kwargs.setdefault('data', {})
-            if isinstance(kwargs['data'], basestring):
-                kwargs['data'] = dict(parse_qsl(kwargs['data']))
+
             kwargs['data'].update(**oauth_params)
             kwargs.setdefault('headers', {})
-            kwargs['headers'].update(**headers)
+
+            kwargs['headers'].update(**{'Content-Type': FORM_URLENCODED})
         else:
             kwargs.setdefault('params', {})
             kwargs['params'].update(**oauth_params)
@@ -150,12 +143,6 @@ class OAuth1ServiceTestCase(RauthTestCase, HttpMixin):
                                         timeout=OAUTH1_DEFAULT_TIMEOUT,
                                         **kwargs)
         return r
-
-    @parameterized.expand((method, kwargs)
-                          for method, kwargs in get_input_combos())
-    def test_request(self, method, kwargs):
-        r = self.service.request(method, 'foo', **kwargs)
-        self.assert_ok(r)
 
     def test_get_session(self):
         s = self.service.get_session()
@@ -285,4 +272,10 @@ class OAuth1ServiceTestCase(RauthTestCase, HttpMixin):
                                  'http://example.com/',
                                  header_auth=True,
                                  realm='http://example.com/foo/')
+        self.assert_ok(r)
+
+    @parameterize(input_product_gen())
+    def test_request(self, func):
+        kwargs, method = func()
+        r = self.service.request(method, 'foo', **kwargs)
         self.assert_ok(r)
