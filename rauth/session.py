@@ -30,8 +30,6 @@ def _get_sorted_params(params):
 
 class RauthSession(Session):
     def __init__(self, service):
-        self.metadata = {}
-
         # a back reference to a service wrapper, if we're using one
         self.service = service
         super(RauthSession, self).__init__()

@@ -133,7 +133,7 @@ class OAuth1ServiceTestCase(RauthTestCase, HttpMixin):
             kwargs['data'].update(**oauth_params)
             kwargs.setdefault('headers', {})
 
-            kwargs['headers'].update(**{'Content-Type': FORM_URLENCODED})
+            kwargs['headers'].update({'Content-Type': FORM_URLENCODED})
         else:
             kwargs.setdefault('params', {})
             kwargs['params'].update(**oauth_params)
@@ -275,7 +275,6 @@ class OAuth1ServiceTestCase(RauthTestCase, HttpMixin):
         self.assert_ok(r)
 
     @parameterize(input_product_gen())
-    def test_request(self, func):
-        kwargs, method = func()
+    def test_request(self, method, kwargs):
         r = self.service.request(method, 'foo', **kwargs)
         self.assert_ok(r)

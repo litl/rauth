@@ -11,6 +11,9 @@ import json
 import requests
 import unittest
 
+from copy import deepcopy
+
+
 if not hasattr(unittest.TestCase, 'assertIsNotNone'):
     try:
         import unittest2 as unittest
@@ -44,12 +47,12 @@ class RauthTestCase(unittest.TestCase):
 
 def _new_func(func_name, func, f):
     def decorated(cls):
-        return func(cls, f)
+        return func(cls, deepcopy(f.__method__), deepcopy(f.__kwargs__))
     decorated.__name__ = func_name
     return decorated
 
 
-def parameterize(inp):
+def parameterize(iterable):
     '''
     Based on nose-parameterized, distilled for "brute force" usage. Also
     modified to display more informative function names, i.e. actual input.
@@ -60,10 +63,10 @@ def parameterize(inp):
         frame_locals = frame[0].f_locals
 
         base_name = func.__name__
-        for i, f in enumerate(inp):
+        for f in iterable:
             if not isfunction(f):
                 raise TypeError('Arguments should be wrapped in a function.')
-            name_suffix = ' --> ' + '(' + str(f.__args__) + ')'
+            name_suffix = ' --> ' + '(' + str(f.__kwargs__) + ')'
             name = base_name + name_suffix
             new_func = _new_func(name, func, f)
             frame_locals[name] = new_func

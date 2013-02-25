@@ -13,6 +13,7 @@ from test_service import (FakeHexdigest, HttpMixin, MutableDatetime,
 from rauth.service import OflyService, Service
 from rauth.session import OFLY_DEFAULT_TIMEOUT, OflySession
 
+from copy import deepcopy
 from datetime import datetime
 from functools import wraps
 from urlparse import parse_qsl, urlsplit
@@ -87,7 +88,7 @@ class OflyServiceTestCase(RauthTestCase, HttpMixin):
                             method,
                             url,
                             hash_meth=hash_meth,
-                            **kwargs)
+                            **deepcopy(kwargs))
 
         url = service._set_url(url)
 
@@ -141,7 +142,6 @@ class OflyServiceTestCase(RauthTestCase, HttpMixin):
                          'hash_meth must be one of "sha1", "md5"')
 
     @parameterize(input_product_gen())
-    def test_request(self, func):
-        kwargs, method = func()
+    def test_request(self, method, kwargs):
         r = self.service.request(method, 'foo', **kwargs)
         self.assert_ok(r)

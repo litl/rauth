@@ -579,6 +579,8 @@ class OAuth2Service(Service):
         kwargs[key].update({'client_id': self.client_id,
                             'client_secret': self.client_secret})
 
+        self.access_token = None
+
         return self.request(method, self.access_token_url, **kwargs)
 
     def get_access_token(self, method='POST', **kwargs):

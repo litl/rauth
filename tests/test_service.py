@@ -97,7 +97,8 @@ def input_product_gen():
                 kwargs['data'] = d
                 kwargs['headers'] = h
 
-                f = lambda: (kwargs, method)
-                f.__args__ = kwargs
+                f = lambda: None
+                f.__method__ = method
+                f.__kwargs__ = kwargs
 
                 yield f

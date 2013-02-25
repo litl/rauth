@@ -14,6 +14,7 @@ from rauth.session import OAUTH2_DEFAULT_TIMEOUT, OAuth2Session
 
 from urlparse import parse_qsl
 
+from copy import deepcopy
 from mock import patch
 
 import requests
@@ -53,13 +54,13 @@ class OAuth2ServiceTestCase(RauthTestCase, HttpMixin):
         service = Service('service',
                           self.service.base_url,
                           self.service.authorize_url)
-        r = service.request(session, method, url, **kwargs)
+        r = service.request(session, method, url, **deepcopy(kwargs))
 
         if isinstance(kwargs.get('params', {}), basestring):
             kwargs['params'] = dict(parse_qsl(kwargs['params']))
 
         kwargs.setdefault('params', {})
-        kwargs['params'].update(**{'access_token': access_token})
+        kwargs['params'].update({'access_token': access_token})
 
         mock_request.assert_called_with(method,
                                         url,
@@ -106,8 +107,6 @@ class OAuth2ServiceTestCase(RauthTestCase, HttpMixin):
         return self.service.request(method, 'foo', **kwargs)
 
     @parameterize(input_product_gen())
-    def test_request(self, func):
-        kwargs, method = func()
-        kwargs = kwargs.copy()
+    def test_request(self, method, kwargs):
         r = self.service.request(method, 'foo', **kwargs)
         self.assert_ok(r)
