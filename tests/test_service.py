@@ -63,6 +63,8 @@ def input_product_gen():
     all_params = [{},
                   '',
                   {'foo': 'bar'},
+                  {'foo': 'bar baz'},
+                  {'foo': 'bar=baz&a=b'},
                   {u'foo': u'bar'},
                   {'føø': 'bår'},
                   {u'føø': u'bår'},
@@ -71,7 +73,7 @@ def input_product_gen():
                   'foo=bar&a=b',
                   u'foo=bar',
                   'føø=bår',
-                  'føø=bår']
+                  u'føø=bår']
 
     all_data = all_params
 
@@ -97,8 +99,4 @@ def input_product_gen():
                 kwargs['data'] = d
                 kwargs['headers'] = h
 
-                f = lambda: None
-                f.__method__ = method
-                f.__kwargs__ = kwargs
-
-                yield f
+                yield lambda m=method, k=kwargs: (m, k)

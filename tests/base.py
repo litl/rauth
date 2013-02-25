@@ -47,7 +47,7 @@ class RauthTestCase(unittest.TestCase):
 
 def _new_func(func_name, func, f):
     def decorated(cls):
-        return func(cls, deepcopy(f.__method__), deepcopy(f.__kwargs__))
+        return func(cls, *deepcopy(f()))
     decorated.__name__ = func_name
     return decorated
 
@@ -66,7 +66,7 @@ def parameterize(iterable):
         for f in iterable:
             if not isfunction(f):
                 raise TypeError('Arguments should be wrapped in a function.')
-            name_suffix = ' --> ' + '(' + str(f.__kwargs__) + ')'
+            name_suffix = ' --> ' + '(' + str(f()[-1]) + ')'
             name = base_name + name_suffix
             new_func = _new_func(name, func, f)
             frame_locals[name] = new_func
