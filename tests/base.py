@@ -35,15 +35,6 @@ class RauthTestCase(unittest.TestCase):
         response.status_code = requests.codes.ok
         self.response = response
 
-        # mock session objects
-        oauth1session = Mock()
-        oauth1session.oauth_params = {}
-        oauth1session.consumer_key = '123'
-        oauth1session.consumer_secret = '456'
-        oauth1session.access_token = '321'
-        oauth1session.access_token_secret = '654'
-        self.oauth1session = oauth1session
-
 
 def _new_func(func_name, func, f):
     def decorated(cls):

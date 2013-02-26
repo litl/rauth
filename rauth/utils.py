@@ -10,6 +10,7 @@ from urlparse import parse_qsl
 
 FORM_URLENCODED = 'application/x-www-form-urlencoded'
 ENTITY_METHODS = ('POST', 'PUT', 'PATCH')
+OPTIONAL_OAUTH_PARAMS = ('oauth_callback', 'oauth_verifier', 'oauth_version')
 
 
 def absolute_url(url):

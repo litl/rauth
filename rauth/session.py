@@ -14,7 +14,8 @@ from urllib import quote
 from urlparse import parse_qsl, urlsplit
 
 from rauth.oauth import HmacSha1Signature
-from rauth.utils import ENTITY_METHODS, FORM_URLENCODED, get_sorted_params
+from rauth.utils import (ENTITY_METHODS, FORM_URLENCODED, get_sorted_params,
+                         OPTIONAL_OAUTH_PARAMS)
 
 from requests.sessions import Session
 
@@ -132,48 +133,36 @@ class OAuth1Session(RauthSession):
         if isinstance(req_kwargs.get('data'), basestring):
             req_kwargs['data'] = dict(parse_qsl(req_kwargs['data']))
 
-        # HACK: Some providers redirect to other domains but expect signing
-        # against the first domain, i.e. Photobucket. Here we store the first
-        # URL we recieved before redirecting. We also store the request
-        # arguments as those may be lost in the redirect process.
-        if not 'x-rauth-root-url' in req_kwargs['headers']:
-            req_kwargs['headers'].update({'x-rauth-root-url': url})
-
-        if not 'x-rauth-params-data' in req_kwargs['headers']:
-            p, d = req_kwargs.get('params', {}), req_kwargs.get('data', {})
-            req_kwargs['headers'].update({'x-rauth-params-data': (p, d)})
-
         entity_method = method.upper() in ENTITY_METHODS
         if entity_method:
             req_kwargs['headers'].setdefault('Content-Type', FORM_URLENCODED)
 
         req_kwargs.setdefault('timeout', OAUTH1_DEFAULT_TIMEOUT)
 
-        # set the OAuth params on the oauth_params attribute
-        self._set_oauth_params()
-
-        # parse optional OAuth parameters
-        for param in ('oauth_callback', 'oauth_verifier', 'oauth_version'):
-            self._parse_optional_params(param, req_kwargs)
+        oauth_params = self._get_oauth_params(req_kwargs)
 
         # sign the request
-        self.oauth_params['oauth_signature'] = self.signature.sign(self,
-                                                                   method,
-                                                                   req_kwargs)
+        oauth_params['oauth_signature'] = \
+            self.signature.sign(self.consumer_secret,
+                                self.access_token_secret,
+                                method,
+                                url,
+                                oauth_params,
+                                req_kwargs)
 
         if header_auth:
-            req_kwargs['headers'].update({'Authorization':
-                                          self._get_auth_header(realm)})
+            header = self._get_auth_header(oauth_params, realm)
+            req_kwargs['headers'].update({'Authorization': header})
         elif entity_method:
             req_kwargs.setdefault('data', {})
-            req_kwargs['data'].update(self.__dict__.pop('oauth_params'))
+            req_kwargs['data'].update(oauth_params)
         else:
             req_kwargs.setdefault('params', {})
-            req_kwargs['params'].update(self.__dict__.pop('oauth_params'))
+            req_kwargs['params'].update(oauth_params)
 
         return super(OAuth1Session, self).request(method, url, **req_kwargs)
 
-    def _parse_optional_params(self, oauth_param, req_kwargs):
+    def _parse_optional_params(self, oauth_params, req_kwargs):
         '''
         Parses and sets optional OAuth parameters on a request.
 
@@ -186,34 +175,38 @@ class OAuth1Session(RauthSession):
         params = req_kwargs.get('params', {})
         data = req_kwargs.get('data', {})
 
-        if oauth_param in params:
-            self.oauth_params[oauth_param] = params.pop(oauth_param)
-        if oauth_param in data:
-            self.oauth_params[oauth_param] = data.pop(oauth_param)
+        for oauth_param in OPTIONAL_OAUTH_PARAMS:
+            if oauth_param in params:
+                oauth_params[oauth_param] = params.pop(oauth_param)
+            if oauth_param in data:
+                oauth_params[oauth_param] = data.pop(oauth_param)
 
-        if params:
-            req_kwargs['params'] = params
+            if params:
+                req_kwargs['params'] = params
 
-        if data:
-            req_kwargs['data'] = data
+            if data:
+                req_kwargs['data'] = data
 
-    def _set_oauth_params(self):
+    def _get_oauth_params(self, req_kwargs):
         '''Prepares OAuth params for signing.'''
-        self.oauth_params = {}
+        oauth_params = {}
 
-        self.oauth_params['oauth_consumer_key'] = self.consumer_key
-        self.oauth_params['oauth_nonce'] = sha1(str(random())).hexdigest()
-        self.oauth_params['oauth_signature_method'] = self.signature.NAME
-        self.oauth_params['oauth_timestamp'] = int(time())
+        oauth_params['oauth_consumer_key'] = self.consumer_key
+        oauth_params['oauth_nonce'] = sha1(str(random())).hexdigest()
+        oauth_params['oauth_signature_method'] = self.signature.NAME
+        oauth_params['oauth_timestamp'] = int(time())
 
         if self.access_token is not None:
-            self.oauth_params['oauth_token'] = self.access_token
+            oauth_params['oauth_token'] = self.access_token
 
-        self.oauth_params['oauth_version'] = self.VERSION
+        oauth_params['oauth_version'] = self.VERSION
 
-    def _get_auth_header(self, realm=None):
+        self._parse_optional_params(oauth_params, req_kwargs)
+
+        return oauth_params
+
+    def _get_auth_header(self, oauth_params, realm=None):
         '''Constructs and returns an authentication header.'''
-        oauth_params = self.__dict__.pop('oauth_params')
         auth_header = 'OAuth realm="{realm}"'.format(realm=realm or '')
         params = ''
         for k, v in oauth_params.items():

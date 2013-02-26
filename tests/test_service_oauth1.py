@@ -107,13 +107,6 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
 
         kwargs.setdefault('headers', {})
 
-        if not 'x-rauth-root-url' in kwargs['headers']:
-            kwargs['headers'].update({'x-rauth-root-url': url})
-
-        if not 'x-rauth-params-data' in kwargs['headers']:
-            p, d = kwargs.get('params', {}), kwargs.get('data', {})
-            kwargs['headers'].update({'x-rauth-params-data': (p, d)})
-
         oauth_params = {'oauth_consumer_key': session.consumer_key,
                         'oauth_nonce': fake_nonce,
                         'oauth_signature_method': fake_sig_meth,

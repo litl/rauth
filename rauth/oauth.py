@@ -43,15 +43,10 @@ class SignatureMethod(object):
 
         return urlunsplit((scheme, netloc, path, '', fragment))
 
-    def _normalize_request_parameters(self, session, req_kwargs):
+    def _normalize_request_parameters(self, oauth_params, req_kwargs):
         '''
         This process normalizes the request parameters as detailed in the OAuth
         1.0 spec.
-
-        Essentially we inspect params and data dicts and parse them
-        conditionally if they happen to be strings. This is done as Requests
-        automatically parses params or data as strings and it is necessary to
-        extract all parameters and sort them for signing.
 
         Additionally we apply a `Content-Type` header to the request of the
         `FORM_URLENCODE` type if the `Content-Type` was previously set, i.e. if
@@ -61,8 +56,8 @@ class SignatureMethod(object):
         Finally we sort the parameters in preparation for signing and return
         a URL encoded string of all normalized parameters.
 
-        :param session: The session object over which to sign the request.
-        :type session: :class:`~requests.sessions.Session`
+        :param oauth_params: OAuth params to sign with.
+        :type oauth_params: dict
         :param req_kwargs: Request kwargs to normalize.
         :type req_kwargs: dict
         '''
@@ -89,7 +84,7 @@ class SignatureMethod(object):
             all_normalized += [(k, v)]
 
         # add in the params from oauth_params for signing
-        for k, v in session.oauth_params.items():
+        for k, v in oauth_params.items():
             if (k, v) in all_normalized:  # pragma: no cover
                 continue
             all_normalized += [(k, v)]
@@ -110,44 +105,35 @@ class HmacSha1Signature(SignatureMethod):
     '''
     NAME = 'HMAC-SHA1'
 
-    def sign(self, session, method, req_kwargs):
+    def sign(self,
+             consumer_secret,
+             access_token_secret,
+             method,
+             url,
+             oauth_params,
+             req_kwargs):
         '''Sign request parameters.
 
-        :param session: The session object to sign over.
-        :type session: :class:`~requests.sessions.Session`
+        :param consumer_secret: Consumer secret.
+        :type consumer_secret: str
+        :param access_token_secret: Access token secret.
+        :type access_token_secret: str
         :param method: The method of this particular request.
         :type method: str
         :param url: The URL of this particular request.
         :type url: str
+        :param oauth_params: OAuth parameters.
+        :type oauth_params: dict
         :param req_kwargs: Keyworded args that will be sent to the request
             method.
         :type req_kwargs: dict
         '''
-        url = req_kwargs['headers']['x-rauth-root-url']
-
-        p, d = req_kwargs['headers'].get('x-rauth-params-data', ({}, {}))
-        if p and 'params' in req_kwargs:
-            req_kwargs['params'].update(**p)
-        elif p:
-            req_kwargs.setdefault('params', {})
-            req_kwargs['params'].update(**p)
-
-        if d and 'data' in req_kwargs:
-            req_kwargs['data'].update(**d)
-        elif d:
-            req_kwargs.setdefault('data', {})
-            req_kwargs['data'].update(**d)
-
-        consumer_secret = session.consumer_secret
-        access_token_secret = session.access_token_secret
-
-        # the necessary parameters we'll sign
         url = self._remove_qs(url)
 
-        oauth_params = self._normalize_request_parameters(session, req_kwargs)
+        oauth_params = \
+            self._normalize_request_parameters(oauth_params, req_kwargs)
         parameters = map(self._escape, [method, url, oauth_params])
 
-        # set our key
         key = self._escape(consumer_secret) + '&'
         if access_token_secret is not None:
             key += self._escape(access_token_secret)
