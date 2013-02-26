@@ -27,7 +27,7 @@ class OAuth1Hook(object):
 
     You might intialize :class:`OAuthHook` something like this::
 
-        oauth = OAuthHook(consumer_key=1234,
+        oauth = OAuth1Hook(consumer_key=1234,
                           consumer_secret=5678)
         oauth_session = requests.session(hooks={'pre_request': oauth})
 
@@ -41,7 +41,7 @@ class OAuth1Hook(object):
 
         # we provide our consumer pair as well as the access pair as returned
         # by the provider endpoint
-        oauth = OAuthHook(consumer_key=1234,
+        oauth = OAuth1Hook(consumer_key=1234,
                           consumer_secret=5678,
                           access_token=4321,
                           access_token_secret=8765)
