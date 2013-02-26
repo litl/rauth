@@ -14,18 +14,11 @@ from urllib import quote
 from urlparse import parse_qsl, urlsplit
 
 from rauth.oauth import HmacSha1Signature
-from rauth.utils import FORM_URLENCODED
+from rauth.utils import FORM_URLENCODED, get_sorted_params
 
 from requests.sessions import Session
 
 OAUTH1_DEFAULT_TIMEOUT = OAUTH2_DEFAULT_TIMEOUT = OFLY_DEFAULT_TIMEOUT = 300.0
-
-
-def _get_sorted_params(params):
-    def sorting_gen():
-        for k in sorted(params.keys()):
-            yield '='.join((k, params[k]))
-    return '&'.join(sorting_gen())
 
 
 class RauthSession(Session):
@@ -427,12 +420,12 @@ class OflySession(RauthSession):
 
         signature_base_string = app_secret + url_path + '?'
         if len(params):
-            signature_base_string += _get_sorted_params(params) + '&'
-        signature_base_string += _get_sorted_params(ofly_params)
+            signature_base_string += get_sorted_params(params) + '&'
+        signature_base_string += get_sorted_params(ofly_params)
 
-        ofly_params['oflyApiSig'] = params['oflyApiSig'] = \
+        ofly_params['oflyApiSig'] = \
             hash_meth(signature_base_string).hexdigest()
 
         all_params = dict(ofly_params.items() + params.items())
 
-        return _get_sorted_params(all_params)
+        return get_sorted_params(all_params)

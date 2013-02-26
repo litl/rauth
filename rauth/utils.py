@@ -29,3 +29,10 @@ def parse_utf8_qsl(s):
             v = unicode(v, 'utf-8')
         d[k] = v
     return d
+
+
+def get_sorted_params(params):
+    def sorting_gen():
+        for k in sorted(params.keys()):
+            yield '='.join((k, params[k]))
+    return '&'.join(sorting_gen())
