@@ -9,6 +9,7 @@
 from urlparse import parse_qsl
 
 FORM_URLENCODED = 'application/x-www-form-urlencoded'
+ENTITY_METHODS = ('POST', 'PUT', 'PATCH')
 
 
 def absolute_url(url):

@@ -6,8 +6,8 @@
     Test suite for rauth.service.OAuth2Service.
 '''
 
-from base import RauthTestCase, parameterize
-from test_service import HttpMixin, input_product_gen
+from base import RauthTestCase
+from test_service import HttpMixin, RequestMixin
 
 from rauth.service import OAuth2Service, Service
 from rauth.session import OAUTH2_DEFAULT_TIMEOUT, OAuth2Session
@@ -20,7 +20,7 @@ from mock import patch
 import requests
 
 
-class OAuth2ServiceTestCase(RauthTestCase, HttpMixin):
+class OAuth2ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
     def setUp(self):
         RauthTestCase.setUp(self)
 
@@ -102,11 +102,9 @@ class OAuth2ServiceTestCase(RauthTestCase, HttpMixin):
         access_token = self.service.get_access_token()
         self.assertEqual(access_token, '123')
 
-    def dispatch_request(self, func):
-        kwargs, method = func()
-        return self.service.request(method, 'foo', **kwargs)
-
-    @parameterize(input_product_gen())
-    def test_request(self, method, kwargs):
-        r = self.service.request(method, 'foo', **kwargs)
-        self.assert_ok(r)
+    def test_get_refreshed_access_token(self):
+        self.response.content = \
+            'access_token=321&expires_in=3600&refresh_token=654'
+        refresh_token = self.service.get_refreshed_access_token('foo')
+        self.assertEqual(refresh_token, '654')
+        self.assertEqual(self.service.access_token, '321')

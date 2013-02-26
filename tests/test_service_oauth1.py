@@ -6,12 +6,12 @@
     Test suite for rauth.service.OAuth1Service.
 '''
 
-from base import RauthTestCase, parameterize
-from test_service import HttpMixin, input_product_gen
+from base import RauthTestCase
+from test_service import HttpMixin, RequestMixin
 
 from rauth.service import OAuth1Service, Service
 from rauth.session import OAUTH1_DEFAULT_TIMEOUT, OAuth1Session
-from rauth.utils import FORM_URLENCODED
+from rauth.utils import ENTITY_METHODS, FORM_URLENCODED
 
 from hashlib import sha1
 from urllib import quote
@@ -24,7 +24,7 @@ import rauth
 import requests
 
 
-class OAuth1ServiceTestCase(RauthTestCase, HttpMixin):
+class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
     def setUp(self):
         RauthTestCase.setUp(self)
 
@@ -127,7 +127,7 @@ class OAuth1ServiceTestCase(RauthTestCase, HttpMixin):
                        self.fake_get_auth_header(oauth_params, realm=realm)}
 
             kwargs['headers'].update(headers)
-        elif method.upper() in ('POST', 'PUT'):
+        elif method.upper() in ENTITY_METHODS:
             kwargs.setdefault('data', {})
 
             kwargs['data'].update(**oauth_params)
@@ -272,9 +272,4 @@ class OAuth1ServiceTestCase(RauthTestCase, HttpMixin):
                                  'http://example.com/',
                                  header_auth=True,
                                  realm='http://example.com/foo/')
-        self.assert_ok(r)
-
-    @parameterize(input_product_gen())
-    def test_request(self, method, kwargs):
-        r = self.service.request(method, 'foo', **kwargs)
         self.assert_ok(r)

@@ -6,6 +6,8 @@
     Test suite for rauth.service.
 '''
 
+from base import parameterize
+
 from datetime import datetime
 
 import json
@@ -100,3 +102,10 @@ def input_product_gen():
                 kwargs['headers'] = h
 
                 yield lambda m=method, k=kwargs: (m, k)
+
+
+class RequestMixin(object):
+    @parameterize(input_product_gen())
+    def test_request(self, method, kwargs):
+        r = self.service.request(method, 'foo', **kwargs)
+        self.assert_ok(r)

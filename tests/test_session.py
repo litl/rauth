@@ -21,9 +21,11 @@ class RequestMixin(object):
         self.assertEqual(json.loads(r.content), {'status': 'ok'})
 
     @patch.object(requests.Session, 'request')
-    def test_request(self, mock_request):
+    def test_request(self, mock_request, **kwargs):
         mock_request.return_value = self.response
-        self.assert_ok(self.session.request('GET', 'http://example.com/'))
+        self.assert_ok(self.session.request('GET',
+                                            'http://example.com/',
+                                            **kwargs))
 
 
 class OAuth1SessionTestCase(RauthTestCase, RequestMixin):
@@ -82,11 +84,15 @@ class OflySessionTestCase(RauthTestCase, RequestMixin):
 
         self.session = OflySession('123', '345')
 
+    def test_request(self):
+        return super(OflySessionTestCase, self).test_request(user_id='123')
+
     @patch.object(requests.Session, 'request')
     def test_request_with_header_auth(self, mock_request):
         mock_request.return_value = self.response
         r = self.session.request('GET',
                                  'http://example.com/',
+                                 user_id='123',
                                  header_auth=True)
         self.assert_ok(r)
 
@@ -95,6 +101,7 @@ class OflySessionTestCase(RauthTestCase, RequestMixin):
         mock_request.return_value = self.response
         r = self.session.request('GET',
                                  'http://example.com/',
+                                 user_id='123',
                                  hash_meth='md5')
         self.assert_ok(r)
 
@@ -104,6 +111,7 @@ class OflySessionTestCase(RauthTestCase, RequestMixin):
         with self.assertRaises(TypeError) as e:
             self.session.request('GET',
                                  'http://example.com/',
+                                 user_id='123',
                                  hash_meth='foo')
         self.assertEqual(str(e.exception),
                          'hash_meth must be one of "sha1", "md5"')
