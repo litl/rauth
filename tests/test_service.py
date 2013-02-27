@@ -8,6 +8,7 @@
 
 from base import parameterize
 
+from copy import deepcopy
 from datetime import datetime
 
 import json
@@ -77,7 +78,7 @@ def input_product_gen():
                   'føø=bår',
                   u'føø=bår']
 
-    all_data = all_params
+    all_data = deepcopy(all_params)
 
     all_headers = [{},
                    {'x-foo-bar': 'baz'},

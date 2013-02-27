@@ -382,10 +382,7 @@ class OflySession(RauthSession):
         if isinstance(req_kwargs['params'], basestring):
             req_kwargs['params'] = dict(parse_qsl(req_kwargs['params']))
 
-        # NOTE: using d.update(...) throws off tests
-        creds = {'oflyUserid': user_id}
-        req_kwargs['params'] = \
-            dict(req_kwargs['params'].items() + creds.items())
+        req_kwargs['params'].update({'oflyUserid': user_id})
 
         params = OflySession.sign(url,
                                   self.app_id,
