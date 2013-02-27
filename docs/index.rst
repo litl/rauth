@@ -1,14 +1,13 @@
+:orphan:
+
 Rauth
 =====
-
-.. module:: rauth
 
 A simple Python OAuth 1.0/a, OAuth 2.0, and Ofly consumer library built on top
 of `Requests`_.
 
 .. _rauth: https://github.com/litl/rauth
 .. _Requests: https://github.com/kennethreitz/requests
-
 
 Installation
 ------------
@@ -23,6 +22,8 @@ Or if you must::
 
 Usage
 -----
+
+If you want to check out the complete :ref:`api` documentation, go ahead.
 
 The easiest way to get started is by setting up a service wrapper. To do so
 simply import the service container object:
@@ -80,47 +81,4 @@ Now it's possible to obtain request tokens via
 `twitter.get_authorize_url(request_token)`, and finally obtain access
 tokens `twitter.get_access_token(request_token, request_token_secret)`.
 
-
-API
----
-
-The API is exposed via service wrappers, which provide convenient OAuth 1.0,
-2.0, and Ofly flow methods as well as session management.
-
-Each service type has specialized Session objects, which may be used directly.
-
-OAuth 1.0 Services
---------------------
-
-.. autoclass:: rauth.OAuth1Service
-    :inherited-members:
-
-OAuth 2.0 Services
-------------------
-
-.. autoclass:: rauth.OAuth2Service
-    :inherited-members:
-
-Ofly Services
--------------
-
-.. autoclass:: rauth.OflyService
-    :inherited-members:
-
-OAuth 1.0 Sessions
-------------------
-
-.. autoclass:: rauth.OAuth1Session
-    :inherited-members:
-
-OAuth 2.0 Sessions
-------------------
-
-.. autoclass:: rauth.OAuth2Session
-    :inherited-members:
-
-Ofly Sessions
-------------------
-
-.. autoclass:: rauth.OflySession
-    :inherited-members:
+.. include:: contents.rst.inc

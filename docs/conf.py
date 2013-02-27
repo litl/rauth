@@ -25,7 +25,7 @@ import rauth
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
-extensions = ['sphinx.ext.autodoc', 'sphinx.ext.intersphinx']
+extensions = ['sphinx.ext.autodoc']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -233,9 +233,13 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-    ('index', 'rauth', u'rauth Documentation',
-        u'Max Countryman', 'Rauth', 'One line description of project.',
-        'Miscellaneous'),
+    ('index',
+     'rauth',
+     u'rauth Documentation',
+     u'Max Countryman',
+     'Rauth',
+     'A simple Python OAuth 1.0/a, OAuth 2.0, and Ofly consumer library built on top of Requests.',
+     'Miscellaneous')
 ]
 
 # Documents to append as an appendix to all manuals.
