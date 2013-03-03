@@ -9,7 +9,7 @@
 from base import RauthTestCase
 from test_service import HttpMixin, RequestMixin
 
-from rauth.service import OAuth2Service, Service
+from rauth.service import OAuth2Service
 from rauth.session import OAUTH2_DEFAULT_TIMEOUT, OAuth2Session
 
 from urlparse import parse_qsl
@@ -21,6 +21,10 @@ import requests
 
 
 class OAuth2ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
+    client_id = '000'
+    client_secret = '111'
+    access_token = '123'
+
     def setUp(self):
         RauthTestCase.setUp(self)
 
@@ -28,39 +32,42 @@ class OAuth2ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
         self.authorize_url = 'https://example.com/authorize'
         self.base_url = 'https://example/api/'
 
-        self.service = OAuth2Service('000',
-                                     '111',
+        self.service = OAuth2Service(self.client_id,
+                                     self.client_secret,
                                      access_token_url=self.access_token_url,
                                      authorize_url=self.authorize_url,
                                      base_url=self.base_url)
 
-        self.service.request = self.fake_request
-        self.service.access_token = '123'
+        self.session = self.service.get_session(self.access_token)
+
+        # patches
+        self.session.request = self.fake_request
+        self.service.get_session = self.fake_get_session
 
     @patch.object(requests.Session, 'request')
     def fake_request(self,
                      method,
                      url,
                      mock_request,
-                     access_token=None,
                      **kwargs):
         mock_request.return_value = self.response
 
-        access_token = access_token or self.service.access_token
+        url = self.session._set_url(url)
 
-        url = self.service._set_url(url)
+        service = OAuth2Service(self.client_id,
+                                self.client_secret,
+                                access_token_url=self.access_token_url,
+                                authorize_url=self.authorize_url,
+                                base_url=self.base_url)
 
-        session = self.service.get_session(access_token)
-        service = Service('service',
-                          self.service.base_url,
-                          self.service.authorize_url)
-        r = service.request(session, method, url, **deepcopy(kwargs))
+        session = service.get_session(self.access_token)
+        r = session.request(method, url, **deepcopy(kwargs))
 
         if isinstance(kwargs.get('params', {}), basestring):
             kwargs['params'] = dict(parse_qsl(kwargs['params']))
 
         kwargs.setdefault('params', {})
-        kwargs['params'].update({'access_token': access_token})
+        kwargs['params'].update({'access_token': self.access_token})
 
         mock_request.assert_called_with(method,
                                         url,
@@ -68,16 +75,12 @@ class OAuth2ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
                                         **kwargs)
         return r
 
+    def fake_get_session(self, token=None):
+        return self.session
+
     def test_get_session(self):
         s = self.service.get_session()
         self.assertIsInstance(s, OAuth2Session)
-
-    def test_get_session_with_token(self):
-        s1 = self.service.get_session('foo')
-        s2 = self.service.get_session('foo')
-
-        # ensure we are getting back the same object
-        self.assertIs(s1, s2)
 
     def test_get_authorize_url(self):
         url = self.service.get_authorize_url()
@@ -102,9 +105,8 @@ class OAuth2ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
         access_token = self.service.get_access_token()
         self.assertEqual(access_token, '123')
 
-    def test_get_refreshed_access_token(self):
+    def test_get_auth_session(self):
         self.response.content = \
-            'access_token=321&expires_in=3600&refresh_token=654'
-        refresh_token = self.service.get_refreshed_access_token('foo')
-        self.assertEqual(refresh_token, '654')
-        self.assertEqual(self.service.access_token, '321')
+            'access_token=123&expires_in=3600&refresh_token=456'
+        s = self.service.get_auth_session()
+        self.assertIsInstance(s, OAuth2Session)

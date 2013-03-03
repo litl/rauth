@@ -9,10 +9,11 @@
 from base import RauthTestCase
 from test_service import HttpMixin, RequestMixin
 
-from rauth.service import OAuth1Service, Service
+from rauth.service import OAuth1Service
 from rauth.session import OAUTH1_DEFAULT_TIMEOUT, OAuth1Session
 from rauth.utils import ENTITY_METHODS, FORM_URLENCODED
 
+from copy import deepcopy
 from hashlib import sha1
 from urllib import quote
 from urlparse import parse_qsl
@@ -25,25 +26,33 @@ import requests
 
 
 class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
+    consumer_key = '000'
+    consumer_secret = '111'
+
+    access_token = '123'
+    access_token_secret = '456'
+
     def setUp(self):
         RauthTestCase.setUp(self)
 
-        request_token_url = 'http://example.com/request'
-        access_token_url = 'http://example.com/access'
-        authorize_url = 'http://example.com/authorize'
-        base_url = 'http://example.com/api/'
+        self.request_token_url = 'http://example.com/request'
+        self.access_token_url = 'http://example.com/access'
+        self.authorize_url = 'http://example.com/authorize'
+        self.base_url = 'http://example.com/api/'
 
-        self.service = OAuth1Service('000',
-                                     '111',
+        self.service = OAuth1Service(self.consumer_key,
+                                     self.consumer_secret,
                                      name='service',
-                                     request_token_url=request_token_url,
-                                     access_token_url=access_token_url,
-                                     authorize_url=authorize_url,
-                                     base_url=base_url)
+                                     request_token_url=self.request_token_url,
+                                     access_token_url=self.access_token_url,
+                                     authorize_url=self.authorize_url,
+                                     base_url=self.base_url)
 
-        self.service.request = self.fake_request
-        self.service.access_token = '123'
-        self.service.access_token_secret = '456'
+        self.session = self.service.get_session(('123', '456'))
+
+        # patches
+        self.session.request = self.fake_request
+        self.service.get_session = self.fake_get_session
 
     def fake_get_auth_header(self, oauth_params, realm=None):
         auth_header = 'OAuth realm="{realm}"'.format(realm=realm)
@@ -64,8 +73,6 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
                      mock_random,
                      mock_time,
                      mock_sig,
-                     access_token=None,
-                     access_token_secret=None,
                      header_auth=False,
                      realm='',
                      **kwargs):
@@ -81,23 +88,24 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
         mock_sig.return_value = fake_sig
 
         method = method
-        url = self.service._set_url(url)
+        url = self.session._set_url(url)
 
-        access_token, access_token_secret = \
-            self.service._parse_access_tokens(access_token,
-                                              access_token_secret)
+        service = OAuth1Service(self.consumer_key,
+                                self.consumer_secret,
+                                name='service',
+                                request_token_url=self.request_token_url,
+                                access_token_url=self.access_token_url,
+                                authorize_url=self.authorize_url,
+                                base_url=self.base_url)
 
-        service = Service('service',
-                          self.service.base_url,
-                          self.service.authorize_url)
-        session = self.service.get_session((access_token, access_token_secret))
+        session = service.get_session((self.access_token,
+                                       self.access_token_secret))
 
-        r = service.request(session,
-                            method,
+        r = session.request(method,
                             url,
                             header_auth=header_auth,
                             realm=realm,
-                            **kwargs)
+                            **deepcopy(kwargs))
 
         if isinstance(kwargs.get('params'), basestring):
             kwargs['params'] = dict(parse_qsl(kwargs['params']))
@@ -111,7 +119,7 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
                         'oauth_nonce': fake_nonce,
                         'oauth_signature_method': fake_sig_meth,
                         'oauth_timestamp': fake_time,
-                        'oauth_token': access_token,
+                        'oauth_token': self.access_token,
                         'oauth_version': session.VERSION,
                         'oauth_signature': fake_sig}
 
@@ -121,11 +129,10 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
 
             kwargs['headers'].update(headers)
         elif method.upper() in ENTITY_METHODS:
-            kwargs.setdefault('data', {})
-
+            kwargs['data'] = kwargs.get('data') or {}
             kwargs['data'].update(**oauth_params)
-            kwargs.setdefault('headers', {})
 
+            kwargs.setdefault('headers', {})
             kwargs['headers'].update({'Content-Type': FORM_URLENCODED})
         else:
             kwargs.setdefault('params', {})
@@ -137,17 +144,12 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
                                         **kwargs)
         return r
 
+    def fake_get_session(self, token=None, signature=None):
+        return self.session
+
     def test_get_session(self):
         s = self.service.get_session()
         self.assertIsInstance(s, OAuth1Session)
-
-    def test_get_session_with_token(self):
-        token = ('foo', 'bar')
-        s1 = self.service.get_session(token)
-        s2 = self.service.get_session(token)
-
-        # ensure we are getting back the same object
-        self.assertIs(s1, s2)
 
     def test_get_raw_request_token(self):
         resp = 'oauth_token=foo&oauth_token_secret=bar'
@@ -212,57 +214,51 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
         self.assertEqual(access_token, 'foo')
         self.assertEqual(access_token_secret, 'bar')
 
-    def test_request_malformed(self):
-        self.service.access_token_secret = None
-
-        with self.assertRaises(TypeError) as e:
-            self.service.request('GET',
-                                 'baz',
-                                 access_token='foo')
-
-        self.assertEqual(str(e.exception),
-                         'Either both or neither access_token and '
-                         'access_token_secret must be supplied')
-
     def test_request_with_optional_params_oauth_callback(self):
         params = {'oauth_callback': 'http://example.com/callback'}
-        r = self.service.request('GET', 'http://example.com/', params=params)
+        r = self.session.request('GET', 'http://example.com/', params=params)
         self.assert_ok(r)
 
     def test_request_with_optional_params_oauth_verifier(self):
         params = {'oauth_verifier': 'foo'}
-        r = self.service.request('GET', 'http://example.com/', params=params)
+        r = self.session.request('GET', 'http://example.com/', params=params)
         self.assert_ok(r)
 
     def test_request_with_optional_params_oauth_version(self):
         params = {'oauth_verifier': 'foo'}
-        r = self.service.request('GET', 'http://example.com/', params=params)
+        r = self.session.request('GET', 'http://example.com/', params=params)
         self.assert_ok(r)
 
     def test_request_with_optional_params_as_string(self):
         params = 'oauth_callback=http://example.com/callback'
-        r = self.service.request('GET', 'http://example.com/', params=params)
+        r = self.session.request('GET', 'http://example.com/', params=params)
         self.assert_ok(r)
 
     def test_request_with_optional_data_as_string(self):
         data = 'oauth_callback=http://example.com/callback'
-        r = self.service.request('POST', 'http://example.com/', data=data)
+        r = self.session.request('POST', 'http://example.com/', data=data)
         self.assert_ok(r)
 
     def test_request_with_optional_params_with_data(self):
         data = {'oauth_callback': 'http://example.com/callback'}
-        r = self.service.request('POST', 'http://example.com/', data=data)
+        r = self.session.request('POST', 'http://example.com/', data=data)
         self.assert_ok(r)
 
     def test_request_with_header_auth(self):
-        r = self.service.request('GET',
+        r = self.session.request('GET',
                                  'http://example.com/',
                                  header_auth=True)
         self.assert_ok(r)
 
     def test_request_with_header_auth_with_realm(self):
-        r = self.service.request('GET',
+        r = self.session.request('GET',
                                  'http://example.com/',
                                  header_auth=True,
                                  realm='http://example.com/foo/')
         self.assert_ok(r)
+
+    def test_get_auth_session(self):
+        resp = 'oauth_token=foo&oauth_token_secret=bar'
+        self.response.content = resp
+        s = self.service.get_auth_session('foo', 'bar')
+        self.assertIsInstance(s, OAuth1Session)

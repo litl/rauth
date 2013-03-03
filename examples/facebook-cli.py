@@ -26,9 +26,9 @@ print 'Visit this URL in your browser: ' + authorize_url
 webbrowser.open(authorize_url);
 
 url_with_code = raw_input('Copy URL from your browser\'s address bar: ')
-facebook.access_token = re.search('\#access_token=([^&]*)',
-                                  url_with_code).group(1)
+access_token = re.search('\#access_token=([^&]*)', url_with_code).group(1)
+session = facebook.get_session(access_token)
 
-user = facebook.get('me').json()
+user = session.get('me').json()
 
 print 'currently logged in as: ' + user['link']

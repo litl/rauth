@@ -10,7 +10,7 @@ from base import RauthTestCase
 from test_service import (FakeHexdigest, HttpMixin, MutableDatetime,
                           RequestMixin)
 
-from rauth.service import OflyService, Service
+from rauth.service import OflyService
 from rauth.session import OFLY_DEFAULT_TIMEOUT, OflySession
 
 from copy import deepcopy
@@ -25,6 +25,8 @@ import requests
 
 class OflyServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
     app_id = '000'
+    app_secret = '111'
+
     user_id = '123'
 
     def setUp(self):
@@ -34,13 +36,16 @@ class OflyServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
         self.base_url = 'http://example.com/api/'
 
         self.service = OflyService(self.app_id,
-                                   '111',
+                                   self.app_secret,
                                    name='service',
                                    authorize_url=self.authorize_url,
                                    base_url=self.base_url)
 
-        self.service.request = self.fake_request
-        self.service.user_id = self.user_id
+        self.session = self.service.get_session(self.user_id)
+
+        # patch
+        self.session.request = self.fake_request
+        self.service.get_session = self.fake_get_session
 
     def fake_get_sorted_params(self, params):
         def sorting_gen():
@@ -82,19 +87,21 @@ class OflyServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
 
         user_id = user_id or self.service.user_id
 
-        session = self.service.get_session(user_id)
-        service = Service('service',
-                          self.service.base_url,
-                          self.service.authorize_url)
+        service = OflyService(self.app_id,
+                              self.app_secret,
+                              name='service',
+                              authorize_url=self.authorize_url,
+                              base_url=self.base_url)
 
-        r = service.request(session,
-                            method,
+        session = service.get_session(self.user_id)
+
+        r = session.request(method,
                             url,
                             user_id=user_id,
                             hash_meth=hash_meth,
                             **deepcopy(kwargs))
 
-        url = service._set_url(url)
+        url = self.session._set_url(url)
 
         kwargs.setdefault('params', {})
         if isinstance(kwargs['params'], basestring):
@@ -110,9 +117,9 @@ class OflyServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
 
         signature_base_string += self.fake_get_sorted_params(ofly_params)
 
-        _all_params = dict(ofly_params.items() + kwargs['params'].items())
+        all_params = dict(ofly_params.items() + kwargs['params'].items())
 
-        kwargs['params'] = self.fake_get_sorted_params(_all_params)
+        kwargs['params'] = self.fake_get_sorted_params(all_params)
 
         mock_request.assert_called_with(method,
                                         url,
@@ -120,11 +127,12 @@ class OflyServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
                                         **kwargs)
         return r
 
+    def fake_get_session(self, token):
+        return self.session
+
     def test_get_session(self):
-        s1 = self.service.get_session('foo')
-        s2 = self.service.get_session('foo')
-        self.assertIsInstance(s1, OflySession)
-        self.assertIs(s1, s2)
+        s = self.service.get_session('foo')
+        self.assertIsInstance(s, OflySession)
 
     @fake_sign(app_id, user_id)
     def test_get_authorize_url(self, ofly_params):
@@ -135,7 +143,7 @@ class OflyServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
         self.assertEqual(url, expected_url + params)
 
     def test_request_with_md5(self):
-        r = self.service.request('GET',
+        r = self.session.request('GET',
                                  'http://example.com/',
                                  user_id=self.user_id,
                                  hash_meth='md5')
@@ -143,16 +151,13 @@ class OflyServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
 
     def test_request_with_bad_hash_meth(self):
         with self.assertRaises(TypeError) as e:
-            self.service.request('GET',
+            self.session.request('GET',
                                  'http://example.com/',
                                  user_id=self.user_id,
                                  hash_meth='foo')
         self.assertEqual(str(e.exception),
                          'hash_meth must be one of "sha1", "md5"')
 
-    def test_request_with_nonetype_user_id(self):
-        self.service.user_id = None
-        with self.assertRaises(AssertionError) as e:
-            self.service.request('GET', 'http://example.com/')
-        self.assertEqual(str(e.exception),
-                         'An oflyUserid must be provided as `user_id`.')
+    def test_get_auth_session(self):
+        s = self.service.get_auth_session('foo')
+        self.assertIsInstance(s, OflySession)

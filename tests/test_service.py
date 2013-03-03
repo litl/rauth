@@ -34,31 +34,31 @@ class HttpMixin(object):
         self.assertEqual(json.loads(r.content), {'status': 'ok'})
 
     def test_get(self):
-        r = self.service.get(self.http_url)
+        r = self.session.get(self.http_url)
         self.assert_ok(r)
 
     def test_options(self):
-        r = self.service.options(self.http_url)
+        r = self.session.options(self.http_url)
         self.assert_ok(r)
 
     def test_head(self):
-        r = self.service.head(self.http_url)
+        r = self.session.head(self.http_url)
         self.assert_ok(r)
 
     def test_post(self):
-        r = self.service.post(self.http_url)
+        r = self.session.post(self.http_url)
         self.assert_ok(r)
 
     def test_put(self):
-        r = self.service.put(self.http_url)
+        r = self.session.put(self.http_url)
         self.assert_ok(r)
 
     def test_patch(self):
-        r = self.service.patch(self.http_url)
+        r = self.session.patch(self.http_url)
         self.assert_ok(r)
 
     def test_delete(self):
-        r = self.service.delete(self.http_url)
+        r = self.session.delete(self.http_url)
         self.assert_ok(r)
 
 
@@ -108,5 +108,5 @@ def input_product_gen():
 class RequestMixin(object):
     @parameterize(input_product_gen())
     def test_request(self, method, kwargs):
-        r = self.service.request(method, 'foo', **kwargs)
+        r = self.session.request(method, 'foo', **kwargs)
         self.assert_ok(r)

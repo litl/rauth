@@ -16,20 +16,16 @@ authorize_url = linkedin.get_authorize_url(request_token)
 print 'Visit this URL in your browser: ' + authorize_url
 pin = raw_input('Enter PIN from browser: ')
 
-access_token, access_token_secret = \
-        linkedin.get_access_token(request_token,
-                                  request_token_secret,
-                                  method='POST',
-                                  data={'oauth_verifier': pin},
-                                  header_auth=True)
+session = linkedin.get_auth_session(request_token,
+                                    request_token_secret,
+                                    data={'oauth_verifier': pin},
+                                    header_auth=True)
 
-response = linkedin.get('people/~/network/updates',
-                        params={'type': 'SHAR', 'format': 'json'},
-                        access_token=access_token,
-                        access_token_secret=access_token_secret,
-                        header_auth=True)
+r = session.get('people/~/network/updates',
+                params={'type': 'SHAR', 'format': 'json'},
+                header_auth=True)
 
-updates = response.json()
+updates = r.json()
 
 for i, update in enumerate(updates['values'], 1):
     if 'currentShare' not in update['updateContent']['person']:

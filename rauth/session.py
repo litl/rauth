@@ -11,11 +11,11 @@ from hashlib import sha1, md5
 from random import random
 from time import time
 from urllib import quote
-from urlparse import parse_qsl, urlsplit
+from urlparse import parse_qsl, urljoin, urlsplit
 
 from rauth.oauth import HmacSha1Signature
-from rauth.utils import (ENTITY_METHODS, FORM_URLENCODED, get_sorted_params,
-                         OPTIONAL_OAUTH_PARAMS)
+from rauth.utils import (absolute_url, ENTITY_METHODS, FORM_URLENCODED,
+                         get_sorted_params, OPTIONAL_OAUTH_PARAMS)
 
 from requests.sessions import Session
 
@@ -24,9 +24,16 @@ OAUTH1_DEFAULT_TIMEOUT = OAUTH2_DEFAULT_TIMEOUT = OFLY_DEFAULT_TIMEOUT = 300.0
 
 class RauthSession(Session):
     def __init__(self, service):
-        # a back reference to a service wrapper, if we're using one
+        #: A back reference to a service wrapper, if we're using one.
         self.service = service
+
         super(RauthSession, self).__init__()
+
+    def _set_url(self, url):
+        if self.service is not None and self.service.base_url is not None and \
+                not absolute_url(url):
+            return urljoin(self.service.base_url, url)
+        return url
 
 
 class OAuth1Session(RauthSession):
@@ -89,15 +96,15 @@ class OAuth1Session(RauthSession):
                  signature=None,
                  service=None):
 
-        # consumer credentials
+        #: Client credentials.
         self.consumer_key = consumer_key
         self.consumer_secret = consumer_secret
 
-        # access token credentials
+        #: Access token credentials.
         self.access_token = access_token
         self.access_token_secret = access_token_secret
 
-        # signing method
+        #: Signing method.
         if signature is None:
             self.signature = HmacSha1Signature()
 
@@ -119,14 +126,16 @@ class OAuth1Session(RauthSession):
         :type url: str
         :param header_auth: Authentication via header, defaults to `False.`
         :type header_auth: bool
-        :param realm: The auth header realm, defaults to `''`.
+        :param realm: The auth header realm, defaults to ``""``.
         :type realm: str
         :param \*\*req_kwargs: Keyworded args to be passed down to Requests.
         :type \*\*req_kwargs: dict
         '''
         req_kwargs.setdefault('headers', {})
 
-        # inline query string conversion
+        url = self._set_url(url)
+
+        # inline string conversion
         if isinstance(req_kwargs.get('params'), basestring):
             req_kwargs['params'] = dict(parse_qsl(req_kwargs['params']))
 
@@ -154,7 +163,7 @@ class OAuth1Session(RauthSession):
             header = self._get_auth_header(oauth_params, realm)
             req_kwargs['headers'].update({'Authorization': header})
         elif entity_method:
-            req_kwargs.setdefault('data', {})
+            req_kwargs['data'] = req_kwargs.get('data') or {}
             req_kwargs['data'].update(oauth_params)
         else:
             req_kwargs.setdefault('params', {})
@@ -173,7 +182,7 @@ class OAuth1Session(RauthSession):
         :type req_kwargs: dict
         '''
         params = req_kwargs.get('params', {})
-        data = req_kwargs.get('data', {})
+        data = req_kwargs.get('data') or {}
 
         for oauth_param in OPTIONAL_OAUTH_PARAMS:
             if oauth_param in params:
@@ -253,8 +262,6 @@ class OAuth2Session(RauthSession):
     :type client_secret: str
     :param access_token: Access token, defaults to `None`.
     :type access_token: str
-    :param refresh_token: Refresh token, defaults to `None`.
-    :type refresh_token: str
     :param signature: A signature producing object, defaults to
         :class:`rauth.oauth.HmacSha1Signature`.
     :type signature: :class:`rauth.oauth.Signature`
@@ -266,13 +273,14 @@ class OAuth2Session(RauthSession):
                  client_id,
                  client_secret,
                  access_token=None,
-                 refresh_token=None,
                  service=None):
+
+        #: Client credentials.
         self.client_id = client_id
         self.client_secret = client_secret
 
+        #: Access token.
         self.access_token = access_token
-        self.refresh_token = refresh_token
 
         super(OAuth2Session, self).__init__(service)
 
@@ -289,6 +297,8 @@ class OAuth2Session(RauthSession):
         :type \*\*req_kwargs: dict
         '''
         req_kwargs.setdefault('params', {})
+
+        url = self._set_url(url)
 
         if isinstance(req_kwargs['params'], basestring):
             req_kwargs['params'] = dict(parse_qsl(req_kwargs['params']))
@@ -343,9 +353,12 @@ class OflySession(RauthSession):
                  app_secret,
                  user_id=None,
                  service=None):
+
+        #: Client credentials.
         self.app_id = app_id
         self.app_secret = app_secret
 
+        #: oFlyUserid
         self.user_id = user_id
 
         super(OflySession, self).__init__(service)
@@ -374,6 +387,8 @@ class OflySession(RauthSession):
         '''
         req_kwargs.setdefault('params', {})
         req_kwargs.setdefault('timeout', OFLY_DEFAULT_TIMEOUT)
+
+        url = self._set_url(url)
 
         user_id = user_id or self.user_id
         assert user_id is not None, \
