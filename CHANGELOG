@@ -8,9 +8,11 @@ Changes in Version 0.5.0
 
   * Updated README
 
+  * All HTTP methods moved to Session objects
+
   * Added get_session method to service wrappers
 
-  * Added automatic access token setting to OAuth1 and OAuth2Service
+  * Added get_auth_session method to service wrappers
 
   * Added get_raw_access token to OAuth1 and OAuth2Service
 
@@ -38,13 +40,11 @@ Changes in Version 0.5.0
 
   * Default basic auth removed from OAuth2Service.get_access_token
 
-  * Calls to service wrapper request method without tokens are now okay
-
   * Service wrapper API unified
 
   * hook module removed, replaced by session module
 
-  * Add unified Requests Session wrappers for each respective service
+  * Added unified Requests Session wrappers for each respective service
 
   * Default connection timeouts moved into Session module logic
 

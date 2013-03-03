@@ -34,7 +34,7 @@ simply import the service container object:
 
     facebook = OAuth2Service(
         client_id='440483442642551',
-        client_secret='cd54f1ace848fa2a7ac89a31ed9c1b61'
+        client_secret='cd54f1ace848fa2a7ac89a31ed9c1b61',
         name='facebook',
         authorize_url='https://graph.facebook.com/oauth/authorize',
         access_token_url='https://graph.facebook.com/oauth/access_token',
@@ -46,9 +46,10 @@ authorization URL:
 
 .. code-block:: python
 
+    redirect_uri = 'https://www.facebook.com/connect/login_success.html'
     params = {'scope': 'read_stream',
               'response_type': 'code',
-              'redirect_uri': 'http://example.com/'}
+              'redirect_uri': redirect_uri}
 
     url = facebook.get_authorize_url(**params)
 
@@ -58,8 +59,11 @@ application an access token can be obtained:
 .. code-block:: python
 
     # the code should be returned upon the redirect from the authorize step,
-    # be sure to use it here
-    token = facebook.get_access_token(code='foobar')
+    # be sure to use it here (hint: it's in the URL!)
+    sesssion = facebook.get_auth_session(data={'code': 'foo',
+                                               'redirect_uri': redirect_uri})
+
+    print session.get('me').json()['username']
 
 Here is an example using the OAuth 1.0/a service wrapper:
 
@@ -78,7 +82,7 @@ Here is an example using the OAuth 1.0/a service wrapper:
 
 Now it's possible to obtain request tokens via 
 `request_token = twitter.get_request_token()`, generate authorization URIs 
-`twitter.get_authorize_url(request_token)`, and finally obtain access
-tokens `twitter.get_access_token(request_token, request_token_secret)`.
+`twitter.get_authorize_url(request_token)`, and finally obtain an authenticated
+session `twitter.get_auth_session(request_token, request_token_secret)`.
 
 .. include:: contents.rst.inc
