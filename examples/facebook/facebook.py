@@ -38,6 +38,7 @@ facebook = OAuth2Service(name='facebook',
                          client_secret=app.config['FB_CLIENT_SECRET'],
                          base_url=graph_url)
 
+
 # models
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -70,7 +71,8 @@ def index():
 @app.route('/facebook/login')
 def login():
     redirect_uri = url_for('authorized', _external=True)
-    return redirect(facebook.get_authorize_url(redirect_uri=redirect_uri))
+    params = {'redirect_uri': redirect_uri}
+    return redirect(facebook.get_authorize_url(**params))
 
 
 @app.route('/facebook/authorized')
@@ -83,11 +85,11 @@ def authorized():
     # make a request for the access token credentials using code
     redirect_uri = url_for('authorized', _external=True)
     data = dict(code=request.args['code'], redirect_uri=redirect_uri)
-    auth = facebook.get_access_token(data=data).content
-    facebook.access_token = auth['access_token']
+
+    session = facebook.get_auth_session(data=data)
 
     # the "me" response
-    me = facebook.get('/me').content
+    me = session.get('me').json()
 
     User.get_or_create(me['username'], me['id'])
 
@@ -96,4 +98,5 @@ def authorized():
 
 
 if __name__ == '__main__':
+    db.create_all()
     app.run()

@@ -8,6 +8,10 @@
 
 from urlparse import parse_qsl
 
+FORM_URLENCODED = 'application/x-www-form-urlencoded'
+ENTITY_METHODS = ('POST', 'PUT', 'PATCH')
+OPTIONAL_OAUTH_PARAMS = ('oauth_callback', 'oauth_verifier', 'oauth_version')
+
 
 def absolute_url(url):
     return url.startswith(('http://', 'https://'))
@@ -27,3 +31,10 @@ def parse_utf8_qsl(s):
             v = unicode(v, 'utf-8')
         d[k] = v
     return d
+
+
+def get_sorted_params(params):
+    def sorting_gen():
+        for k in sorted(params.keys()):
+            yield '='.join((k, params[k]))
+    return '&'.join(sorting_gen())

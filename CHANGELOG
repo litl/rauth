@@ -1,0 +1,55 @@
+Changes in Version 0.5.0
+
+  * Added CHANGELOG
+
+  * Added requirements.txt
+
+  * Updated documentation
+
+  * Updated README
+
+  * All HTTP methods moved to Session objects
+
+  * Added get_session method to service wrappers
+
+  * Added get_auth_session method to service wrappers
+
+  * Added get_raw_access token to OAuth1 and OAuth2Service
+
+  * OAuth2 client_id parameter interpolation moved to OAuth2Session
+
+  * Default OAuth parameter setting removed from all wrapper methods
+
+  * Default redirect_uri removed from all service wrapper helper methods
+
+  * Default response_type removed from OAuth2Service.get_authorize_url
+
+  * Default oauth_callback removed from OAuth1Service.get_raw_request_token
+
+  * parse_utf8_qsl moved out of all get_raw_* Service wrapper methods
+
+  * Default remote_user removed from OflyService.get_authorize_url
+
+  * Added Ofly MD5 signing option
+
+  * Moved Ofly signing logic into staticmethod on OflySession
+
+  * raise_for_status removed from all service wrapper helper methods
+
+  * Cleaned up OAuth2Service.get_access_token
+
+  * Default basic auth removed from OAuth2Service.get_access_token
+
+  * Service wrapper API unified
+
+  * hook module removed, replaced by session module
+
+  * Added unified Requests Session wrappers for each respective service
+
+  * Default connection timeouts moved into Session module logic
+
+  * All request injection now happens on Session objects
+
+  * Removed examples without correct, functioning credentials
+
+  * Test suite completely rewritten for more robust request checking
