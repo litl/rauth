@@ -11,7 +11,7 @@ from test_service import HttpMixin, RequestMixin
 
 from rauth.service import OAuth1Service
 from rauth.session import OAUTH1_DEFAULT_TIMEOUT, OAuth1Session
-from rauth.utils import ENTITY_METHODS, FORM_URLENCODED
+from rauth.utils import CaseInsensitiveDict, ENTITY_METHODS, FORM_URLENCODED
 
 from copy import deepcopy
 from hashlib import sha1
@@ -114,6 +114,7 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
             kwargs['data'] = dict(parse_qsl(kwargs['data']))
 
         kwargs.setdefault('headers', {})
+        kwargs['headers'] = CaseInsensitiveDict(kwargs['headers'])
 
         oauth_params = {'oauth_consumer_key': session.consumer_key,
                         'oauth_nonce': fake_nonce,
