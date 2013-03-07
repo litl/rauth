@@ -14,8 +14,9 @@ from urllib import quote
 from urlparse import parse_qsl, urljoin, urlsplit
 
 from rauth.oauth import HmacSha1Signature
-from rauth.utils import (absolute_url, ENTITY_METHODS, FORM_URLENCODED,
-                         get_sorted_params, OPTIONAL_OAUTH_PARAMS)
+from rauth.utils import (absolute_url, CaseInsensitiveDict, ENTITY_METHODS,
+                         FORM_URLENCODED, get_sorted_params,
+                         OPTIONAL_OAUTH_PARAMS)
 
 from requests.sessions import Session
 
@@ -132,6 +133,7 @@ class OAuth1Session(RauthSession):
         :type \*\*req_kwargs: dict
         '''
         req_kwargs.setdefault('headers', {})
+        req_kwargs['headers'] = CaseInsensitiveDict(req_kwargs['headers'])
 
         url = self._set_url(url)
 
