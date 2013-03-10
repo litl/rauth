@@ -6,6 +6,10 @@ function log() {
     echo "$@" | tee -a $OUTPUT_PATH/test.log
 }
 
+function nosetest_yanc_plugin() {
+    nosetests --plugins | grep yanc >/dev/null
+}
+
 rm -rf $OUTPUT_PATH
 mkdir -p $OUTPUT_PATH
 
@@ -15,7 +19,7 @@ if [ -n "$VERBOSE" ]; then
     NOSETEST_OPTIONS="$NOSETEST_OPTIONS --verbose"
 fi
 
-if [ -z "$NOCOLOR" ]; then
+if [ -z "$NOCOLOR" ] && nosetest_yanc_plugin; then
     NOSETEST_OPTIONS="$NOSETEST_OPTIONS --with-yanc --yanc-color=on"
 fi
 
@@ -28,6 +32,8 @@ if [ -n "$TESTS" ]; then
 else
     NOSETEST_OPTIONS="$NOSETEST_OPTIONS --with-coverage --cover-package=rauth"
 fi
+
+nosetest_yanc_plugin || [ -n "$NOCOLOR" ] || log "No yanc plugin for nosetests found. Color output unavailable."
 
 log "Running tests..."
 nosetests $NOSETEST_OPTIONS 2>&1 | tee -a $OUTPUT_PATH/test.log
