@@ -310,8 +310,9 @@ class OAuth2Service(Service):
     retrieve an authenticated session in two simple steps::
 
         # the return URL is used to validate the request
-        url = service.get_authorize_url(redirect_uri='http://example.com/',
-                                        params={'response_type': 'code'})
+        params = {'redirect_uri': 'http://example.com/',
+                  'response_type': 'code'}
+        url = service.get_authorize_url(**params)
 
         # once the above URL is consumed by a client we can ask for an access
         # token. note that the code is retrieved from the redirect URL above,
