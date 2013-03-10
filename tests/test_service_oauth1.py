@@ -107,14 +107,21 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
                             realm=realm,
                             **deepcopy(kwargs))
 
+        kwargs.setdefault('headers', {})
+        kwargs['headers'] = CaseInsensitiveDict(kwargs['headers'])
+
+        entity_method = method.upper() in ENTITY_METHODS
+        if entity_method:
+            kwargs['headers'].setdefault('Content-Type', FORM_URLENCODED)
+
+        form_urlencoded = \
+            kwargs['headers'].get('Content-Type') == FORM_URLENCODED
+
         if isinstance(kwargs.get('params'), basestring):
             kwargs['params'] = dict(parse_qsl(kwargs['params']))
 
-        if isinstance(kwargs.get('data'), basestring):
+        if isinstance(kwargs.get('data'), basestring) and form_urlencoded:
             kwargs['data'] = dict(parse_qsl(kwargs['data']))
-
-        kwargs.setdefault('headers', {})
-        kwargs['headers'] = CaseInsensitiveDict(kwargs['headers'])
 
         oauth_params = {'oauth_consumer_key': session.consumer_key,
                         'oauth_nonce': fake_nonce,
@@ -129,12 +136,14 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
                        self.fake_get_auth_header(oauth_params, realm=realm)}
 
             kwargs['headers'].update(headers)
-        elif method.upper() in ENTITY_METHODS:
+        elif entity_method:
             kwargs['data'] = kwargs.get('data') or {}
-            kwargs['data'].update(**oauth_params)
 
-            kwargs.setdefault('headers', {})
-            kwargs['headers'].update({'Content-Type': FORM_URLENCODED})
+            if form_urlencoded:
+                kwargs['data'].update(oauth_params)
+            else:
+                kwargs.setdefault('params', {})
+                kwargs['params'].update(oauth_params)
         else:
             kwargs.setdefault('params', {})
             kwargs['params'].update(**oauth_params)

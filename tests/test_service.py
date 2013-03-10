@@ -88,7 +88,9 @@ def input_product_gen():
                    {'x-foo-bar': 'baz foo'},
                    {u'x-foo-bar': u'baz foo'},
                    {'x-foo-bar': 'båz foo'},
-                   {u'x-foo-bar': u'båz foo'}]
+                   {u'x-foo-bar': u'båz foo'},
+                   {'Content-Type': 'application/x-www-form-urlencoded'},
+                   {'Content-Type': 'application/json'}]
 
     for p in all_params:
         method = 'GET'

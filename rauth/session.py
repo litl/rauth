@@ -137,16 +137,19 @@ class OAuth1Session(RauthSession):
 
         url = self._set_url(url)
 
+        entity_method = method.upper() in ENTITY_METHODS
+        if entity_method:
+            req_kwargs['headers'].setdefault('Content-Type', FORM_URLENCODED)
+
+        form_urlencoded = \
+            req_kwargs['headers'].get('Content-Type') == FORM_URLENCODED
+
         # inline string conversion
         if isinstance(req_kwargs.get('params'), basestring):
             req_kwargs['params'] = dict(parse_qsl(req_kwargs['params']))
 
-        if isinstance(req_kwargs.get('data'), basestring):
+        if isinstance(req_kwargs.get('data'), basestring) and form_urlencoded:
             req_kwargs['data'] = dict(parse_qsl(req_kwargs['data']))
-
-        entity_method = method.upper() in ENTITY_METHODS
-        if entity_method:
-            req_kwargs['headers'].setdefault('Content-Type', FORM_URLENCODED)
 
         req_kwargs.setdefault('timeout', OAUTH1_DEFAULT_TIMEOUT)
 
@@ -166,7 +169,23 @@ class OAuth1Session(RauthSession):
             req_kwargs['headers'].update({'Authorization': header})
         elif entity_method:
             req_kwargs['data'] = req_kwargs.get('data') or {}
-            req_kwargs['data'].update(oauth_params)
+
+            # If we have a urlencoded entity-body we should pass the OAuth
+            # parameters on this body. However, if we do not, then we need to
+            # pass these over the request URI, i.e. on params.
+            #
+            # See:
+            #
+            #   http://tools.ietf.org/html/rfc5849#section-3.5.2
+            #
+            # and:
+            #
+            #   http://tools.ietf.org/html/rfc5849#section-3.5.3
+            if form_urlencoded:
+                req_kwargs['data'].update(oauth_params)
+            else:
+                req_kwargs.setdefault('params', {})
+                req_kwargs['params'].update(oauth_params)
         else:
             req_kwargs.setdefault('params', {})
             req_kwargs['params'].update(oauth_params)
