@@ -1,8 +1,16 @@
+Rauth Changelog
+===============
+
+This provides a list of changes to rauth by release.
+
+
 Changes in Version 0.5.1
+------------------------
 
   * BUGFIX Added CaseInsensitiveDict to ensure headers are properly updated
 
 Changes in Version 0.5.0
+------------------------
 
   * Added CHANGELOG
 

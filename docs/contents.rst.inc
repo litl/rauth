@@ -17,3 +17,4 @@ Notes for upgrading from release to release, if applicable.
    :maxdepth: 2
 
    upgrading
+   changelog
