@@ -1,12 +1,14 @@
-#!/bin/bash
+#!/bin/sh
 
-OUTPUT_PATH=$(pwd)/tests_output
+OUTPUT_PATH=`pwd`/tests_output
 
-function log() {
+log()
+{
     echo "$@" | tee -a $OUTPUT_PATH/test.log
 }
 
-function nosetest_yanc_plugin() {
+nosetest_yanc_plugin()
+{
     nosetests --plugins | grep yanc >/dev/null
 }
 
@@ -36,14 +38,19 @@ fi
 nosetest_yanc_plugin || [ -n "$NOCOLOR" ] || log "No yanc plugin for nosetests found. Color output unavailable."
 
 log "Running tests..."
-nosetests $NOSETEST_OPTIONS 2>&1 | tee -a $OUTPUT_PATH/test.log
-ret=${PIPESTATUS[0]}
+
+if [ $BASH ]; then
+    nosetests $NOSETEST_OPTIONS 2>&1 | tee -a $OUTPUT_PATH/test.log
+    R=${PIPESTATUS[0]}
+else
+    4>&1 R=$({ { nosetests $NOSETEST_OPTIONS 2>&1; echo $? >&3 ; } | { tee -a $OUTPUT_PATH/test.log >&4; } } 3>&1)
+fi
 
 echo
 
-case "$ret" in
-    0) log -e "SUCCESS" ;;
-    *) log -e "FAILURE" ;;
+case "$R" in
+    0) log "SUCCESS" ;;
+    *) log "FAILURE" ;;
 esac
 
-exit $ret
+exit $R
