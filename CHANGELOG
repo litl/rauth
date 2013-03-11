@@ -4,6 +4,31 @@ Rauth Changelog
 This provides a list of changes to rauth by release.
 
 
+Changes in Version 0.5.2
+------------------------
+
+  * Added ability to pass in key name for get_token methods (excluding raw)
+
+  * Added ability to pass in custom decoder for get_token methods (excluding
+  raw)
+
+  * Added better error reporting for get_token methods (excluding raw)
+
+  * BUGIFX Corrected assignment of custom signature objects in OAuth 1.0
+  session objects
+
+  * Added custom decoder param for request and access token getters
+
+  * Updated test runner to not fail when yanc is missing
+
+  * Removed bash requirement from test runner
+
+  * Updated documentation to include CHANGELOG
+
+  * Updated docstring to correct incorrect documentation
+
+  * BUGFIX Corrected improper OAuth 1.0/a handling of entity-methods
+
 Changes in Version 0.5.1
 ------------------------
 
