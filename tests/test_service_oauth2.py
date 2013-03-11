@@ -19,6 +19,8 @@ from mock import patch
 
 import requests
 
+import json
+
 
 class OAuth2ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
     client_id = '000'
@@ -103,6 +105,13 @@ class OAuth2ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
         self.response.content = \
             'access_token=123&expires_in=3600&refresh_token=456'
         access_token = self.service.get_access_token()
+        self.assertEqual(access_token, '123')
+
+    def test_get_access_token_with_json_decoder(self):
+        self.response.content = json.dumps({'access_token': '123',
+                                            'expires_in': '3600',
+                                            'refresh_token': '456'})
+        access_token = self.service.get_access_token(decoder=json.loads)
         self.assertEqual(access_token, '123')
 
     def test_get_auth_session(self):

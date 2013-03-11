@@ -173,18 +173,24 @@ class OAuth1Service(Service):
         session = self.get_session()
         return session.request(method, self.request_token_url, **kwargs)
 
-    def get_request_token(self, method='GET', **kwargs):
+    def get_request_token(self,
+                          method='GET',
+                          decoder=parse_utf8_qsl,
+                          **kwargs):
         '''
         Return a request token pair.
 
         :param method: A string representation of the HTTP method to be used,
             defaults to `GET`.
         :type method: str
+        :param decoder: A function used to parse the Response content. Should
+            return a dictionary.
+        :type decoder: func
         :param \*\*kwargs: Optional arguments. Same as Requests.
         :type \*\*kwargs: dict
         '''
         r = self.get_raw_request_token(method=method, **kwargs)
-        data = parse_utf8_qsl(r.content)
+        data = decoder(r.content)
         return data['oauth_token'], data['oauth_token_secret']
 
     def get_authorize_url(self, request_token, **params):
@@ -236,6 +242,7 @@ class OAuth1Service(Service):
                          request_token,
                          request_token_secret,
                          method='GET',
+                         decoder=parse_utf8_qsl,
                          **kwargs):
         '''
         Returns an access token pair.
@@ -249,6 +256,9 @@ class OAuth1Service(Service):
         :param method: A string representation of the HTTP method to be
             used, defaults to `GET`.
         :type method: str
+        :param decoder: A function used to parse the Response content. Should
+            return a dictionary.
+        :type decoder: func
         :param \*\*kwargs: Optional arguments. Same as Requests.
         :type \*\*kwargs: dict
         '''
@@ -256,7 +266,7 @@ class OAuth1Service(Service):
                                       request_token_secret,
                                       method=method,
                                       **kwargs)
-        data = parse_utf8_qsl(r.content)
+        data = decoder(r.content)
         return data['oauth_token'], data['oauth_token_secret']
 
     def get_auth_session(self,
@@ -428,18 +438,24 @@ class OAuth2Service(Service):
         session = self.get_session()
         return session.request(method, self.access_token_url, **kwargs)
 
-    def get_access_token(self, method='POST', **kwargs):
+    def get_access_token(self,
+                         method='POST',
+                         decoder=parse_utf8_qsl,
+                         **kwargs):
         '''
         Returns an access token.
 
         :param method: A string representation of the HTTP method to be used,
             defaults to `POST`.
         :type method: str
+        :param decoder: A function used to parse the Response content. Should
+            return a dictionary.
+        :type decoder: func
         :param \*\*kwargs: Optional arguments. Same as Requests.
         :type \*\*kwargs: dict
         '''
         r = self.get_raw_access_token(method, **kwargs)
-        return parse_utf8_qsl(r.content)['access_token']
+        return decoder(r.content)['access_token']
 
     def get_auth_session(self, method='POST', **kwargs):
         '''

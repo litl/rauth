@@ -24,6 +24,8 @@ import rauth
 
 import requests
 
+import json
+
 
 class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
     consumer_key = '000'
@@ -182,6 +184,14 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
         self.assertEqual(request_token, 'foo')
         self.assertEqual(request_token_secret, 'bar')
 
+    def test_get_request_token_with_json_decoder(self):
+        self.response.content = json.dumps({'oauth_token': 'foo',
+                                            'oauth_token_secret': 'bar'})
+        request_token, request_token_secret = \
+            self.service.get_request_token(decoder=json.loads)
+        self.assertEqual(request_token, 'foo')
+        self.assertEqual(request_token_secret, 'bar')
+
     def test_get_authorize_url(self):
         self.response.content = 'oauth_token=foo&oauth_token_secret=bar'
         request_token, request_token_secret = self.service.get_request_token()
@@ -221,6 +231,19 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
         access_token, access_token_secret = \
             self.service.get_access_token(request_token,
                                           request_token_secret)
+        self.assertEqual(access_token, 'foo')
+        self.assertEqual(access_token_secret, 'bar')
+
+    def test_get_access_token_with_json_decoder(self):
+        self.response.content = 'oauth_token=foo&oauth_token_secret=bar'
+        request_token, request_token_secret = self.service.get_request_token()
+
+        self.response.content = json.dumps({'oauth_token': 'foo',
+                                            'oauth_token_secret': 'bar'})
+        access_token, access_token_secret = \
+            self.service.get_access_token(request_token,
+                                          request_token_secret,
+                                          decoder=json.loads)
         self.assertEqual(access_token, 'foo')
         self.assertEqual(access_token_secret, 'bar')
 
