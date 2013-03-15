@@ -120,6 +120,8 @@ class OflyServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
         all_params = dict(ofly_params.items() + kwargs['params'].items())
 
         kwargs['params'] = self.fake_get_sorted_params(all_params)
+        if isinstance(kwargs['params'], unicode):
+            kwargs['params'] = kwargs['params'].encode('utf-8')
 
         mock_request.assert_called_with(method,
                                         url,

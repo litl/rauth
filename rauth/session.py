@@ -426,7 +426,11 @@ class OflySession(RauthSession):
                                   hash_meth=hash_meth,
                                   **req_kwargs['params'])
 
+        # NOTE: Requests can't seem to handle unicode objects, instead we can
+        # encode a string here.
         req_kwargs['params'] = params
+        if isinstance(req_kwargs['params'], unicode):
+            req_kwargs['params'] = req_kwargs['params'].encode('utf-8')
 
         return super(OflySession, self).request(method, url, **req_kwargs)
 
