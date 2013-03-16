@@ -305,7 +305,7 @@ class OAuth2Session(RauthSession):
 
         super(OAuth2Session, self).__init__(service)
 
-    def request(self, method, url, **req_kwargs):
+    def request(self, method, url, bearer_auth=True, **req_kwargs):
         '''
         A loose wrapper around Requests' :class:`~requests.sessions.Session`
         which injects OAuth 2.0 parameters.
@@ -314,6 +314,9 @@ class OAuth2Session(RauthSession):
         :type method: str
         :param url: The resource to be requested.
         :type url: str
+        :param bearer_auth: Whether to use Bearer Authentication or not,
+            defaults to `True`.
+        :type bearer_auth: bool
         :param \*\*req_kwargs: Keyworded args to be passed down to Requests.
         :type \*\*req_kwargs: dict
         '''
@@ -324,7 +327,14 @@ class OAuth2Session(RauthSession):
         if isinstance(req_kwargs['params'], basestring):
             req_kwargs['params'] = dict(parse_qsl(req_kwargs['params']))
 
-        req_kwargs['params'].update({'access_token': self.access_token})
+        if bearer_auth:
+            bearer_token = 'Bearer {token}'.format(token=self.access_token)
+            bearer_header = {'Authorization': bearer_token}
+            req_kwargs.setdefault('headers', {})
+            req_kwargs['headers'].update(bearer_header)
+        else:
+            req_kwargs['params'].update({'access_token': self.access_token})
+
         req_kwargs.setdefault('timeout', OAUTH2_DEFAULT_TIMEOUT)
 
         return super(OAuth2Session, self).request(method, url, **req_kwargs)
