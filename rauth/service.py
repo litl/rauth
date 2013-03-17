@@ -11,6 +11,19 @@ from rauth.utils import ENTITY_METHODS, parse_utf8_qsl
 
 from urllib import quote, urlencode
 
+PROCESS_TOKEN_ERROR = ('Decoder failed to handle {key} with data as returned '
+                       'by provider. A different decoder may be needed. '
+                       'Provider returned: {raw}')
+
+
+def process_token_request(r, decoder, *args):
+    try:
+        data = decoder(r.content)
+        return tuple(data[key] for key in args)
+    except KeyError, e:
+        bad_key = e.args[0]
+        raise KeyError(PROCESS_TOKEN_ERROR.format(key=bad_key, raw=r.content))
+
 
 class Service(object):
     def __init__(self, name, base_url, authorize_url):
@@ -157,8 +170,7 @@ class OAuth1Service(Service):
         Returns a Requests' response over the
         :attr:`rauth.OAuth1Service.request_token_url`.
 
-        Use this if your endpoint doesn't use the usual names for `oauth_token`
-        and `oauth_token_secret`.
+        Use this if your endpoint if you need the full `Response` object.
 
         :param method: A string representation of the HTTP method to be used,
             defaults to `GET`.
@@ -176,6 +188,8 @@ class OAuth1Service(Service):
     def get_request_token(self,
                           method='GET',
                           decoder=parse_utf8_qsl,
+                          key_token='oauth_token',
+                          key_token_secret='oauth_token_secret',
                           **kwargs):
         '''
         Return a request token pair.
@@ -186,12 +200,19 @@ class OAuth1Service(Service):
         :param decoder: A function used to parse the Response content. Should
             return a dictionary.
         :type decoder: func
+        :param key_token: The key the access token will be decoded by, defaults
+            to 'oauth_token'.
+        :type string:
+        :param key_token_secret: The key the access token will be decoded by,
+            defaults to 'oauth_token_secret'.
+        :type string:
         :param \*\*kwargs: Optional arguments. Same as Requests.
         :type \*\*kwargs: dict
         '''
         r = self.get_raw_request_token(method=method, **kwargs)
-        data = decoder(r.content)
-        return data['oauth_token'], data['oauth_token_secret']
+        request_token, request_token_secret = \
+            process_token_request(r, decoder, key_token, key_token_secret)
+        return request_token, request_token_secret
 
     def get_authorize_url(self, request_token, **params):
         '''
@@ -216,8 +237,7 @@ class OAuth1Service(Service):
         Returns a Requests' response over the
         :attr:`rauth.OAuth1Service.access_token_url`.
 
-        Use this if your endpoint doesn't use the usual names for `oauth_token`
-        and `oauth_token_secret`.
+        Use this if your endpoint if you need the full `Response` object.
 
         :param request_token: The request token as returned by
             :meth:`get_request_token`.
@@ -243,6 +263,8 @@ class OAuth1Service(Service):
                          request_token_secret,
                          method='GET',
                          decoder=parse_utf8_qsl,
+                         key_token='oauth_token',
+                         key_token_secret='oauth_token_secret',
                          **kwargs):
         '''
         Returns an access token pair.
@@ -259,6 +281,12 @@ class OAuth1Service(Service):
         :param decoder: A function used to parse the Response content. Should
             return a dictionary.
         :type decoder: func
+        :param key_token: The key the access token will be decoded by, defaults
+            to 'oauth_token'.
+        :type string:
+        :param key_token_secret: The key the access token will be decoded by,
+            defaults to 'oauth_token_secret'.
+        :type string:
         :param \*\*kwargs: Optional arguments. Same as Requests.
         :type \*\*kwargs: dict
         '''
@@ -266,8 +294,10 @@ class OAuth1Service(Service):
                                       request_token_secret,
                                       method=method,
                                       **kwargs)
-        data = decoder(r.content)
-        return data['oauth_token'], data['oauth_token_secret']
+
+        access_token, access_token_secret = \
+            process_token_request(r, decoder, key_token, key_token_secret)
+        return access_token, access_token_secret
 
     def get_auth_session(self,
                          request_token,
@@ -418,8 +448,7 @@ class OAuth2Service(Service):
         Returns a Requests' response over the
         :attr:`OAuth2Service.access_token_url`.
 
-        Use this if your endpoint doesn't use the usual formatting for access
-        tokens.
+        Use this if your endpoint if you need the full `Response` object.
 
         :param method: A string representation of the HTTP method to be used,
             defaults to `POST`.
@@ -441,6 +470,7 @@ class OAuth2Service(Service):
     def get_access_token(self,
                          method='POST',
                          decoder=parse_utf8_qsl,
+                         key='access_token',
                          **kwargs):
         '''
         Returns an access token.
@@ -451,11 +481,15 @@ class OAuth2Service(Service):
         :param decoder: A function used to parse the Response content. Should
             return a dictionary.
         :type decoder: func
+        :param key: The key the access token will be decoded by, defaults to
+            'access_token'.
+        :type string:
         :param \*\*kwargs: Optional arguments. Same as Requests.
         :type \*\*kwargs: dict
         '''
         r = self.get_raw_access_token(method, **kwargs)
-        return decoder(r.content)['access_token']
+        access_token, = process_token_request(r, decoder, key)
+        return access_token
 
     def get_auth_session(self, method='POST', **kwargs):
         '''
