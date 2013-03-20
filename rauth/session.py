@@ -106,8 +106,8 @@ class OAuth1Session(RauthSession):
         self.access_token_secret = access_token_secret
 
         #: Signing method.
-        if signature is None:
-            self.signature = HmacSha1Signature()
+        signature = signature or HmacSha1Signature
+        self.signature = signature()
 
         super(OAuth1Session, self).__init__(service)
 
