@@ -106,8 +106,8 @@ class OAuth1Session(RauthSession):
         self.access_token_secret = access_token_secret
 
         #: Signing method.
-        if signature is None:
-            self.signature = HmacSha1Signature()
+        signature = signature or HmacSha1Signature
+        self.signature = signature()
 
         super(OAuth1Session, self).__init__(service)
 
@@ -137,16 +137,19 @@ class OAuth1Session(RauthSession):
 
         url = self._set_url(url)
 
+        entity_method = method.upper() in ENTITY_METHODS
+        if entity_method:
+            req_kwargs['headers'].setdefault('Content-Type', FORM_URLENCODED)
+
+        form_urlencoded = \
+            req_kwargs['headers'].get('Content-Type') == FORM_URLENCODED
+
         # inline string conversion
         if isinstance(req_kwargs.get('params'), basestring):
             req_kwargs['params'] = dict(parse_qsl(req_kwargs['params']))
 
-        if isinstance(req_kwargs.get('data'), basestring):
+        if isinstance(req_kwargs.get('data'), basestring) and form_urlencoded:
             req_kwargs['data'] = dict(parse_qsl(req_kwargs['data']))
-
-        entity_method = method.upper() in ENTITY_METHODS
-        if entity_method:
-            req_kwargs['headers'].setdefault('Content-Type', FORM_URLENCODED)
 
         req_kwargs.setdefault('timeout', OAUTH1_DEFAULT_TIMEOUT)
 
@@ -166,7 +169,23 @@ class OAuth1Session(RauthSession):
             req_kwargs['headers'].update({'Authorization': header})
         elif entity_method:
             req_kwargs['data'] = req_kwargs.get('data') or {}
-            req_kwargs['data'].update(oauth_params)
+
+            # If we have a urlencoded entity-body we should pass the OAuth
+            # parameters on this body. However, if we do not, then we need to
+            # pass these over the request URI, i.e. on params.
+            #
+            # See:
+            #
+            #   http://tools.ietf.org/html/rfc5849#section-3.5.2
+            #
+            # and:
+            #
+            #   http://tools.ietf.org/html/rfc5849#section-3.5.3
+            if form_urlencoded:
+                req_kwargs['data'].update(oauth_params)
+            else:
+                req_kwargs.setdefault('params', {})
+                req_kwargs['params'].update(oauth_params)
         else:
             req_kwargs.setdefault('params', {})
             req_kwargs['params'].update(oauth_params)
@@ -286,7 +305,7 @@ class OAuth2Session(RauthSession):
 
         super(OAuth2Session, self).__init__(service)
 
-    def request(self, method, url, **req_kwargs):
+    def request(self, method, url, bearer_auth=True, **req_kwargs):
         '''
         A loose wrapper around Requests' :class:`~requests.sessions.Session`
         which injects OAuth 2.0 parameters.
@@ -295,6 +314,9 @@ class OAuth2Session(RauthSession):
         :type method: str
         :param url: The resource to be requested.
         :type url: str
+        :param bearer_auth: Whether to use Bearer Authentication or not,
+            defaults to `True`.
+        :type bearer_auth: bool
         :param \*\*req_kwargs: Keyworded args to be passed down to Requests.
         :type \*\*req_kwargs: dict
         '''
@@ -305,7 +327,14 @@ class OAuth2Session(RauthSession):
         if isinstance(req_kwargs['params'], basestring):
             req_kwargs['params'] = dict(parse_qsl(req_kwargs['params']))
 
-        req_kwargs['params'].update({'access_token': self.access_token})
+        if bearer_auth:
+            bearer_token = 'Bearer {token}'.format(token=self.access_token)
+            bearer_header = {'Authorization': bearer_token}
+            req_kwargs.setdefault('headers', {})
+            req_kwargs['headers'].update(bearer_header)
+        else:
+            req_kwargs['params'].update({'access_token': self.access_token})
+
         req_kwargs.setdefault('timeout', OAUTH2_DEFAULT_TIMEOUT)
 
         return super(OAuth2Session, self).request(method, url, **req_kwargs)
@@ -407,7 +436,11 @@ class OflySession(RauthSession):
                                   hash_meth=hash_meth,
                                   **req_kwargs['params'])
 
+        # NOTE: Requests can't seem to handle unicode objects, instead we can
+        # encode a string here.
         req_kwargs['params'] = params
+        if isinstance(req_kwargs['params'], unicode):
+            req_kwargs['params'] = req_kwargs['params'].encode('utf-8')
 
         return super(OflySession, self).request(method, url, **req_kwargs)
 
