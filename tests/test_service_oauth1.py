@@ -24,6 +24,8 @@ import rauth
 
 import requests
 
+import json
+
 
 class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
     consumer_key = '000'
@@ -107,14 +109,21 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
                             realm=realm,
                             **deepcopy(kwargs))
 
+        kwargs.setdefault('headers', {})
+        kwargs['headers'] = CaseInsensitiveDict(kwargs['headers'])
+
+        entity_method = method.upper() in ENTITY_METHODS
+        if entity_method:
+            kwargs['headers'].setdefault('Content-Type', FORM_URLENCODED)
+
+        form_urlencoded = \
+            kwargs['headers'].get('Content-Type') == FORM_URLENCODED
+
         if isinstance(kwargs.get('params'), basestring):
             kwargs['params'] = dict(parse_qsl(kwargs['params']))
 
-        if isinstance(kwargs.get('data'), basestring):
+        if isinstance(kwargs.get('data'), basestring) and form_urlencoded:
             kwargs['data'] = dict(parse_qsl(kwargs['data']))
-
-        kwargs.setdefault('headers', {})
-        kwargs['headers'] = CaseInsensitiveDict(kwargs['headers'])
 
         oauth_params = {'oauth_consumer_key': session.consumer_key,
                         'oauth_nonce': fake_nonce,
@@ -129,12 +138,14 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
                        self.fake_get_auth_header(oauth_params, realm=realm)}
 
             kwargs['headers'].update(headers)
-        elif method.upper() in ENTITY_METHODS:
+        elif entity_method:
             kwargs['data'] = kwargs.get('data') or {}
-            kwargs['data'].update(**oauth_params)
 
-            kwargs.setdefault('headers', {})
-            kwargs['headers'].update({'Content-Type': FORM_URLENCODED})
+            if form_urlencoded:
+                kwargs['data'].update(oauth_params)
+            else:
+                kwargs.setdefault('params', {})
+                kwargs['params'].update(oauth_params)
         else:
             kwargs.setdefault('params', {})
             kwargs['params'].update(**oauth_params)
@@ -170,6 +181,14 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
     def test_get_request_token(self):
         self.response.content = 'oauth_token=foo&oauth_token_secret=bar'
         request_token, request_token_secret = self.service.get_request_token()
+        self.assertEqual(request_token, 'foo')
+        self.assertEqual(request_token_secret, 'bar')
+
+    def test_get_request_token_with_json_decoder(self):
+        self.response.content = json.dumps({'oauth_token': 'foo',
+                                            'oauth_token_secret': 'bar'})
+        request_token, request_token_secret = \
+            self.service.get_request_token(decoder=json.loads)
         self.assertEqual(request_token, 'foo')
         self.assertEqual(request_token_secret, 'bar')
 
@@ -212,6 +231,19 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
         access_token, access_token_secret = \
             self.service.get_access_token(request_token,
                                           request_token_secret)
+        self.assertEqual(access_token, 'foo')
+        self.assertEqual(access_token_secret, 'bar')
+
+    def test_get_access_token_with_json_decoder(self):
+        self.response.content = 'oauth_token=foo&oauth_token_secret=bar'
+        request_token, request_token_secret = self.service.get_request_token()
+
+        self.response.content = json.dumps({'oauth_token': 'foo',
+                                            'oauth_token_secret': 'bar'})
+        access_token, access_token_secret = \
+            self.service.get_access_token(request_token,
+                                          request_token_secret,
+                                          decoder=json.loads)
         self.assertEqual(access_token, 'foo')
         self.assertEqual(access_token_secret, 'bar')
 
