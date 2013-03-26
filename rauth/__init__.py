@@ -10,14 +10,14 @@
 
         ...
 
-        >>> service.get_access_token(code='...')
-        >>> r = service.get('resource')
+        >>> session = service.get_auth_session(...)
+        >>> r = session.get('resource')
         >>> print r.json
 
 '''
 
 __title__ = 'rauth'
-__version_info__ = ('0', '5', '0')
+__version_info__ = ('0', '5', '2')
 __version__ = '.'.join(__version_info__)
 __author__ = 'Max Countryman'
 __license__ = 'MIT'

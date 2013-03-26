@@ -19,6 +19,8 @@ from mock import patch
 
 import requests
 
+import json
+
 
 class OAuth2ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
     client_id = '000'
@@ -49,6 +51,7 @@ class OAuth2ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
                      method,
                      url,
                      mock_request,
+                     bearer_auth=False,
                      **kwargs):
         mock_request.return_value = self.response
 
@@ -61,13 +64,23 @@ class OAuth2ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
                                 base_url=self.base_url)
 
         session = service.get_session(self.access_token)
-        r = session.request(method, url, **deepcopy(kwargs))
+        r = session.request(method,
+                            url,
+                            bearer_auth=bearer_auth,
+                            **deepcopy(kwargs))
+
+        kwargs.setdefault('params', {})
 
         if isinstance(kwargs.get('params', {}), basestring):
             kwargs['params'] = dict(parse_qsl(kwargs['params']))
 
-        kwargs.setdefault('params', {})
-        kwargs['params'].update({'access_token': self.access_token})
+        if bearer_auth:
+            bearer_token = 'Bearer {token}'.format(token=self.access_token)
+            bearer_header = {'Authorization': bearer_token}
+            kwargs.setdefault('headers', {})
+            kwargs['headers'].update(bearer_header)
+        else:
+            kwargs['params'].update({'access_token': self.access_token})
 
         mock_request.assert_called_with(method,
                                         url,
@@ -104,6 +117,19 @@ class OAuth2ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
             'access_token=123&expires_in=3600&refresh_token=456'
         access_token = self.service.get_access_token()
         self.assertEqual(access_token, '123')
+
+    def test_get_access_token_with_json_decoder(self):
+        self.response.content = json.dumps({'access_token': '123',
+                                            'expires_in': '3600',
+                                            'refresh_token': '456'})
+        access_token = self.service.get_access_token(decoder=json.loads)
+        self.assertEqual(access_token, '123')
+
+    def test_request_with_bearer_auth(self):
+        r = self.session.request('GET',
+                                 'http://example.com/',
+                                 bearer_auth=True)
+        self.assert_ok(r)
 
     def test_get_auth_session(self):
         self.response.content = \
