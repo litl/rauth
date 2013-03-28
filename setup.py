@@ -10,7 +10,7 @@ if sys.argv[-1] == 'test':
     status >>= 8
     sys.exit(status)
 
-install_requires = ['requests>=1.1.0']
+install_requires = ['requests==1.1.0']
 if sys.version_info[0] == 2 and sys.version_info[1] < 7:
     install_requires.append('unittest2>=0.5.1')
 
