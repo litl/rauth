@@ -117,7 +117,8 @@ class OflyServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
 
         signature_base_string += self.fake_get_sorted_params(ofly_params)
 
-        all_params = dict(ofly_params.items() + kwargs['params'].items())
+        all_params = dict(tuple(ofly_params.items())
+                          + tuple(kwargs['params'].items()))
 
         kwargs['params'] = self.fake_get_sorted_params(all_params)
         if isinstance(kwargs['params'], unicode):
