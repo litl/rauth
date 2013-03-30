@@ -11,8 +11,7 @@ from test_service import HttpMixin, RequestMixin
 
 from rauth.service import OAuth2Service
 from rauth.session import OAUTH2_DEFAULT_TIMEOUT, OAuth2Session
-
-from urlparse import parse_qsl
+from rauth.compat import parse_qsl, is_basestring
 
 from copy import deepcopy
 from mock import patch
@@ -71,7 +70,7 @@ class OAuth2ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
 
         kwargs.setdefault('params', {})
 
-        if isinstance(kwargs.get('params', {}), basestring):
+        if is_basestring(kwargs.get('params', {})):
             kwargs['params'] = dict(parse_qsl(kwargs['params']))
 
         if bearer_auth:
