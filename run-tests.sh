@@ -32,7 +32,7 @@ fi
 if [ -n "$TESTS" ]; then
     NOSETEST_OPTIONS="$NOSETEST_OPTIONS $TESTS"
 else
-    NOSETEST_OPTIONS="$NOSETEST_OPTIONS --with-coverage --cover-package=rauth"
+    NOSETEST_OPTIONS="$NOSETEST_OPTIONS --with-coverage --cover-min-percentage=100 --cover-package=rauth"
 fi
 
 nosetest_yanc_plugin || [ -n "$NOCOLOR" ] || log "No yanc plugin for nosetests found. Color output unavailable."
@@ -47,6 +47,9 @@ else
 fi
 
 echo
+
+nosetests -V
+python -V
 
 case "$R" in
     0) log "SUCCESS" ;;

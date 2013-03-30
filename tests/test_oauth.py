@@ -10,7 +10,14 @@ from base import RauthTestCase
 from rauth.oauth import (HmacSha1Signature, RsaSha1Signature,
                          PlaintextSignature)
 from rauth.utils import FORM_URLENCODED
-#from unittest import skipIf, skipUnless  # not available in 2.6
+
+# HACK: give a more informative error message if we're missing deps here
+try:
+    from Crypto.PublicKey import RSA
+except ImportError:
+    raise RuntimeError('PyCrypto is required to run the rauth test suite')
+
+assert RSA
 
 
 class OAuthTestHmacSha1Case(RauthTestCase):
@@ -29,8 +36,8 @@ class OAuthTestHmacSha1Case(RauthTestCase):
                                                    self.oauth_params,
                                                    self.req_kwargs)
         self.assertIsNotNone(oauth_signature)
-        self.assertIsInstance(oauth_signature, str)
-        self.assertEqual(oauth_signature, 'cYzjVXCOk62KoYmJ+iCvcAcgfp8=')
+        self.assertIsInstance(oauth_signature, bytes)
+        self.assertEqual(oauth_signature, b'cYzjVXCOk62KoYmJ+iCvcAcgfp8=')
 
     def test_normalize_request_parameters_params(self):
         # params as a dict
@@ -91,7 +98,7 @@ class OAuthTestHmacSha1Case(RauthTestCase):
                                        self.url,
                                        self.oauth_params,
                                        req_kwargs)
-        self.assertEqual('cYzjVXCOk62KoYmJ+iCvcAcgfp8=',  sig)
+        self.assertEqual(b'cYzjVXCOk62KoYmJ+iCvcAcgfp8=',  sig)
 
     def test_sign_with_data(self):
         # in the event a string is already UTF-8
@@ -103,7 +110,7 @@ class OAuthTestHmacSha1Case(RauthTestCase):
                                        self.url,
                                        self.oauth_params,
                                        req_kwargs)
-        self.assertEqual('JzmJUmqjdNYBJsJWbtQKXnc0W8w=',  sig)
+        self.assertEqual(b'JzmJUmqjdNYBJsJWbtQKXnc0W8w=',  sig)
 
     def test_remove_query_string(self):
         # can't sign the URL with the query string so
@@ -145,17 +152,8 @@ class OAuthTestRsaSha1Case(RauthTestCase):
     url = 'http://example.com/'
     oauth_params = {}
     req_kwargs = {'params': {'foo': 'bar'}}
-    try:
-        from Crypto.PublicKey import RSA
-        has_rsa = RSA
-    except:
-        has_rsa = False
 
-    #@skipUnless(has_rsa, "PyCrypto not installed")
     def test_rsasha1_signature(self):
-        if not self.has_rsa:
-            return
-
         oauth_signature = RsaSha1Signature().sign(self.private_key,
                                                   None,
                                                   self.method,
@@ -163,31 +161,20 @@ class OAuthTestRsaSha1Case(RauthTestCase):
                                                   self.oauth_params,
                                                   self.req_kwargs)
         self.assertIsNotNone(oauth_signature)
-        self.assertIsInstance(oauth_signature, str)
+        self.assertIsInstance(oauth_signature, bytes)
         self.assertEqual(oauth_signature,
-                         'MEnbOKBw0lWi5NvGyrABQ6tPygWiNOjGz47y8d+SQfXYrzsvK'
-                         'kzcMgt2VGBRgKsKSdFho36TuCuP75Qe1uou6/rhHrZoSppQ+6'
-                         'vdPSKkriGzSK3azqBacg9ZIIVy/atHPTm6BAvo+0v4ysiI9ci'
-                         '7hJbRkXL0NJVz/p0ZQKO/Jds=')
+                         b'MEnbOKBw0lWi5NvGyrABQ6tPygWiNOjGz47y8d+SQfXYrzsvK'
+                         b'kzcMgt2VGBRgKsKSdFho36TuCuP75Qe1uou6/rhHrZoSppQ+6'
+                         b'vdPSKkriGzSK3azqBacg9ZIIVy/atHPTm6BAvo+0v4ysiI9ci'
+                         b'7hJbRkXL0NJVz/p0ZQKO/Jds=')
 
-    #@skipUnless(has_rsa, "PyCrypto not installed")
     def test_rsasha1_badargument(self):
-        if not self.has_rsa:
-            return
-
         self.assertRaises(ValueError, RsaSha1Signature().sign,
                           None, None,
                           self.method,
                           self.url,
                           self.oauth_params,
                           self.req_kwargs)
-
-    #@skipIf(has_rsa, "PyCrypto is installed")
-    def test_rsasha1_notimplemented(self):
-        if self.has_rsa:
-            return
-
-        self.assertRaises(NotImplementedError, RsaSha1Signature)
 
 
 class OAuthTestPlaintextCase(RauthTestCase):
