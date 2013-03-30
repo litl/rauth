@@ -23,14 +23,14 @@ def parse_utf8_qsl(s):
     d = dict(parse_qsl(s))
 
     for k, v in d.items():
-        if isinstance(k, unicode) and isinstance(v, unicode):
+        if not isinstance(k, bytes) and not isinstance(v, bytes):
             # skip this iteration if we have no keys or values to update
             continue
         d.pop(k)
-        if not isinstance(k, unicode):
-            k = unicode(k, 'utf-8')
-        if not isinstance(v, unicode):
-            v = unicode(v, 'utf-8')
+        if isinstance(k, bytes):
+            k = k.decode('utf-8')
+        if isinstance(v, bytes):
+            v = v.decode('utf-8')
         d[k] = v
     return d
 
