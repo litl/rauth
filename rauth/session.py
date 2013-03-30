@@ -493,6 +493,6 @@ class OflySession(RauthSession):
         ofly_params['oflyApiSig'] = \
             hash_meth(signature_base_string).hexdigest()
 
-        all_params = dict(ofly_params.items() + params.items())
+        all_params = dict(tuple(ofly_params.items()) + tuple(params.items()))
 
         return get_sorted_params(all_params)
