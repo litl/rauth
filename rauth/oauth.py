@@ -141,6 +141,8 @@ class HmacSha1Signature(SignatureMethod):
         signature_base_string = '&'.join(parameters)
 
         # hash the string with HMAC-SHA1
+        key = key.encode('utf-8')
+        signature_base_string = signature_base_string.encode('utf-8')
         hashed = hmac.new(key, signature_base_string, sha1)
 
         # return the signature

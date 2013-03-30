@@ -81,7 +81,7 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
         fake_time = 1
         fake_sig = 'foo'
         fake_sig_meth = 'HMAC-SHA1'
-        fake_nonce = sha1(str(fake_random)).hexdigest()
+        fake_nonce = sha1(str(fake_random).encode('ascii')).hexdigest()
 
         mock_request.return_value = self.response
         mock_random.return_value = fake_random

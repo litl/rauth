@@ -223,7 +223,8 @@ class OAuth1Session(RauthSession):
         oauth_params = {}
 
         oauth_params['oauth_consumer_key'] = self.consumer_key
-        oauth_params['oauth_nonce'] = sha1(str(random())).hexdigest()
+        oauth_params['oauth_nonce'] = sha1(
+            str(random()).encode('ascii')).hexdigest()
         oauth_params['oauth_signature_method'] = self.signature.NAME
         oauth_params['oauth_timestamp'] = int(time())
 
@@ -482,6 +483,9 @@ class OflySession(RauthSession):
         if len(params):
             signature_base_string += get_sorted_params(params) + '&'
         signature_base_string += get_sorted_params(ofly_params)
+
+        if not isinstance(signature_base_string, bytes):
+            signature_base_string = signature_base_string.encode('utf-8')
 
         ofly_params['oflyApiSig'] = \
             hash_meth(signature_base_string).hexdigest()
