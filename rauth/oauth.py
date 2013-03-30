@@ -10,9 +10,8 @@ import base64
 import hmac
 
 from hashlib import sha1
-from urllib import quote, urlencode
-from urlparse import urlsplit, urlunsplit
 
+from rauth.compat import quote, urlencode, urlsplit, urlunsplit
 from rauth.utils import FORM_URLENCODED
 
 
