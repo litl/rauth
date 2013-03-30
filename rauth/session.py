@@ -470,7 +470,7 @@ class OflySession(RauthSession):
             raise TypeError('hash_meth must be one of "sha1", "md5"')
 
         now = datetime.utcnow()
-        milliseconds = now.microsecond / 1000
+        milliseconds = now.microsecond // 1000
 
         time_format = '%Y-%m-%dT%H:%M:%S.{0}Z'.format(milliseconds)
         ofly_params = {'oflyAppId': app_id,
