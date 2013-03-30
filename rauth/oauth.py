@@ -10,18 +10,17 @@ import base64
 import hmac
 
 from hashlib import sha1
-from urllib import quote, urlencode
-from urlparse import urlsplit, urlunsplit
 
+from rauth.compat import quote, urlencode, urlsplit, urlunsplit
 from rauth.utils import FORM_URLENCODED
 
 
 class SignatureMethod(object):
     '''A base class for signature methods providing a set of common methods.'''
     def _encode_utf8(self, s):
-        if isinstance(s, unicode):
+        if not isinstance(s, bytes):
             return s.encode('utf-8')
-        return unicode(s, 'utf-8').encode('utf-8')
+        return s.decode('utf-8').encode('utf-8')
 
     def _escape(self, s):
         '''
@@ -142,10 +141,12 @@ class HmacSha1Signature(SignatureMethod):
         signature_base_string = '&'.join(parameters)
 
         # hash the string with HMAC-SHA1
+        key = key.encode('utf-8')
+        signature_base_string = signature_base_string.encode('utf-8')
         hashed = hmac.new(key, signature_base_string, sha1)
 
         # return the signature
-        return base64.b64encode(hashed.digest())
+        return base64.b64encode(hashed.digest()).decode('utf-8')
 
 
 class RsaSha1Signature(SignatureMethod):

@@ -12,11 +12,10 @@ from test_service import HttpMixin, RequestMixin
 from rauth.service import OAuth1Service
 from rauth.session import OAUTH1_DEFAULT_TIMEOUT, OAuth1Session
 from rauth.utils import CaseInsensitiveDict, ENTITY_METHODS, FORM_URLENCODED
+from rauth.compat import parse_qsl, quote, is_basestring, iteritems
 
 from copy import deepcopy
 from hashlib import sha1
-from urllib import quote
-from urlparse import parse_qsl
 
 from mock import patch
 
@@ -59,7 +58,7 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
     def fake_get_auth_header(self, oauth_params, realm=None):
         auth_header = 'OAuth realm="{realm}"'.format(realm=realm)
         params = ''
-        for k, v in oauth_params.iteritems():
+        for k, v in iteritems(oauth_params):
             params += ',{key}="{value}"'.format(key=k, value=quote(str(v)))
         auth_header += params
         return auth_header
@@ -82,7 +81,7 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
         fake_time = 1
         fake_sig = 'foo'
         fake_sig_meth = 'HMAC-SHA1'
-        fake_nonce = sha1(str(fake_random)).hexdigest()
+        fake_nonce = sha1(str(fake_random).encode('ascii')).hexdigest()
 
         mock_request.return_value = self.response
         mock_random.return_value = fake_random
@@ -119,10 +118,10 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
         form_urlencoded = \
             kwargs['headers'].get('Content-Type') == FORM_URLENCODED
 
-        if isinstance(kwargs.get('params'), basestring):
+        if is_basestring(kwargs.get('params')):
             kwargs['params'] = dict(parse_qsl(kwargs['params']))
 
-        if isinstance(kwargs.get('data'), basestring) and form_urlencoded:
+        if is_basestring(kwargs.get('data')) and form_urlencoded:
             kwargs['data'] = dict(parse_qsl(kwargs['data']))
 
         oauth_params = {'oauth_consumer_key': session.consumer_key,

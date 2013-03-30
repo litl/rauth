@@ -4,5 +4,4 @@ nose==1.2.1
 pep8==1.4.2
 pyflakes==0.6.1
 requests==1.1.0
-unittest2==0.5.1
 yanc==0.2.3
