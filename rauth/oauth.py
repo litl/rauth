@@ -18,9 +18,9 @@ from rauth.utils import FORM_URLENCODED
 class SignatureMethod(object):
     '''A base class for signature methods providing a set of common methods.'''
     def _encode_utf8(self, s):
-        if isinstance(s, unicode):
+        if not isinstance(s, bytes):
             return s.encode('utf-8')
-        return unicode(s, 'utf-8').encode('utf-8')
+        return s.decode('utf-8').encode('utf-8')
 
     def _escape(self, s):
         '''
