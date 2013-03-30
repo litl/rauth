@@ -12,11 +12,11 @@ from test_service import (FakeHexdigest, HttpMixin, MutableDatetime,
 
 from rauth.service import OflyService
 from rauth.session import OFLY_DEFAULT_TIMEOUT, OflySession
+from rauth.compat import parse_qsl, urlsplit, is_basestring
 
 from copy import deepcopy
 from datetime import datetime
 from functools import wraps
-from urlparse import parse_qsl, urlsplit
 
 from mock import patch
 
@@ -104,7 +104,7 @@ class OflyServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
         url = self.session._set_url(url)
 
         kwargs.setdefault('params', {})
-        if isinstance(kwargs['params'], basestring):
+        if is_basestring(kwargs['params']):
             kwargs['params'] = dict(parse_qsl(kwargs['params']))
 
         url_path = urlsplit(url).path
