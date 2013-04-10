@@ -3,6 +3,11 @@ Rauth Changelog
 
 This provides a list of changes to rauth by release.
 
+
+Changes in Version 0.5.4
+
+  * BUGFIX Corrected adding header to OAuth 2.0 where no access token existed
+
 Changes in Version 0.5.3
 
   * Added an ad hoc check against double signing in OAuth 1.0/a
