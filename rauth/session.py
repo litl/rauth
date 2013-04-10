@@ -329,7 +329,7 @@ class OAuth2Session(RauthSession):
         if isinstance(req_kwargs['params'], basestring):
             req_kwargs['params'] = dict(parse_qsl(req_kwargs['params']))
 
-        if bearer_auth:
+        if bearer_auth and self.access_token is not None:
             bearer_token = 'Bearer {token}'.format(token=self.access_token)
             bearer_header = {'Authorization': bearer_token}
             req_kwargs.setdefault('headers', {})
