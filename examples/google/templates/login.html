@@ -5,3 +5,5 @@
 {% endfor %}
 <h1>Login</h1>
 <a href ="{{ url_for('login') }}">Login with Google</a>
+<h1>Reuse</h1>
+<a href ="{{ url_for('reuse') }}">Reuse old login with Google as {{ config['GOOGLE_TEST_EMAIL'] }}</a>
