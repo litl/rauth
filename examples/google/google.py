@@ -19,6 +19,7 @@ from flask.ext.sqlalchemy import SQLAlchemy
 
 from rauth.service import OAuth2Service
 
+import time
 
 # Flask config
 SQLALCHEMY_DATABASE_URI = 'sqlite:///google.db'
@@ -44,20 +45,29 @@ google = OAuth2Service(name='google',
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True)
-    fb_id = db.Column(db.String(120))
+    google_id = db.Column(db.String(120))
+    access_token = db.Column(db.String(500))
+    expires_at = db.Column(db.Integer)
 
-    def __init__(self, username, fb_id):
+    def __init__(self, username, google_id, access_token, expires_at):
         self.username = username
-        self.fb_id = fb_id
+        self.google_id = google_id
+        self.access_token = access_token
+        self.expires_at = expires_at
 
     def __repr__(self):
         return '<User %r>' % self.username
 
     @staticmethod
-    def get_or_create(username, fb_id):
+    def get(username):
+        user = User.query.filter_by(username=username).first()
+        return user
+
+    @staticmethod
+    def get_or_create(username, google_id, access_token, expires_at):
         user = User.query.filter_by(username=username).first()
         if user is None:
-            user = User(username, fb_id)
+            user = User(username, google_id, access_token, expires_at)
             db.session.add(user)
             db.session.commit()
         return user
@@ -72,11 +82,6 @@ def index():
 @app.route('/google/login')
 def login():
     redirect_uri = url_for('authorized', _external=True)
-    params = {
-        'scope': 'profile email',
-        'response_type': 'token',
-        'redirect_uri': redirect_uri
-    }
     params = {
         'scope': 'email',
         'response_type': 'code',
@@ -105,12 +110,13 @@ def authorized():
     response = response.json()
     access_token = response['access_token']
     expires_in = response['expires_in']
+    expires_at = int(time.time()) + response['expires_in']
     session = google.get_session(access_token)
 
     # the "me" response
     user = session.get('https://www.googleapis.com/oauth2/v1/userinfo').json()
 
-    #User.get_or_create(me['username'], me['id'])
+    User.get_or_create(user['email'], user['id'], response['access_token'], expires_at)
 
     flash('Logged in as ' + user['email'])
     return redirect(url_for('index'))
