@@ -1,0 +1,7 @@
+<!doctype html>
+<title>Google Login</title>
+{% for message in get_flashed_messages() %}
+{{ message }}
+{% endfor %}
+<h1>Login</h1>
+<a href ="{{ url_for('login') }}">Login with Google</a>
