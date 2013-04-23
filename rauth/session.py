@@ -57,7 +57,7 @@ class OAuth1Session(RauthSession):
         session = OAuth1Session('123',
                                 '456',
                                 access_token='321',
-                                access_token_secret'654')
+                                access_token_secret='654')
 
     You now have a session object which can be used to make requests exactly as
     you would with a normal Requests' :class:`~requests.sessions.Session`
