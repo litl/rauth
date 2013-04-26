@@ -6,6 +6,7 @@
     Specially wrapped Requests' :class:`~request.sessions.Session` objects.
 '''
 
+from copy import deepcopy
 from datetime import datetime
 from hashlib import sha1, md5
 from random import random
@@ -154,6 +155,11 @@ class OAuth1Session(RauthSession):
         req_kwargs.setdefault('timeout', OAUTH1_DEFAULT_TIMEOUT)
 
         oauth_params = self._get_oauth_params(req_kwargs)
+
+        # ensure we always create new instances of dictionary elements
+        for key, value in req_kwargs.items():
+            if isinstance(value, dict):
+                req_kwargs[key] = deepcopy(value)
 
         # sign the request
         oauth_params['oauth_signature'] = \
