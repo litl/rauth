@@ -1,0 +1,9 @@
+<!doctype html>
+<title>Login</title>
+{% for message in get_flashed_messages() %}
+{{ message }}
+{% endfor %}
+<h1>Login</h1>
+<a href ="{{ url_for('login') }}">Login with OAuth2</a>
+<h1>About</h1>
+<a href="{{ url_for('about') }}">About</a> If you are not logged in then you will be redirected to login page.
