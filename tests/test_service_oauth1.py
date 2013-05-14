@@ -200,6 +200,17 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
         expected_fmt = 'http://example.com/authorize?oauth_token={0}'
         self.assertEqual(url, expected_fmt.format(request_token))
 
+    def test_get_authorize_url_with_url_encoded_characters(self):
+        token = 'uDV8XWNLSJjzMUSVfbG1gYHWMjY%3D'
+        token_secret = 'e%2Bt9QCndiw1%2BtJbhy5UYVMAPTPo%3D'
+        response_fmt = 'oauth_token={0}&oauth_token_secret={1}'
+        self.response.content = response_fmt.format(token, token_secret)
+        request_token, request_token_secret = self.service.get_request_token()
+
+        url = self.service.get_authorize_url(request_token)
+        expected_fmt = 'http://example.com/authorize?oauth_token={0}'
+        self.assertEqual(url, expected_fmt.format(token))
+
     def test_get_raw_access_token(self):
         self.response.content = 'oauth_token=foo&oauth_token_secret=bar'
         request_token, request_token_secret = self.service.get_request_token()

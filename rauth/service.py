@@ -9,7 +9,7 @@
 from rauth.session import OAuth1Session, OAuth2Session, OflySession
 from rauth.utils import ENTITY_METHODS, parse_utf8_qsl
 
-from urllib import quote, urlencode
+from urllib import urlencode
 
 PROCESS_TOKEN_ERROR = ('Decoder failed to handle {key} with data as returned '
                        'by provider. A different decoder may be needed. '
@@ -225,7 +225,7 @@ class OAuth1Service(Service):
             request querystring.
         :type \*\*params: dict
         '''
-        params.update({'oauth_token': quote(request_token)})
+        params.update({'oauth_token': request_token})
         return self.authorize_url + '?' + urlencode(params)
 
     def get_raw_access_token(self,
