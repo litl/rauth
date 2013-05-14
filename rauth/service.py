@@ -20,7 +20,7 @@ def process_token_request(r, decoder, *args):
     try:
         data = decoder(r.content)
         return tuple(data[key] for key in args)
-    except KeyError as e:  # pragma: no cover
+    except KeyError, e:  # pragma: no cover
         bad_key = e.args[0]
         raise KeyError(PROCESS_TOKEN_ERROR.format(key=bad_key, raw=r.content))
 
