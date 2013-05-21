@@ -12,7 +12,7 @@ from test_service import HttpMixin, RequestMixin
 from rauth.service import OAuth1Service
 from rauth.session import OAUTH1_DEFAULT_TIMEOUT, OAuth1Session
 from rauth.utils import CaseInsensitiveDict, ENTITY_METHODS, FORM_URLENCODED
-from rauth.compat import parse_qsl, quote, is_basestring, iteritems
+from rauth.compat import basestring, parse_qsl, quote, str, iteritems
 
 from copy import deepcopy
 from hashlib import sha1
@@ -118,10 +118,10 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
         form_urlencoded = \
             kwargs['headers'].get('Content-Type') == FORM_URLENCODED
 
-        if is_basestring(kwargs.get('params')):
+        if isinstance(kwargs.get('params'), basestring):
             kwargs['params'] = dict(parse_qsl(kwargs['params']))
 
-        if is_basestring(kwargs.get('data')) and form_urlencoded:
+        if isinstance(kwargs.get('data'), basestring) and form_urlencoded:
             kwargs['data'] = dict(parse_qsl(kwargs['data']))
 
         oauth_params = {'oauth_consumer_key': session.consumer_key,

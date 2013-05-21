@@ -12,7 +12,8 @@ from hashlib import sha1, md5
 from random import random
 from time import time
 
-from rauth.compat import quote, parse_qsl, urljoin, urlsplit, is_basestring
+from rauth.compat import (basestring, bytes, quote, parse_qsl, str, urljoin,
+                          urlsplit)
 from rauth.oauth import HmacSha1Signature
 from rauth.utils import (absolute_url, CaseInsensitiveDict, ENTITY_METHODS,
                          FORM_URLENCODED, get_sorted_params,
@@ -145,10 +146,10 @@ class OAuth1Session(RauthSession):
             req_kwargs['headers'].get('Content-Type') == FORM_URLENCODED
 
         # inline string conversion
-        if is_basestring(req_kwargs.get('params')):
+        if isinstance(req_kwargs.get('params'), basestring):
             req_kwargs['params'] = dict(parse_qsl(req_kwargs['params']))
 
-        if is_basestring(req_kwargs.get('data')) and form_urlencoded:
+        if isinstance(req_kwargs.get('data'), basestring) and form_urlencoded:
             req_kwargs['data'] = dict(parse_qsl(req_kwargs['data']))
 
         req_kwargs.setdefault('timeout', OAUTH1_DEFAULT_TIMEOUT)
@@ -332,7 +333,7 @@ class OAuth2Session(RauthSession):
 
         url = self._set_url(url)
 
-        if is_basestring(req_kwargs['params']):
+        if isinstance(req_kwargs['params'], basestring):
             req_kwargs['params'] = dict(parse_qsl(req_kwargs['params']))
 
         if bearer_auth and self.access_token is not None:
@@ -433,7 +434,7 @@ class OflySession(RauthSession):
         assert user_id is not None, \
             'An oflyUserid must be provided as `user_id`.'
 
-        if is_basestring(req_kwargs['params']):
+        if isinstance(req_kwargs['params'], basestring):
             req_kwargs['params'] = dict(parse_qsl(req_kwargs['params']))
 
         req_kwargs['params'].update({'oflyUserid': user_id})
