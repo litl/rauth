@@ -6,7 +6,7 @@
     General utilities.
 '''
 
-from rauth.compat import parse_qsl, is_basestring
+from rauth.compat import basestring, bytes, parse_qsl
 
 from requests.structures import CaseInsensitiveDict as cidict
 
@@ -57,14 +57,14 @@ class CaseInsensitiveDict(cidict):
     def _get_lowered_d(self, d):
         lowered_d = {}
         for key in d:
-            if is_basestring(key):
+            if isinstance(key, basestring):
                 lowered_d[key.lower()] = d[key]
             else:  # pragma: no cover
                 lowered_d[key] = d[key]
         return lowered_d
 
     def setdefault(self, key, default):
-        if is_basestring(key):
+        if isinstance(key, basestring):
             key = key.lower()
 
         super(CaseInsensitiveDict, self).setdefault(key, default)

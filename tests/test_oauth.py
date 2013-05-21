@@ -7,6 +7,7 @@
 '''
 
 from base import RauthTestCase
+from rauth.compat import str
 from rauth.oauth import (HmacSha1Signature, RsaSha1Signature,
                          PlaintextSignature)
 from rauth.utils import FORM_URLENCODED
@@ -28,8 +29,8 @@ class OAuthTestHmacSha1Case(RauthTestCase):
                                                    self.oauth_params,
                                                    self.req_kwargs)
         self.assertIsNotNone(oauth_signature)
-        self.assertIsInstance(oauth_signature, bytes)
-        self.assertEqual(oauth_signature, b'cYzjVXCOk62KoYmJ+iCvcAcgfp8=')
+        self.assertIsInstance(oauth_signature, str)
+        self.assertEqual(oauth_signature, u'cYzjVXCOk62KoYmJ+iCvcAcgfp8=')
 
     def test_normalize_request_parameters_params(self):
         # params as a dict
@@ -90,7 +91,7 @@ class OAuthTestHmacSha1Case(RauthTestCase):
                                        self.url,
                                        self.oauth_params,
                                        req_kwargs)
-        self.assertEqual(b'cYzjVXCOk62KoYmJ+iCvcAcgfp8=',  sig)
+        self.assertEqual(u'cYzjVXCOk62KoYmJ+iCvcAcgfp8=',  sig)
 
     def test_sign_with_data(self):
         # in the event a string is already UTF-8
@@ -102,7 +103,7 @@ class OAuthTestHmacSha1Case(RauthTestCase):
                                        self.url,
                                        self.oauth_params,
                                        req_kwargs)
-        self.assertEqual(b'JzmJUmqjdNYBJsJWbtQKXnc0W8w=',  sig)
+        self.assertEqual(u'JzmJUmqjdNYBJsJWbtQKXnc0W8w=',  sig)
 
     def test_remove_query_string(self):
         # can't sign the URL with the query string so
