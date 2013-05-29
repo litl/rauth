@@ -73,7 +73,7 @@ class OAuth2ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
         if isinstance(kwargs.get('params', {}), basestring):
             kwargs['params'] = dict(parse_qsl(kwargs['params']))
 
-        if bearer_auth:
+        if bearer_auth and self.access_token is not None:
             bearer_token = 'Bearer {token}'.format(token=self.access_token)
             bearer_header = {'Authorization': bearer_token}
             kwargs.setdefault('headers', {})
