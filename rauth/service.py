@@ -226,7 +226,7 @@ class OAuth1Service(Service):
             request querystring.
         :type \*\*params: dict
         '''
-        params.update({'oauth_token': quote(request_token)})
+        params.update({'oauth_token': request_token})
         return self.authorize_url + '?' + urlencode(params)
 
     def get_raw_access_token(self,
