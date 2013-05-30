@@ -7,7 +7,7 @@
 '''
 
 from base import RauthTestCase
-from test_service import HttpMixin, RequestMixin
+from test_service import HttpMixin, ServiceMixin, RequestMixin
 
 from rauth.service import OAuth1Service
 from rauth.session import OAUTH1_DEFAULT_TIMEOUT, OAuth1Session
@@ -24,9 +24,11 @@ import rauth
 import requests
 
 import json
+import pickle
 
 
-class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
+class OAuth1ServiceTestCase(RauthTestCase, ServiceMixin, HttpMixin,
+                            RequestMixin):
     consumer_key = '000'
     consumer_secret = '111'
 
@@ -305,3 +307,11 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
         self.response.content = resp
         s = self.service.get_auth_session('foo', 'bar')
         self.assertIsInstance(s, OAuth1Session)
+
+    def test_pickle_session(self):
+        session = pickle.loads(pickle.dumps(self.session))
+
+        # Add the fake request back to the session
+        session.request = self.fake_request
+        r = session.request('GET', 'http://example.com/', header_auth=True)
+        self.assert_ok(r)

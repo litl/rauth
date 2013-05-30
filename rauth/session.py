@@ -25,6 +25,8 @@ OAUTH1_DEFAULT_TIMEOUT = OAUTH2_DEFAULT_TIMEOUT = OFLY_DEFAULT_TIMEOUT = 300.0
 
 
 class RauthSession(Session):
+    __attrs__ = Session.__attrs__ + ['service']
+
     def __init__(self, service):
         #: A back reference to a service wrapper, if we're using one.
         self.service = service
@@ -88,6 +90,12 @@ class OAuth1Session(RauthSession):
         `None`.
     :type service: :class:`rauth.Service`
     '''
+    __attrs__ = RauthSession.__attrs__ + ['consumer_key',
+                                          'consumer_secret',
+                                          'access_token',
+                                          'access_token_secret',
+                                          'signature']
+
     VERSION = '1.0'
 
     def __init__(self,

@@ -27,6 +27,8 @@ def process_token_request(r, decoder, *args):
 
 
 class Service(object):
+    __attrs__ = ['name', 'base_url', 'authorize_url']
+
     def __init__(self, name, base_url, authorize_url):
         #: The service name, e.g. 'twitter'.
         self.name = name
@@ -36,6 +38,14 @@ class Service(object):
 
         #: The authorization URL.
         self.authorize_url = authorize_url
+
+    def __getstate__(self):
+        return dict((attr, getattr(self, attr, None)) for
+                    attr in self.__attrs__)
+
+    def __setstate__(self, state):
+        for attr, value in state.items():
+            setattr(self, attr, value)
 
 
 class OAuth1Service(Service):
@@ -114,6 +124,12 @@ class OAuth1Service(Service):
         :class:`rauth.OAuth1Session <OAuth1Session>`
     :type session_obj: :class:`Session`
     '''
+    __attrs__ = Service.__attrs__ + ['consumer_key',
+                                     'consumer_secret',
+                                     'request_token_url',
+                                     'access_token_url',
+                                     'session_obj']
+
     def __init__(self,
                  consumer_key,
                  consumer_secret,
@@ -389,6 +405,11 @@ class OAuth2Service(Service):
         :class:`OAuth2Session`
     :type session_obj: :class:`rauth.Session`
     '''
+    __attrs__ = Service.__attrs__ + ['client_id',
+                                     'client_secret',
+                                     'access_token_url',
+                                     'session_obj']
+
     def __init__(self,
                  client_id,
                  client_secret,
@@ -550,6 +571,11 @@ class OflyService(Service):
         `rauth.OflySession`
     :type session_obj: :class:`rauth.Session`
     '''
+    __attrs__ = Service.__attrs__ + ['app_id',
+                                     'app_secret',
+                                     'user_id',
+                                     'session_obj']
+
     def __init__(self,
                  app_id,
                  app_secret,

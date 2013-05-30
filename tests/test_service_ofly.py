@@ -8,7 +8,7 @@
 
 from base import RauthTestCase
 from test_service import (FakeHexdigest, HttpMixin, MutableDatetime,
-                          RequestMixin)
+                          RequestMixin, ServiceMixin)
 
 from rauth.service import OflyService
 from rauth.session import OFLY_DEFAULT_TIMEOUT, OflySession
@@ -22,11 +22,13 @@ from mock import patch
 
 import requests
 
+import pickle
 
-class OflyServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
+
+class OflyServiceTestCase(RauthTestCase, HttpMixin, RequestMixin,
+                          ServiceMixin):
     app_id = '000'
     app_secret = '111'
-
     user_id = '123'
 
     def setUp(self):
@@ -164,3 +166,14 @@ class OflyServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
     def test_get_auth_session(self):
         s = self.service.get_auth_session('foo')
         self.assertIsInstance(s, OflySession)
+
+    def test_pickle_session(self):
+        session = pickle.loads(pickle.dumps(self.session))
+
+        # Add the fake request back to the session
+        session.request = self.fake_request
+        r = self.session.request('GET',
+                                 'http://example.com/',
+                                 user_id=self.user_id,
+                                 hash_meth='md5')
+        self.assert_ok(r)
