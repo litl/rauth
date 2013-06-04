@@ -68,8 +68,6 @@ class CaseInsensitiveDict(cidict):
             key = key.lower()
 
         super(CaseInsensitiveDict, self).setdefault(key, default)
-        self._clear_lower_keys()
 
     def update(self, d):
         super(CaseInsensitiveDict, self).update(self._get_lowered_d(d))
-        self._clear_lower_keys()
