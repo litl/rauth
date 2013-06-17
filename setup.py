@@ -11,13 +11,14 @@ if sys.argv[-1] == 'test':
     sys.exit(status)
 
 install_requires = ['requests==1.2.0']
-if sys.version_info[0] == 2 and sys.version_info[1] < 7:
+if os.environ.get('TRAVIS') == 'true' and \
+        os.environ['TRAVIS_PYTHON_VERSION'].startswith('2.6'):
     install_requires.append('unittest2>=0.5.1')
 
 setup(name='rauth',
       version=__version__,
       description='A Python library for OAuth 1.0/a, 2.0, and Ofly.',
-      long_description=open('README.markdown').read(),
+      long_description=open('README.rst').read(),
       author='Max Countryman',
       author_email='max@litl.com',
       url='https://github.com/litl/rauth',

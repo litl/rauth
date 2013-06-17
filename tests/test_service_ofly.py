@@ -8,25 +8,27 @@
 
 from base import RauthTestCase
 from test_service import (FakeHexdigest, HttpMixin, MutableDatetime,
-                          RequestMixin)
+                          RequestMixin, ServiceMixin)
 
 from rauth.service import OflyService
 from rauth.session import OFLY_DEFAULT_TIMEOUT, OflySession
+from rauth.compat import basestring, parse_qsl, str, urlsplit
 
 from copy import deepcopy
 from datetime import datetime
 from functools import wraps
-from urlparse import parse_qsl, urlsplit
 
 from mock import patch
 
 import requests
 
+import pickle
 
-class OflyServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
+
+class OflyServiceTestCase(RauthTestCase, HttpMixin, RequestMixin,
+                          ServiceMixin):
     app_id = '000'
     app_secret = '111'
-
     user_id = '123'
 
     def setUp(self):
@@ -117,10 +119,11 @@ class OflyServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
 
         signature_base_string += self.fake_get_sorted_params(ofly_params)
 
-        all_params = dict(ofly_params.items() + kwargs['params'].items())
+        all_params = dict(tuple(ofly_params.items())
+                          + tuple(kwargs['params'].items()))
 
         kwargs['params'] = self.fake_get_sorted_params(all_params)
-        if isinstance(kwargs['params'], unicode):
+        if not isinstance(kwargs['params'], bytes):
             kwargs['params'] = kwargs['params'].encode('utf-8')
 
         mock_request.assert_called_with(method,
@@ -163,3 +166,14 @@ class OflyServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
     def test_get_auth_session(self):
         s = self.service.get_auth_session('foo')
         self.assertIsInstance(s, OflySession)
+
+    def test_pickle_session(self):
+        session = pickle.loads(pickle.dumps(self.session))
+
+        # Add the fake request back to the session
+        session.request = self.fake_request
+        r = self.session.request('GET',
+                                 'http://example.com/',
+                                 user_id=self.user_id,
+                                 hash_meth='md5')
+        self.assert_ok(r)

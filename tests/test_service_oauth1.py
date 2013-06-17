@@ -7,16 +7,15 @@
 '''
 
 from base import RauthTestCase
-from test_service import HttpMixin, RequestMixin
+from test_service import HttpMixin, ServiceMixin, RequestMixin
 
 from rauth.service import OAuth1Service
 from rauth.session import OAUTH1_DEFAULT_TIMEOUT, OAuth1Session
 from rauth.utils import CaseInsensitiveDict, ENTITY_METHODS, FORM_URLENCODED
+from rauth.compat import basestring, parse_qsl, quote, str, iteritems
 
 from copy import deepcopy
 from hashlib import sha1
-from urllib import quote
-from urlparse import parse_qsl
 
 from mock import patch
 
@@ -25,9 +24,11 @@ import rauth
 import requests
 
 import json
+import pickle
 
 
-class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
+class OAuth1ServiceTestCase(RauthTestCase, ServiceMixin, HttpMixin,
+                            RequestMixin):
     consumer_key = '000'
     consumer_secret = '111'
 
@@ -59,7 +60,7 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
     def fake_get_auth_header(self, oauth_params, realm=None):
         auth_header = 'OAuth realm="{realm}"'.format(realm=realm)
         params = ''
-        for k, v in oauth_params.iteritems():
+        for k, v in iteritems(oauth_params):
             params += ',{key}="{value}"'.format(key=k, value=quote(str(v)))
         auth_header += params
         return auth_header
@@ -82,7 +83,7 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
         fake_time = 1
         fake_sig = 'foo'
         fake_sig_meth = 'HMAC-SHA1'
-        fake_nonce = sha1(str(fake_random)).hexdigest()
+        fake_nonce = sha1(str(fake_random).encode('ascii')).hexdigest()
 
         mock_request.return_value = self.response
         mock_random.return_value = fake_random
@@ -306,3 +307,11 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, HttpMixin):
         self.response.content = resp
         s = self.service.get_auth_session('foo', 'bar')
         self.assertIsInstance(s, OAuth1Session)
+
+    def test_pickle_session(self):
+        session = pickle.loads(pickle.dumps(self.session))
+
+        # Add the fake request back to the session
+        session.request = self.fake_request
+        r = session.request('GET', 'http://example.com/', header_auth=True)
+        self.assert_ok(r)

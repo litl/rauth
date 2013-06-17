@@ -11,9 +11,9 @@ from datetime import datetime
 from hashlib import sha1, md5
 from random import random
 from time import time
-from urllib import quote
-from urlparse import parse_qsl, urljoin, urlsplit
 
+from rauth.compat import (basestring, bytes, quote, parse_qsl, str, urljoin,
+                          urlsplit)
 from rauth.oauth import HmacSha1Signature
 from rauth.utils import (absolute_url, CaseInsensitiveDict, ENTITY_METHODS,
                          FORM_URLENCODED, get_sorted_params,
@@ -25,6 +25,8 @@ OAUTH1_DEFAULT_TIMEOUT = OAUTH2_DEFAULT_TIMEOUT = OFLY_DEFAULT_TIMEOUT = 300.0
 
 
 class RauthSession(Session):
+    __attrs__ = Session.__attrs__ + ['service']
+
     def __init__(self, service):
         #: A back reference to a service wrapper, if we're using one.
         self.service = service
@@ -88,6 +90,12 @@ class OAuth1Session(RauthSession):
         `None`.
     :type service: :class:`rauth.Service`
     '''
+    __attrs__ = RauthSession.__attrs__ + ['consumer_key',
+                                          'consumer_secret',
+                                          'access_token',
+                                          'access_token_secret',
+                                          'signature']
+
     VERSION = '1.0'
 
     def __init__(self,
@@ -230,7 +238,8 @@ class OAuth1Session(RauthSession):
         oauth_params = {}
 
         oauth_params['oauth_consumer_key'] = self.consumer_key
-        oauth_params['oauth_nonce'] = sha1(str(random())).hexdigest()
+        oauth_params['oauth_nonce'] = sha1(
+            str(random()).encode('ascii')).hexdigest()
         oauth_params['oauth_signature_method'] = self.signature.NAME
         oauth_params['oauth_timestamp'] = int(time())
 
@@ -447,7 +456,7 @@ class OflySession(RauthSession):
         # NOTE: Requests can't seem to handle unicode objects, instead we can
         # encode a string here.
         req_kwargs['params'] = params
-        if isinstance(req_kwargs['params'], unicode):
+        if not isinstance(req_kwargs['params'], bytes):
             req_kwargs['params'] = req_kwargs['params'].encode('utf-8')
 
         return super(OflySession, self).request(method, url, **req_kwargs)
@@ -476,7 +485,7 @@ class OflySession(RauthSession):
             raise TypeError('hash_meth must be one of "sha1", "md5"')
 
         now = datetime.utcnow()
-        milliseconds = now.microsecond / 1000
+        milliseconds = now.microsecond // 1000
 
         time_format = '%Y-%m-%dT%H:%M:%S.{0}Z'.format(milliseconds)
         ofly_params = {'oflyAppId': app_id,
@@ -490,9 +499,12 @@ class OflySession(RauthSession):
             signature_base_string += get_sorted_params(params) + '&'
         signature_base_string += get_sorted_params(ofly_params)
 
+        if not isinstance(signature_base_string, bytes):
+            signature_base_string = signature_base_string.encode('utf-8')
+
         ofly_params['oflyApiSig'] = \
             hash_meth(signature_base_string).hexdigest()
 
-        all_params = dict(ofly_params.items() + params.items())
+        all_params = dict(tuple(ofly_params.items()) + tuple(params.items()))
 
         return get_sorted_params(all_params)
