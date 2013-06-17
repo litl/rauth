@@ -22,8 +22,8 @@ if is_py2:  # pragma: no cover
     from urlparse import parse_qsl, urlsplit, urlunsplit, urljoin
 
     bytes = str
-    str = unicode
-    basestring = basestring
+    str = unicode  # NOQA
+    basestring = basestring  # NOQA
 
     def iteritems(d):
         return d.iteritems()

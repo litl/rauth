@@ -9,7 +9,7 @@
 from rauth.session import OAuth1Session, OAuth2Session, OflySession
 from rauth.utils import ENTITY_METHODS, parse_utf8_qsl
 
-from rauth.compat import quote, urlencode
+from rauth.compat import urlencode
 
 
 PROCESS_TOKEN_ERROR = ('Decoder failed to handle {key} with data as returned '
@@ -21,7 +21,7 @@ def process_token_request(r, decoder, *args):
     try:
         data = decoder(r.content)
         return tuple(data[key] for key in args)
-    except KeyError, e:  # pragma: no cover
+    except KeyError as e:  # pragma: no cover
         bad_key = e.args[0]
         raise KeyError(PROCESS_TOKEN_ERROR.format(key=bad_key, raw=r.content))
 
