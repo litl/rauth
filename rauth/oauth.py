@@ -64,7 +64,7 @@ class SignatureMethod(object):
         normalized = []
 
         params = req_kwargs.get('params', {})
-        data = req_kwargs.get('data', {})
+        data = req_kwargs.get('data') or {}
         headers = req_kwargs.get('headers', {})
 
         # process request parameters
