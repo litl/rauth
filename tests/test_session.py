@@ -63,6 +63,12 @@ class OAuth1SessionTestCase(RauthTestCase, RequestMixin):
         self.assert_ok(r)
 
     @patch.object(requests.Session, 'request')
+    def test_request_with_optional_params_without_data(self, mock_request):
+        mock_request.return_value = self.response
+        r = self.session.request('POST', 'http://example.com/')
+        self.assert_ok(r)
+
+    @patch.object(requests.Session, 'request')
     def test_request_with_header_auth(self, mock_request):
         mock_request.return_value = self.response
         r = self.session.request('GET',
