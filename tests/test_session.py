@@ -63,12 +63,100 @@ class OAuth1SessionTestCase(RauthTestCase, RequestMixin):
         self.assert_ok(r)
 
     @patch.object(requests.Session, 'request')
+    def test_request_with_optional_params_without_data(self, mock_request):
+        mock_request.return_value = self.response
+        r = self.session.request('POST', 'http://example.com/')
+        self.assert_ok(r)
+
+    @patch.object(requests.Session, 'request')
     def test_request_with_header_auth(self, mock_request):
         mock_request.return_value = self.response
         r = self.session.request('GET',
                                  'http://example.com/',
                                  header_auth=True)
         self.assert_ok(r)
+
+    def test_headers_case_insensitive(self):
+        def start_test_server():
+            from wsgiref.util import setup_testing_defaults
+            from wsgiref.headers import Headers
+            from wsgiref.simple_server import make_server
+            from threading import Thread
+
+            def test_server(environ, start_response):
+                setup_testing_defaults(environ)
+
+                status = '200 OK'
+                headers = [('Content-type', 'text/plain')]
+
+                start_response(status, headers)
+
+                env = [(str(key), str(value))
+                       for key, value in environ.iteritems()]
+
+                ret = json.dumps(dict(env))
+
+                return ret
+
+            def create_server():
+                httpd = make_server('', 8000, test_server)
+                httpd.serve_forever()
+
+            t = Thread(target=create_server)
+            t.setDaemon(True)
+            t.start()
+
+        start_test_server()
+
+        # case 1 (case-insensitive)
+        headers = {
+            'aUtHoRiZaTiOn': 'foobar'  # Authorization
+        }
+        r = self.session.request('GET',
+                                 'http://127.0.0.1:8000/',
+                                 headers=headers,
+                                 header_auth=True,
+                             )
+
+        self.assertEqual(r.status_code, 200)
+        data = json.loads(r.content)
+        self.assertEqual(data['CONTENT_TYPE'], 'text/plain')
+        self.assertNotIn(data['HTTP_AUTHORIZATION'], 'foobar')
+
+        # case 2 (case-insensitive)
+        headers = {
+            'contenT-typE': 'text/html',
+        }
+        r = self.session.request('GET',
+                                 'http://127.0.0.1:8000/',
+                                 headers=headers,
+                                 header_auth=True,
+                             )
+
+        self.assertEqual(r.status_code, 200)
+        data = json.loads(r.content)
+        self.assertNotEqual(data['CONTENT_TYPE'], 'text/plain')
+        self.assertEqual(data['CONTENT_TYPE'], 'text/html')
+
+        # case 3 (#67)
+        headers = {
+            'content-type': 'application/json',
+        }
+
+        payload = {
+            'test': 'me'
+        }
+
+        r = self.session.request('POST',
+                                 'http://127.0.0.1:8000/',
+                                 headers=headers,
+                                 header_auth=True,
+                                 data=payload,
+                             )
+
+        self.assertEqual(r.status_code, 200)
+        data = json.loads(r.content)
+        self.assertEqual(data['CONTENT_TYPE'], 'application/json')
 
 
 class OAuth2SessionTestCase(RauthTestCase, RequestMixin):
