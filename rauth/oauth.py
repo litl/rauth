@@ -149,11 +149,69 @@ class HmacSha1Signature(SignatureMethod):
 
 
 class RsaSha1Signature(SignatureMethod):
-    '''RSA-SHA1 Signature Method. (Not implemented)'''
+    '''
+    RSA-SHA1 Signature Method.
+
+    This is a signature method, as per the OAuth 1.0/a specs. As the name
+    might suggest, this method signs parameters with RSA using SHA1.
+    '''
     NAME = 'RSA-SHA1'
 
     def __init__(self):
-        raise NotImplementedError
+        try:
+            from Crypto.PublicKey import RSA as r
+            from Crypto.Hash import SHA as s
+            from Crypto.Signature import PKCS1_v1_5 as p
+            self.RSA, self.SHA, self.PKCS1_v1_5 = r, s, p
+        except ImportError:
+            raise NotImplementedError, "PyCrypto is required for "+self.NAME
+
+    def sign(self,
+             consumer_secret,
+             access_token_secret,
+             method,
+             url,
+             oauth_params,
+             req_kwargs):
+        '''Sign request parameters.
+
+        :param consumer_secret: RSA private key.
+        :type consumer_secret: str or RSA._RSAobj
+        :param access_token_secret: Unused.
+        :type access_token_secret: str
+        :param method: The method of this particular request.
+        :type method: str
+        :param url: The URL of this particular request.
+        :type url: str
+        :param oauth_params: OAuth parameters.
+        :type oauth_params: dict
+        :param req_kwargs: Keyworded args that will be sent to the request
+            method.
+        :type req_kwargs: dict
+        '''
+        url = self._remove_qs(url)
+
+        oauth_params = \
+            self._normalize_request_parameters(oauth_params, req_kwargs)
+        parameters = map(self._escape, [method, url, oauth_params])
+
+        # build a Signature Base String
+        signature_base_string = '&'.join(parameters)
+        print(signature_base_string)
+
+        # resolve the key
+        if isinstance(consumer_secret, basestring):
+            consumer_secret = self.RSA.importKey(consumer_secret)
+        if not isinstance(consumer_secret, self.RSA._RSAobj):
+            raise ValueError("invalid consumer_secret")
+
+        # hash the string with RSA-SHA1
+        s = self.PKCS1_v1_5.new(consumer_secret)
+        h = self.SHA.new(signature_base_string)
+        hashed = s.sign(h)
+
+        # return the signature
+        return base64.b64encode(hashed)
 
 
 class PlaintextSignature(SignatureMethod):
