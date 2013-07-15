@@ -163,7 +163,7 @@ class RsaSha1Signature(SignatureMethod):
             from Crypto.Hash import SHA as s
             from Crypto.Signature import PKCS1_v1_5 as p
             self.RSA, self.SHA, self.PKCS1_v1_5 = r, s, p
-        except ImportError:
+        except ImportError: # pragma: no cover
             raise NotImplementedError, "PyCrypto is required for "+self.NAME
 
     def sign(self,
