@@ -112,6 +112,9 @@ class OAuth1Service(Service):
     :param session_obj: Object used to construct sessions with, defaults to
         :class:`rauth.OAuth1Session <OAuth1Session>`
     :type session_obj: :class:`Session`
+    :param signature_obj: Object used to construct signatures with, defaults
+         to :class:`rauth.HmacSha1Signature <HmacSha1Signature>`
+    :type signature_obj: :class:`SignatureMethod`
     '''
     def __init__(self,
                  consumer_key,
@@ -121,7 +124,8 @@ class OAuth1Service(Service):
                  access_token_url=None,
                  authorize_url=None,
                  base_url=None,
-                 session_obj=None):
+                 session_obj=None,
+                 signature_obj=None):
 
         #: Client credentials.
         self.consumer_key = consumer_key
@@ -133,6 +137,9 @@ class OAuth1Service(Service):
 
         #: Object used to construct sessions with.
         self.session_obj = session_obj or OAuth1Session
+
+        #: Object used to construct signatures with.
+        self.signature_obj = signature_obj
 
         super(OAuth1Service, self).__init__(name,
                                             base_url,
@@ -156,12 +163,12 @@ class OAuth1Service(Service):
                                        self.consumer_secret,
                                        access_token,
                                        access_token_secret,
-                                       signature,
+                                       signature or self.signature_obj,
                                        service=self)
         else:  # pragma: no cover
             session = self.session_obj(self.consumer_key,
                                        self.consumer_secret,
-                                       signature=signature,
+                                       signature=signature or self.signature_obj,
                                        service=self)
         return session
 
