@@ -1,1 +1,1 @@
-pycrypto>=2.0
+pycrypto>=2.5
