@@ -197,7 +197,6 @@ class RsaSha1Signature(SignatureMethod):
 
         # build a Signature Base String
         signature_base_string = '&'.join(parameters)
-        print(signature_base_string)
 
         # resolve the key
         if isinstance(consumer_secret, basestring):
