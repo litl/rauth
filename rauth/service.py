@@ -168,7 +168,8 @@ class OAuth1Service(Service):
         else:  # pragma: no cover
             session = self.session_obj(self.consumer_key,
                                        self.consumer_secret,
-                                       signature=signature or self.signature_obj,
+                                       signature=signature
+                                       or self.signature_obj,
                                        service=self)
         return session
 

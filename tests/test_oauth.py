@@ -10,7 +10,7 @@ from base import RauthTestCase
 from rauth.oauth import (HmacSha1Signature, RsaSha1Signature,
                          PlaintextSignature)
 from rauth.utils import FORM_URLENCODED
-from unittest import skip, skipIf, skipUnless
+from unittest import skipIf, skipUnless
 
 
 class OAuthTestHmacSha1Case(RauthTestCase):
@@ -126,14 +126,28 @@ class OAuthTestHmacSha1Case(RauthTestCase):
 
 
 class OAuthTestRsaSha1Case(RauthTestCase):
-    private_key = '-----BEGIN RSA PRIVATE KEY-----\nMIICXQIBAAKBgQDf0jdU+07T1B9erQBNS46JmvO7vsNfdNXkoEx4UwLwqsmv1wKs\nRvCXBVyNYnnHYVQjSDRgyviNLYSP01DXqmwKlhSN9sbjiCeswXlG2B4BdFdO687J\n9ZOmeyZsb6OFlXWediqkfvDaArSPM884YB2A8rqJd2y8Hd4tSG2Ns2o7WwIDAQAB\nAoGBAMJ8FO54LMfuU4/d/hwsImA5z759BaGFkXLHQ4tufmiHzxdHWqA+SELCOujz\n/+ObFBRQYosU86MhQUYElgPAp31u6MfmNc7nPvtuy1rSYVYD05oUqeyKBCycZa9r\nF9+5ASNdvYF/vvAj5gQ2aOZPGsTf80hrUIDt2ebJn1yq3R1BAkEA49qUpQbKHDdJ\nI9CZiiptySClyxyR3++oPw1UR9vfTz0qkzExYeS59TROX+sVpcpp/LFeTV8HeDVl\nnUEv3xtEYQJBAPt4HDw21gRqL0W3V7xQIrCBnzttBA83y3hUpn1wRelJnnVsAUwv\nKtxFZPSTprDFf3eTJP5vWEYcM4CME7L0GTsCQDAg1HMDOx+4oc9Z2YSwr53jMoHz\nl/B4O86Nrza6f7HKFrsekfK+kHT1xnRGQL1TQw3oHSY0o2xFwx/zS/xRUyECQQDA\nk/ojjucVWHA9Vqwk9cWrIIleDB2YveTfkQwzciDICG4GhKD1xAVxzN8EgnKcW5ND\ncndZNtIGVyCF6EBJwq/zAkBjcXFUJMXXYiIzIpKJD2ZEMms2PXBkB0OxG+Yr0r4G\n/w3QafaS0cyRCu0z0fY52+wcn5VrHk97sLQhLMQv07ij\n-----END RSA PRIVATE KEY-----'
+    private_key = '''-----BEGIN RSA PRIVATE KEY-----
+        MIICXQIBAAKBgQDf0jdU+07T1B9erQBNS46JmvO7vsNfdNXkoEx4UwLwqsmv1wKs
+        RvCXBVyNYnnHYVQjSDRgyviNLYSP01DXqmwKlhSN9sbjiCeswXlG2B4BdFdO687J
+        9ZOmeyZsb6OFlXWediqkfvDaArSPM884YB2A8rqJd2y8Hd4tSG2Ns2o7WwIDAQAB
+        AoGBAMJ8FO54LMfuU4/d/hwsImA5z759BaGFkXLHQ4tufmiHzxdHWqA+SELCOujz
+        /+ObFBRQYosU86MhQUYElgPAp31u6MfmNc7nPvtuy1rSYVYD05oUqeyKBCycZa9r
+        F9+5ASNdvYF/vvAj5gQ2aOZPGsTf80hrUIDt2ebJn1yq3R1BAkEA49qUpQbKHDdJ
+        I9CZiiptySClyxyR3++oPw1UR9vfTz0qkzExYeS59TROX+sVpcpp/LFeTV8HeDVl
+        nUEv3xtEYQJBAPt4HDw21gRqL0W3V7xQIrCBnzttBA83y3hUpn1wRelJnnVsAUwv
+        KtxFZPSTprDFf3eTJP5vWEYcM4CME7L0GTsCQDAg1HMDOx+4oc9Z2YSwr53jMoHz
+        l/B4O86Nrza6f7HKFrsekfK+kHT1xnRGQL1TQw3oHSY0o2xFwx/zS/xRUyECQQDA
+        k/ojjucVWHA9Vqwk9cWrIIleDB2YveTfkQwzciDICG4GhKD1xAVxzN8EgnKcW5ND
+        cndZNtIGVyCF6EBJwq/zAkBjcXFUJMXXYiIzIpKJD2ZEMms2PXBkB0OxG+Yr0r4G
+        /w3QafaS0cyRCu0z0fY52+wcn5VrHk97sLQhLMQv07ij
+        -----END RSA PRIVATE KEY-----'''
     method = 'GET'
     url = 'http://example.com/'
     oauth_params = {}
     req_kwargs = {'params': {'foo': 'bar'}}
     try:
         from Crypto.PublicKey import RSA
-        has_rsa = True
+        has_rsa = RSA
     except:
         has_rsa = False
 
@@ -147,16 +161,20 @@ class OAuthTestRsaSha1Case(RauthTestCase):
                                                   self.req_kwargs)
         self.assertIsNotNone(oauth_signature)
         self.assertIsInstance(oauth_signature, str)
-        self.assertEqual(oauth_signature, 'MEnbOKBw0lWi5NvGyrABQ6tPygWiNOjGz47y8d+SQfXYrzsvKkzcMgt2VGBRgKsKSdFho36TuCuP75Qe1uou6/rhHrZoSppQ+6vdPSKkriGzSK3azqBacg9ZIIVy/atHPTm6BAvo+0v4ysiI9ci7hJbRkXL0NJVz/p0ZQKO/Jds=')
+        self.assertEqual(oauth_signature,
+                         'MEnbOKBw0lWi5NvGyrABQ6tPygWiNOjGz47y8d+SQfXYrzsvK'
+                         'kzcMgt2VGBRgKsKSdFho36TuCuP75Qe1uou6/rhHrZoSppQ+6'
+                         'vdPSKkriGzSK3azqBacg9ZIIVy/atHPTm6BAvo+0v4ysiI9ci'
+                         '7hJbRkXL0NJVz/p0ZQKO/Jds=')
 
     @skipUnless(has_rsa, "PyCrypto not installed")
     def test_rsasha1_badargument(self):
         self.assertRaises(ValueError, RsaSha1Signature().sign,
-                                      None, None,
-                                      self.method,
-                                      self.url,
-                                      self.oauth_params,
-                                      self.req_kwargs)
+                          None, None,
+                          self.method,
+                          self.url,
+                          self.oauth_params,
+                          self.req_kwargs)
 
     @skipIf(has_rsa, "PyCrypto is installed")
     def test_rsasha1_notimplemented(self):
