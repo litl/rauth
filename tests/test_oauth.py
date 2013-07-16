@@ -10,7 +10,7 @@ from base import RauthTestCase
 from rauth.oauth import (HmacSha1Signature, RsaSha1Signature,
                          PlaintextSignature)
 from rauth.utils import FORM_URLENCODED
-from unittest import skipIf, skipUnless
+#from unittest import skipIf, skipUnless  # not available in 2.6
 
 
 class OAuthTestHmacSha1Case(RauthTestCase):
@@ -151,8 +151,11 @@ class OAuthTestRsaSha1Case(RauthTestCase):
     except:
         has_rsa = False
 
-    @skipUnless(has_rsa, "PyCrypto not installed")
+    #@skipUnless(has_rsa, "PyCrypto not installed")
     def test_rsasha1_signature(self):
+        if not self.has_rsa:
+            return
+
         oauth_signature = RsaSha1Signature().sign(self.private_key,
                                                   None,
                                                   self.method,
@@ -167,8 +170,11 @@ class OAuthTestRsaSha1Case(RauthTestCase):
                          'vdPSKkriGzSK3azqBacg9ZIIVy/atHPTm6BAvo+0v4ysiI9ci'
                          '7hJbRkXL0NJVz/p0ZQKO/Jds=')
 
-    @skipUnless(has_rsa, "PyCrypto not installed")
+    #@skipUnless(has_rsa, "PyCrypto not installed")
     def test_rsasha1_badargument(self):
+        if not self.has_rsa:
+            return
+
         self.assertRaises(ValueError, RsaSha1Signature().sign,
                           None, None,
                           self.method,
@@ -176,8 +182,11 @@ class OAuthTestRsaSha1Case(RauthTestCase):
                           self.oauth_params,
                           self.req_kwargs)
 
-    @skipIf(has_rsa, "PyCrypto is installed")
+    #@skipIf(has_rsa, "PyCrypto is installed")
     def test_rsasha1_notimplemented(self):
+        if self.has_rsa:
+            return
+
         self.assertRaises(NotImplementedError, RsaSha1Signature)
 
 
