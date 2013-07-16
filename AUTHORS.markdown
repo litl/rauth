@@ -30,4 +30,5 @@ Add yourself as a contributor!
 * [Justin Barber](https://github.com/barberj)
 * [Dave Stoll](https://github.com/netdude78)
 * [Marek Rei](https://github.com/marekrei)
+* [Kieron Briggs](https://github.com/kbriggs)
 * (your name here)
