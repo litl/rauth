@@ -12,6 +12,7 @@ from copy import deepcopy
 from datetime import datetime
 
 import json
+import pickle
 
 
 class MutableDatetime(datetime):
@@ -112,3 +113,10 @@ class RequestMixin(object):
     def test_request(self, method, kwargs):
         r = self.session.request(method, 'foo', **kwargs)
         self.assert_ok(r)
+
+
+class ServiceMixin(object):
+    def test_serialize(self):
+        saved = pickle.loads(pickle.dumps(self.service))
+        for attr in self.service.__attrs__:
+            self.assertEqual(getattr(saved, attr), getattr(self.service, attr))
