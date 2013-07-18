@@ -10,18 +10,20 @@ import base64
 import hmac
 
 from hashlib import sha1
-from urllib import quote, urlencode
-from urlparse import urlsplit, urlunsplit
 
+from rauth.compat import is_basestring, quote, urlencode, urlsplit, urlunsplit
 from rauth.utils import FORM_URLENCODED
 
 
 class SignatureMethod(object):
-    '''A base class for signature methods providing a set of common methods.'''
-    def _encode_utf8(self, s):
-        if isinstance(s, unicode):
+    '''
+    A base class for signature methods providing a set of common methods.
+    '''
+
+    def _ensure_unicode(self, s):
+        if not isinstance(s, bytes):
             return s.encode('utf-8')
-        return unicode(s, 'utf-8').encode('utf-8')
+        return s.decode('utf-8')  # pragma: no cover
 
     def _escape(self, s):
         '''
@@ -30,7 +32,7 @@ class SignatureMethod(object):
         :param s: A string to be encoded.
         :type s: str
         '''
-        return quote(self._encode_utf8(s), safe='~')
+        return quote(self._ensure_unicode(s), safe='~').encode('utf-8')
 
     def _remove_qs(self, url):
         '''
@@ -134,12 +136,12 @@ class HmacSha1Signature(SignatureMethod):
             self._normalize_request_parameters(oauth_params, req_kwargs)
         parameters = map(self._escape, [method, url, oauth_params])
 
-        key = self._escape(consumer_secret) + '&'
+        key = self._escape(consumer_secret) + b'&'
         if access_token_secret is not None:
             key += self._escape(access_token_secret)
 
         # build a Signature Base String
-        signature_base_string = '&'.join(parameters)
+        signature_base_string = b'&'.join(parameters)
 
         # hash the string with HMAC-SHA1
         hashed = hmac.new(key, signature_base_string, sha1)
@@ -164,7 +166,7 @@ class RsaSha1Signature(SignatureMethod):
             from Crypto.Signature import PKCS1_v1_5 as p
             self.RSA, self.SHA, self.PKCS1_v1_5 = r, s, p
         except ImportError:  # pragma: no cover
-            raise NotImplementedError("PyCrypto is required for "+self.NAME)
+            raise NotImplementedError("PyCrypto is required for " + self.NAME)
 
     def sign(self,
              consumer_secret,
@@ -196,16 +198,17 @@ class RsaSha1Signature(SignatureMethod):
         parameters = map(self._escape, [method, url, oauth_params])
 
         # build a Signature Base String
-        signature_base_string = '&'.join(parameters)
+        signature_base_string = b'&'.join(parameters)
 
         # resolve the key
-        if isinstance(consumer_secret, basestring):
+        if is_basestring(consumer_secret):
             consumer_secret = self.RSA.importKey(consumer_secret)
         if not isinstance(consumer_secret, self.RSA._RSAobj):
             raise ValueError("invalid consumer_secret")
 
         # hash the string with RSA-SHA1
         s = self.PKCS1_v1_5.new(consumer_secret)
+        # PyCrypto SHA.new requires an encoded byte string
         h = self.SHA.new(signature_base_string)
         hashed = s.sign(h)
 

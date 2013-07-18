@@ -42,7 +42,7 @@ twitter = OAuth1Service(
     request_token_url='https://api.twitter.com/oauth/request_token',
     access_token_url='https://api.twitter.com/oauth/access_token',
     authorize_url='https://api.twitter.com/oauth/authorize',
-    base_url='https://api.twitter.com/1/')
+    base_url='https://api.twitter.com/1.1/')
 ```
 
 Then get an OAuth 1.0 request token:
@@ -58,7 +58,7 @@ application, Twitter will give you a PIN to enter.
 authorize_url = twitter.get_authorize_url(request_token)
 
 print 'Visit this URL in your browser: ' + authorize_url
-pin = raw_input('Enter PIN from browser: ')
+pin = raw_input('Enter PIN from browser: ')  # `input` if using Python 3!
 ```
 
 Exchange the authorized request token for an authenticated `OAuth1Session`:
@@ -79,9 +79,9 @@ params = {'include_rts': 1,  # Include retweets
 r = session.get('statuses/home_timeline.json', params=params)
 
 for i, tweet in enumerate(r.json(), 1):
-    handle = tweet['user']['screen_name'].encode('utf-8')
-    text = tweet['text'].encode('utf-8')
-    print '{0}. @{1} - {2}'.format(i, handle, text)
+    handle = tweet['user']['screen_name']
+    text = tweet['text']
+    print(u'{0}. @{1} - {2}'.format(i, handle, text))
 ```
 
 Here's the full example: [examples/twitter-timeline-cli.py](https://github.com/litl/rauth/blob/master/examples/twitter-timeline-cli.py).
@@ -103,7 +103,8 @@ Basically there's just a few steps to getting started:
 
 Note: Before you make a pull request, please run `make check`. If your code
 passes then you should be good to go! Requirements for running tests are in
-`requirements.txt`.
+`requirements-dev@<python-version>.txt`. You may also want to run `tox` to
+ensure that nothing broke in other supported environments, e.g. Python 3.
 
 ## Copyright and License
 

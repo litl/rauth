@@ -1,3 +1,16 @@
+'''
+    rauth
+    -----
+
+    A simple Python OAuth 1.0/a, OAuth 2.0, and Ofly consumer library built on
+    top of Requests.
+
+    Links
+    `````
+    * `documentation <https://rauth.readthedocs.org/en/latest/>`_
+    * `development version <https://github.com/litl/rauth>`_
+'''
+
 import os
 import sys
 
@@ -17,7 +30,7 @@ if sys.version_info[0] == 2 and sys.version_info[1] < 7:
 setup(name='rauth',
       version=__version__,
       description='A Python library for OAuth 1.0/a, 2.0, and Ofly.',
-      long_description=open('README.markdown').read(),
+      long_description=__doc__,
       author='Max Countryman',
       author_email='max@litl.com',
       url='https://github.com/litl/rauth',

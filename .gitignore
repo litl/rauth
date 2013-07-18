@@ -2,6 +2,7 @@ build/*
 docs/_build/*
 tests_output/*
 dist/*
+virtualenv/*
 *.egg-info
 *.pyc
 *.un~

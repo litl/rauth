@@ -18,7 +18,7 @@ if not hasattr(unittest.TestCase, 'assertIsNotNone'):
     try:
         import unittest2 as unittest
     except ImportError:
-        raise Exception('unittest2 is required to run the rauth test suite')
+        raise RuntimeError('unittest2 is required to run the rauth test suite')
 
 from inspect import stack, isfunction
 
