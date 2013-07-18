@@ -4,15 +4,21 @@ Rauth Changelog
 This provides a list of changes to rauth by release.
 
 
+Changes in Version 0.6.1
+------------------------
+  * Updated PyPI metadata.
+
 Changes in Version 0.6.0
 ------------------------
   * Added Python 3 support (thanks to everyone who contributed, espcially
   @sashahart)
+
   * Made service and session objects serializable
 
 Changes in Version 0.5.5
 ------------------------
   * BUGFIX Fixed upstream CaseInsensitiveDict API changes
+
   * BUGFIX Corrected multiple quoting of oauth_token
 
 Changes in Version 0.5.4
