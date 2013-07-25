@@ -206,7 +206,9 @@ class OAuth1Service(Service):
             raise TypeError('request_token_url must not be None')
 
         session = self.get_session()
-        return session.request(method, self.request_token_url, **kwargs)
+        r = session.request(method, self.request_token_url, **kwargs)
+        r.raise_for_status()
+        return r
 
     def get_request_token(self,
                           method='GET',
@@ -279,7 +281,9 @@ class OAuth1Service(Service):
             raise TypeError('access_token_url must not be None')
 
         session = self.get_session((request_token, request_token_secret))
-        return session.request(method, self.access_token_url, **kwargs)
+        r = session.request(method, self.access_token_url, **kwargs)
+        r.raise_for_status()
+        return r
 
     def get_access_token(self,
                          request_token,
