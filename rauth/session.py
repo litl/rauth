@@ -299,12 +299,15 @@ class OAuth2Session(RauthSession):
     :type client_secret: str
     :param access_token: Access token, defaults to `None`.
     :type access_token: str
-    :param signature: A signature producing object, defaults to
-        :class:`rauth.oauth.HmacSha1Signature`.
-    :type signature: :class:`rauth.oauth.Signature`
+    :param access_token_key: The name of the access token key, defaults to
+        `'access_token'`.
+    :type access_token_key: str
     :param service: A back reference to the service wrapper, defaults to
         `None`.
     :type service: :class:`rauth.Service`
+    :param access_token_key: The name of the access token key, defaults to
+        `'access_token'`.
+    :type access_token_key: str
     '''
     __attrs__ = RauthSession.__attrs__ + ['client_id',
                                           'client_secret',
@@ -314,7 +317,8 @@ class OAuth2Session(RauthSession):
                  client_id,
                  client_secret,
                  access_token=None,
-                 service=None):
+                 service=None,
+                 access_token_key=None):
 
         #: Client credentials.
         self.client_id = client_id
@@ -322,6 +326,9 @@ class OAuth2Session(RauthSession):
 
         #: Access token.
         self.access_token = access_token
+
+        #: Access token key, e.g. 'access_token'.
+        self.access_token_key = access_token_key or 'access_token'
 
         super(OAuth2Session, self).__init__(service)
 
@@ -353,7 +360,8 @@ class OAuth2Session(RauthSession):
             req_kwargs.setdefault('headers', {})
             req_kwargs['headers'].update(bearer_header)
         else:
-            req_kwargs['params'].update({'access_token': self.access_token})
+            req_kwargs['params'].update({self.access_token_key:
+                                         self.access_token})
 
         req_kwargs.setdefault('timeout', OAUTH2_DEFAULT_TIMEOUT)
 
