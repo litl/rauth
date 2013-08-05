@@ -8,3 +8,4 @@ dist/*
 .coverage
 !.gitignore
 !.gitmodules
+rauth-venv
