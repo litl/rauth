@@ -16,10 +16,10 @@ PROCESS_TOKEN_ERROR = ('Decoder failed to handle {key} with data as returned '
                        'Provider returned: {raw}')
 
 
-def process_token_request(r, decoder, *args):
+def process_token_request(r, decoder, keys):
     try:
         data = decoder(r.content)
-        return tuple(data[key] for key in args)
+        return tuple(data[key] for key in keys)
     except KeyError, e:  # pragma: no cover
         bad_key = e.args[0]
         raise KeyError(PROCESS_TOKEN_ERROR.format(key=bad_key, raw=r.content))
@@ -289,6 +289,7 @@ class OAuth1Service(Service):
                          decoder=parse_utf8_qsl,
                          key_token='oauth_token',
                          key_token_secret='oauth_token_secret',
+                         keys=[],
                          **kwargs):
         '''
         Returns an access token pair.
@@ -310,6 +311,8 @@ class OAuth1Service(Service):
         :type string:
         :param key_token_secret: The key the access token will be decoded by,
             defaults to 'oauth_token_secret'.
+        :param keys: Other keys to decode from reponse.
+        :type keys: list
         :type string:
         :param \*\*kwargs: Optional arguments. Same as Requests.
         :type \*\*kwargs: dict
@@ -318,9 +321,9 @@ class OAuth1Service(Service):
                                       request_token_secret,
                                       method=method,
                                       **kwargs)
-
-        access_token, access_token_secret = \
-            process_token_request(r, decoder, key_token, key_token_secret)
+        keys = [key_token, key_token_secret] + keys
+        access_token, access_token_secret, keys = \
+            process_token_request(r, decoder, keys)
         return access_token, access_token_secret
 
     def get_auth_session(self,

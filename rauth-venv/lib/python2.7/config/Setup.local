@@ -1,0 +1,27 @@
+# Edit this file for local setup changes
+array arraymodule.c	# array objects
+cmath cmathmodule.c # -lm # complex math library functions
+math mathmodule.c _math.c # -lm # math library functions, e.g. sin()
+_struct _struct.c	# binary structure packing/unpacking
+time timemodule.c # -lm # time operations and variables
+operator operator.c	# operator.add() and similar goodies
+_random _randommodule.c	# Random number generator
+_collections _collectionsmodule.c # Container types
+itertools itertoolsmodule.c	# Functions creating iterators for efficient looping 
+strop stropmodule.c		# String manipulations
+_functools _functoolsmodule.c	# Tools for working with functions and callable objects
+_bisect _bisectmodule.c	# Bisection algorithms
+unicodedata unicodedata.c    # static Unicode character database
+_locale _localemodule.c  # -lintl
+fcntl fcntlmodule.c	# fcntl(2) and ioctl(2)
+spwd spwdmodule.c		# spwd(3) 
+grp grpmodule.c		# grp(3)
+select selectmodule.c	# select(2); not on ancient System V
+_socket socketmodule.c
+_ssl _ssl.c -lssl -lcrypto
+_hashlib _hashopenssl.c -lssl -lcrypto
+syslog syslogmodule.c		# syslog daemon interface
+binascii binascii.c
+cStringIO cStringIO.c
+cPickle cPickle.c
+zlib zlibmodule.c -I$(prefix)/include -L$(exec_prefix)/lib -lz

@@ -31,4 +31,5 @@ Add yourself as a contributor!
 * [Dave Stoll](https://github.com/netdude78)
 * [Marek Rei](https://github.com/marekrei)
 * [Kieron Briggs](https://github.com/kbriggs)
+* [Leon Sasson](https://github.com/leonsas)
 * (your name here)

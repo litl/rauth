@@ -247,6 +247,21 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, ServiceMixin,
         self.assertEqual(access_token, 'foo')
         self.assertEqual(access_token_secret, 'bar')
 
+    def test_get_access_token_with_extra_keys(self):
+        self.response.content = 'oauth_token=foo&oauth_token_secret=bar'
+        request_token, request_token_secret = self.service.get_request_token()
+
+        self.response.content = ('oauth_token=foo&oauth_token_secret=bar'
+                                 '&expiration_time=1375674917')
+        extra_keys = ['expiration_time']
+        access_token, access_token_secret, expiration_time = \
+            self.service.get_access_token(request_token,
+                                          request_token_secret,
+                                          keys=extra_keys)
+        self.assertEqual(access_token, 'foo')
+        self.assertEqual(access_token_secret, 'bar')
+        self.assertEqual(expiration_time, '1375674917')
+
     def test_get_access_token_with_json_decoder(self):
         self.response.content = 'oauth_token=foo&oauth_token_secret=bar'
         request_token, request_token_secret = self.service.get_request_token()
