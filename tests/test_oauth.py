@@ -17,6 +17,11 @@ try:
 except ImportError:
     raise RuntimeError('PyCrypto is required to run the rauth test suite')
 
+try:
+    stringtype = unicode  # python 2
+except NameError:
+    stringtype = str  # python 3
+
 assert RSA
 
 
@@ -36,8 +41,8 @@ class OAuthTestHmacSha1Case(RauthTestCase):
                                                    self.oauth_params,
                                                    self.req_kwargs)
         self.assertIsNotNone(oauth_signature)
-        self.assertIsInstance(oauth_signature, bytes)
-        self.assertEqual(oauth_signature, b'cYzjVXCOk62KoYmJ+iCvcAcgfp8=')
+        self.assertIsInstance(oauth_signature, stringtype)
+        self.assertEqual(oauth_signature, 'cYzjVXCOk62KoYmJ+iCvcAcgfp8=')
 
     def test_normalize_request_parameters_params(self):
         # params as a dict
@@ -98,7 +103,7 @@ class OAuthTestHmacSha1Case(RauthTestCase):
                                        self.url,
                                        self.oauth_params,
                                        req_kwargs)
-        self.assertEqual(b'cYzjVXCOk62KoYmJ+iCvcAcgfp8=',  sig)
+        self.assertEqual('cYzjVXCOk62KoYmJ+iCvcAcgfp8=',  sig)
 
     def test_sign_with_data(self):
         # in the event a string is already UTF-8
@@ -110,7 +115,7 @@ class OAuthTestHmacSha1Case(RauthTestCase):
                                        self.url,
                                        self.oauth_params,
                                        req_kwargs)
-        self.assertEqual(b'JzmJUmqjdNYBJsJWbtQKXnc0W8w=',  sig)
+        self.assertEqual('JzmJUmqjdNYBJsJWbtQKXnc0W8w=',  sig)
 
     def test_remove_query_string(self):
         # can't sign the URL with the query string so
@@ -161,12 +166,12 @@ class OAuthTestRsaSha1Case(RauthTestCase):
                                                   self.oauth_params,
                                                   self.req_kwargs)
         self.assertIsNotNone(oauth_signature)
-        self.assertIsInstance(oauth_signature, bytes)
+        self.assertIsInstance(oauth_signature, stringtype)
         self.assertEqual(oauth_signature,
-                         b'MEnbOKBw0lWi5NvGyrABQ6tPygWiNOjGz47y8d+SQfXYrzsvK'
-                         b'kzcMgt2VGBRgKsKSdFho36TuCuP75Qe1uou6/rhHrZoSppQ+6'
-                         b'vdPSKkriGzSK3azqBacg9ZIIVy/atHPTm6BAvo+0v4ysiI9ci'
-                         b'7hJbRkXL0NJVz/p0ZQKO/Jds=')
+                         'MEnbOKBw0lWi5NvGyrABQ6tPygWiNOjGz47y8d+SQfXYrzsvK'
+                         'kzcMgt2VGBRgKsKSdFho36TuCuP75Qe1uou6/rhHrZoSppQ+6'
+                         'vdPSKkriGzSK3azqBacg9ZIIVy/atHPTm6BAvo+0v4ysiI9ci'
+                         '7hJbRkXL0NJVz/p0ZQKO/Jds=')
 
     def test_rsasha1_badargument(self):
         self.assertRaises(ValueError, RsaSha1Signature().sign,
