@@ -149,7 +149,7 @@ class HmacSha1Signature(SignatureMethod):
         hashed = hmac.new(key, signature_base_string, sha1)
 
         # return the signature
-        return base64.b64encode(hashed.digest())
+        return base64.b64encode(hashed.digest()).decode()
 
 
 class RsaSha1Signature(SignatureMethod):
@@ -215,7 +215,7 @@ class RsaSha1Signature(SignatureMethod):
         hashed = s.sign(h)
 
         # return the signature
-        return base64.b64encode(hashed)
+        return base64.b64encode(hashed).decode()
 
 
 class PlaintextSignature(SignatureMethod):
