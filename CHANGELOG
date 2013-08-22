@@ -3,6 +3,9 @@ Rauth Changelog
 
 This provides a list of changes to rauth by release.
 
+Changes in Version 0.6.2
+------------------------
+  * Made OAuth access token name dynamic
 
 Changes in Version 0.6.1
 ------------------------
