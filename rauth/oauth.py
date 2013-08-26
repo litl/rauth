@@ -83,6 +83,8 @@ class SignatureMethod(object):
         all_normalized = []
         for t in normalized:
             k, v = t
+            if is_basestring(v) and not isinstance(v, bytes):
+                v = v.encode('utf-8')
             all_normalized += [(k, v)]
 
         # add in the params from oauth_params for signing
