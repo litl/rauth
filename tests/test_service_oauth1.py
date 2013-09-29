@@ -308,6 +308,13 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, ServiceMixin,
         s = self.service.get_auth_session('foo', 'bar')
         self.assertIsInstance(s, OAuth1Session)
 
+    def test_get_auth_session_with_request_token_response(self):
+        resp = 'oauth_token=foo&oauth_token_secret=bar'
+        self.response.content = resp
+        self.service.request_token_response = 'ok'
+        s = self.service.get_auth_session('foo', 'bar')
+        self.assertEqual(s.request_token_response, 'ok')
+
     def test_pickle_session(self):
         session = pickle.loads(pickle.dumps(self.session))
 

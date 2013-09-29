@@ -33,4 +33,5 @@ Add yourself as a contributor!
 * [Kieron Briggs](https://github.com/kbriggs)
 * [Tatsuji Tsuchiya](https://github.com/ta2xeo)
 * [Chris McGraw](https://github.com/mitgr81)
+* [Ken Koontz](https://github.com/kennethkoontz)
 * (your name here)
