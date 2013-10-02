@@ -136,6 +136,31 @@ class OAuthTestHmacSha1Case(RauthTestCase):
             ._normalize_request_parameters({}, req_kwargs)
         self.assertEqual('a=b',  normalized)
 
+    def test_normalize_request_parameters_data_not_alphanumeric(self):
+        # data is not alphanumeric (for example: Japanese)
+        try:
+            from urllib import unquote
+        except ImportError:
+            from urllib.parse import unquote
+
+        # unicode
+        req_kwargs = {u'params': {u'foo': u'こんにちは世界'}}
+        normalized = HmacSha1Signature()\
+            ._normalize_request_parameters({}, req_kwargs)
+
+        key, value = normalized.split('=')
+        decoded_value = unquote(value)
+        self.assertEqual('こんにちは世界', unquote(decoded_value))
+
+        # str
+        req_kwargs = {'params': {'foo': 'こんにちは世界'}}
+        normalized = HmacSha1Signature()\
+            ._normalize_request_parameters({}, req_kwargs)
+
+        key, value = normalized.split('=')
+        decoded_value = unquote(value)
+        self.assertEqual('こんにちは世界', unquote(decoded_value))
+
 
 class OAuthTestRsaSha1Case(RauthTestCase):
     private_key = '''-----BEGIN RSA PRIVATE KEY-----

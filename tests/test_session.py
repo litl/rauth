@@ -70,6 +70,20 @@ class OAuth1SessionTestCase(RauthTestCase, RequestMixin):
                                  header_auth=True)
         self.assert_ok(r)
 
+    @patch.object(requests.Session, 'request')
+    def test_request_with_not_alphanumeric_data_as_string(self, mock_request):
+        mock_request.return_value = self.response
+        data = 'foo=こんにちは世界'
+        r = self.session.request('POST', 'http://example.com/', data=data)
+        self.assert_ok(r)
+
+    @patch.object(requests.Session, 'request')
+    def test_request_with_not_alphanumeric_data_as_dict(self, mock_request):
+        mock_request.return_value = self.response
+        data = {'foo': 'こんにちは世界'}
+        r = self.session.request('POST', 'http://example.com/', data=data)
+        self.assert_ok(r)
+
 
 class OAuth2SessionTestCase(RauthTestCase, RequestMixin):
     def setUp(self):

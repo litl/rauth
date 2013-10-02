@@ -3,10 +3,10 @@
 This project was concieved of with the help of the full software team at Litl.
 
 Special thanks to Kenneth Reitz for the amazing [Requests](https://github.com/kennethreitz/requests) library. It made
-this project sane. 
+this project sane.
 
-Also kudos to Miguel Araujo for utilizing the pre-request hook of Requests in his OAuth 1.0/a library 
-[requests-oauth](https://github.com/maraujop/requests-oauth) which is used as a model herein for parts of the 
+Also kudos to Miguel Araujo for utilizing the pre-request hook of Requests in his OAuth 1.0/a library
+[requests-oauth](https://github.com/maraujop/requests-oauth) which is used as a model herein for parts of the
 OAuth 1.0/a hook; thanks Miguel!
 
 
@@ -31,5 +31,6 @@ Add yourself as a contributor!
 * [Dave Stoll](https://github.com/netdude78)
 * [Marek Rei](https://github.com/marekrei)
 * [Kieron Briggs](https://github.com/kbriggs)
+* [Tatsuji Tsuchiya](https://github.com/ta2xeo)
 * [Chris McGraw](https://github.com/mitgr81)
 * (your name here)
