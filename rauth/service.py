@@ -156,6 +156,10 @@ class OAuth1Service(Service):
         #: Object used to construct signatures with.
         self.signature_obj = signature_obj
 
+        #: Request and access token responses.
+        self.request_token_response = None
+        self.access_token_response = None
+
         super(OAuth1Service, self).__init__(name,
                                             base_url,
                                             authorize_url)
@@ -206,7 +210,10 @@ class OAuth1Service(Service):
             raise TypeError('request_token_url must not be None')
 
         session = self.get_session()
-        return session.request(method, self.request_token_url, **kwargs)
+        self.request_token_response = session.request(method,
+                                                      self.request_token_url,
+                                                      **kwargs)
+        return self.request_token_response
 
     def get_request_token(self,
                           method='GET',
@@ -279,7 +286,10 @@ class OAuth1Service(Service):
             raise TypeError('access_token_url must not be None')
 
         session = self.get_session((request_token, request_token_secret))
-        return session.request(method, self.access_token_url, **kwargs)
+        self.access_token_response = session.request(method,
+                                                     self.access_token_url,
+                                                     **kwargs)
+        return self.access_token_response
 
     def get_access_token(self,
                          request_token,
@@ -347,7 +357,14 @@ class OAuth1Service(Service):
                                       request_token_secret,
                                       method=method,
                                       **kwargs)
-        return self.get_session(token)
+        session = self.get_session(token)
+
+        if self.request_token_response:
+            session.request_token_response = self.request_token_response
+        if self.access_token_response:
+            session.access_token_response = self.access_token_response
+
+        return session
 
 
 class OAuth2Service(Service):
@@ -435,6 +452,9 @@ class OAuth2Service(Service):
         #: Object used to construct sessions with.
         self.session_obj = session_obj or OAuth2Session
 
+        #: Access token response.
+        self.access_token_response = None
+
         super(OAuth2Service, self).__init__(name,
                                             base_url,
                                             authorize_url)
@@ -493,7 +513,10 @@ class OAuth2Service(Service):
                             'client_secret': self.client_secret})
 
         session = self.get_session()
-        return session.request(method, self.access_token_url, **kwargs)
+        self.access_token_response = session.request(method,
+                                                     self.access_token_url,
+                                                     **kwargs)
+        return self.access_token_response
 
     def get_access_token(self,
                          method='POST',
@@ -530,7 +553,12 @@ class OAuth2Service(Service):
         :param \*\*kwargs: Optional arguments. Same as Requests.
         :type \*\*kwargs: dict
         '''
-        return self.get_session(self.get_access_token(method, **kwargs))
+        session = self.get_session(self.get_access_token(method, **kwargs))
+
+        if self.access_token_response:
+            session.access_token_response = self.access_token_response
+
+        return session
 
 
 class OflyService(Service):
