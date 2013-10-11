@@ -14,9 +14,11 @@
 import os
 import sys
 
-from rauth import __version__
-
 from setuptools import setup, find_packages
+
+about = {}
+with open('rauth/__about__.py') as f:
+    exec(f.read(), about)
 
 if sys.argv[-1] == 'test':
     status = os.system('make check')
@@ -46,16 +48,16 @@ classifiers = ['Development Status :: 5 - Production/Stable',
                'Topic :: Software Development :: Libraries :: Python Modules',
                'Topic :: Utilities']
 
-setup(name='rauth',
-      version=__version__,
+setup(name=about['__title__'],
+      version=about['__version__'],
       description='A Python library for OAuth 1.0/a, 2.0, and Ofly.',
       long_description=__doc__,
-      author='Max Countryman',
+      author=about['__author__'],
       author_email='max@litl.com',
       url='https://github.com/litl/rauth',
       packages=find_packages(),
       install_requires=install_requires,
-      license='MIT',
+      license=about['__license__'],
       keywords='oauth oauth2 rauth requests',
       classifiers=classifiers,
       zip_safe=False)
