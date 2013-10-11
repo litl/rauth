@@ -21,7 +21,7 @@ __all__ = ['OAuth1Service', 'OAuth2Service', 'OflyService', 'OAuth1Session',
 
 from .service import OAuth1Service, OAuth2Service, OflyService
 from .session import OAuth1Session, OAuth2Session, OflySession
-from __about__ import (__title__, __version_info__, __version__, __author__,
+from .__about__ import (__title__, __version_info__, __version__, __author__,
                        __license__, __copyright__)
 
 (__title__, __version_info__, __version__, __author__, __license__,
