@@ -32,4 +32,5 @@ Add yourself as a contributor!
 * [Marek Rei](https://github.com/marekrei)
 * [Kieron Briggs](https://github.com/kbriggs)
 * [Tatsuji Tsuchiya](https://github.com/ta2xeo)
+* [Ken Koontz](https://github.com/kennethkoontz)
 * (your name here)
