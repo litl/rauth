@@ -7,7 +7,9 @@
 '''
 
 from base import RauthTestCase
-from rauth.utils import absolute_url, CaseInsensitiveDict, parse_utf8_qsl
+from rauth.utils import (absolute_url, CaseInsensitiveDict,
+                         parse_utf8_qsl, OAuth1Auth, OAuth2Auth)
+from requests import Request
 
 
 class UtilsTestCase(RauthTestCase):
@@ -47,3 +49,25 @@ class UtilsTestCase(RauthTestCase):
     def test_rauth_case_insensitive_dict_list_of_tuples(self):
         d = CaseInsensitiveDict([('Content-Type', 'foo')])
         self.assertEqual(d, {'content-type': 'foo'})
+
+    def test_oauth1_auth(self):
+        oauth_params = dict(hello='world', foo='bar')
+
+        auth = OAuth1Auth(oauth_params, None)
+        r = auth(Request())
+        self.assertTrue(r.headers['Authorization'] in
+                        ('OAuth realm="",hello="world",foo="bar"',
+                         'OAuth realm="",foo="bar",hello="world"'))
+
+        auth = OAuth1Auth(oauth_params, 'example')
+        r = auth(Request())
+        self.assertTrue(r.headers['Authorization'] in
+                        ('OAuth realm="example",hello="world",foo="bar"',
+                         'OAuth realm="example",foo="bar",hello="world"'))
+
+    def test_oauth2_auth(self):
+        access_token = 'abcdefg'
+        auth = OAuth2Auth(access_token)
+        r = auth(Request())
+        self.assertEqual(r.headers['Authorization'],
+                         'Bearer ' + access_token)
