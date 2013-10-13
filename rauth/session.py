@@ -14,8 +14,8 @@ from time import time
 
 from rauth.compat import quote, parse_qsl, urljoin, urlsplit, is_basestring
 from rauth.oauth import HmacSha1Signature
-from rauth.utils import (absolute_url, CaseInsensitiveDict, ENTITY_METHODS,
-                         FORM_URLENCODED, get_sorted_params,
+from rauth.utils import (absolute_url, CaseInsensitiveDict, OAuth2Auth,
+                         ENTITY_METHODS, FORM_URLENCODED, get_sorted_params,
                          OPTIONAL_OAUTH_PARAMS)
 
 from requests.sessions import Session
@@ -355,10 +355,7 @@ class OAuth2Session(RauthSession):
             req_kwargs['params'] = dict(parse_qsl(req_kwargs['params']))
 
         if bearer_auth and self.access_token is not None:
-            bearer_token = 'Bearer {token}'.format(token=self.access_token)
-            bearer_header = {'Authorization': bearer_token}
-            req_kwargs.setdefault('headers', {})
-            req_kwargs['headers'].update(bearer_header)
+            req_kwargs['auth'] = OAuth2Auth(self.access_token)
         else:
             req_kwargs['params'].update({self.access_token_key:
                                          self.access_token})

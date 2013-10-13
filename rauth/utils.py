@@ -9,6 +9,7 @@
 from rauth.compat import parse_qsl, is_basestring
 
 from requests.structures import CaseInsensitiveDict as cidict
+from requests.auth import AuthBase
 
 FORM_URLENCODED = 'application/x-www-form-urlencoded'
 ENTITY_METHODS = ('POST', 'PUT', 'PATCH')
@@ -71,3 +72,13 @@ class CaseInsensitiveDict(cidict):
 
     def update(self, d):
         super(CaseInsensitiveDict, self).update(self._get_lowered_d(d))
+
+
+class OAuth2Auth(AuthBase):
+    ''' Attaches OAuth 2 Authentication to a given Request object. '''
+    def __init__(self, access_token):
+        self.access_token = access_token
+
+    def __call__(self, r):
+        r.headers['Authorization'] = 'Bearer {token}'.format(token=self.access_token)
+        return r
