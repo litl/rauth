@@ -80,5 +80,5 @@ class OAuth2Auth(AuthBase):
         self.access_token = access_token
 
     def __call__(self, r):
-        r.headers['Authorization'] = 'Bearer {token}'.format(token=self.access_token)
+        r.headers['Authorization'] = 'Bearer ' + self.access_token
         return r
