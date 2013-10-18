@@ -13,6 +13,7 @@ from rauth.service import OAuth2Service
 from rauth.session import OAUTH2_DEFAULT_TIMEOUT, OAuth2Session
 from rauth.compat import parse_qsl, is_basestring
 
+from functools import partial
 from copy import deepcopy
 from mock import patch
 
@@ -44,27 +45,28 @@ class OAuth2ServiceTestCase(RauthTestCase, RequestMixin, ServiceMixin,
         self.session = self.service.get_session(self.access_token)
 
         # patches
-        self.session.request = self.fake_request
+        self.session.request = partial(self.fake_request, self)
         self.service.get_session = self.fake_get_session
 
     @patch.object(requests.Session, 'request')
     def fake_request(self,
+                     session_self,
                      method,
                      url,
                      mock_request,
                      bearer_auth=False,
                      **kwargs):
-        mock_request.return_value = self.response
+        mock_request.return_value = session_self.response
 
-        url = self.session._set_url(url)
+        url = session_self.session._set_url(url)
 
-        service = OAuth2Service(self.client_id,
-                                self.client_secret,
-                                access_token_url=self.access_token_url,
-                                authorize_url=self.authorize_url,
-                                base_url=self.base_url)
+        service = OAuth2Service(session_self.client_id,
+                                session_self.client_secret,
+                                access_token_url=session_self.access_token_url,
+                                authorize_url=session_self.authorize_url,
+                                base_url=session_self.base_url)
 
-        session = service.get_session(self.access_token)
+        session = service.get_session(session_self.access_token)
         r = session.request(method,
                             url,
                             bearer_auth=bearer_auth,
@@ -75,13 +77,13 @@ class OAuth2ServiceTestCase(RauthTestCase, RequestMixin, ServiceMixin,
         if is_basestring(kwargs.get('params', {})):
             kwargs['params'] = dict(parse_qsl(kwargs['params']))
 
-        if bearer_auth and self.access_token is not None:
-            bearer_token = 'Bearer {token}'.format(token=self.access_token)
-            bearer_header = {'Authorization': bearer_token}
-            kwargs.setdefault('headers', {})
-            kwargs['headers'].update(bearer_header)
+        if bearer_auth and session_self.access_token is not None:
+            auth = mock_request.call_args[1]['auth']
+            self.assertEqual(auth.access_token, session_self.access_token)
+            kwargs['auth'] = auth
         else:
-            kwargs['params'].update({'access_token': self.access_token})
+            kwargs['params'].update({'access_token':
+                                     session_self.access_token})
 
         mock_request.assert_called_with(method,
                                         url,
@@ -142,6 +144,6 @@ class OAuth2ServiceTestCase(RauthTestCase, RequestMixin, ServiceMixin,
         session = pickle.loads(pickle.dumps(self.session))
 
         # Add the fake request back to the session
-        session.request = self.fake_request
+        session.request = partial(self.fake_request, self)
         r = session.request('GET', 'http://example.com/', bearer_auth=True)
         self.assert_ok(r)
