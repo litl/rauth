@@ -7,7 +7,9 @@
 '''
 
 from base import RauthTestCase
-from rauth.utils import absolute_url, CaseInsensitiveDict, parse_utf8_qsl
+from rauth.utils import (absolute_url, CaseInsensitiveDict,
+                         parse_utf8_qsl, OAuth2Auth)
+from requests import Request
 
 
 class UtilsTestCase(RauthTestCase):
@@ -47,3 +49,10 @@ class UtilsTestCase(RauthTestCase):
     def test_rauth_case_insensitive_dict_list_of_tuples(self):
         d = CaseInsensitiveDict([('Content-Type', 'foo')])
         self.assertEqual(d, {'content-type': 'foo'})
+
+    def test_oauth2_auth(self):
+        access_token = 'abcdefg'
+        auth = OAuth2Auth(access_token)
+        r = auth(Request())
+        self.assertEqual(r.headers['Authorization'],
+                         'Bearer ' + access_token)
