@@ -135,10 +135,11 @@ class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, ServiceMixin,
                         'oauth_signature': fake_sig}
 
         if header_auth:
-            headers = {'Authorization':
-                       self.fake_get_auth_header(oauth_params, realm=realm)}
-
-            kwargs['headers'].update(headers)
+            auth = mock_request.call_args[1]['auth']
+            auth_header = self.fake_get_auth_header(oauth_params, realm=realm)
+            self.assertEqual(auth(requests.Request()).headers['Authorization'],
+                             auth_header)
+            kwargs['auth'] = auth
         elif entity_method:
             kwargs['data'] = kwargs.get('data') or {}
 

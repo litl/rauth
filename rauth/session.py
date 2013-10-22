@@ -12,11 +12,12 @@ from hashlib import sha1, md5
 from random import random
 from time import time
 
-from rauth.compat import quote, parse_qsl, urljoin, urlsplit, is_basestring
+from rauth.compat import parse_qsl, urljoin, urlsplit, is_basestring
 from rauth.oauth import HmacSha1Signature
-from rauth.utils import (absolute_url, CaseInsensitiveDict, OAuth2Auth,
-                         ENTITY_METHODS, FORM_URLENCODED, get_sorted_params,
-                         OPTIONAL_OAUTH_PARAMS)
+from rauth.utils import (absolute_url, CaseInsensitiveDict,
+                         OAuth1Auth, OAuth2Auth,
+                         ENTITY_METHODS, FORM_URLENCODED,
+                         get_sorted_params, OPTIONAL_OAUTH_PARAMS)
 
 from requests.sessions import Session
 
@@ -179,8 +180,7 @@ class OAuth1Session(RauthSession):
 
         if header_auth and not 'oauth_signature' in \
                 req_kwargs['headers'].get('Authorization', ''):
-            header = self._get_auth_header(oauth_params, realm)
-            req_kwargs['headers'].update({'Authorization': header})
+            req_kwargs['auth'] = OAuth1Auth(oauth_params, realm)
         elif entity_method and not 'oauth_signature' in \
                 (req_kwargs.get('data') or {}):
             req_kwargs['data'] = req_kwargs.get('data') or {}
@@ -250,15 +250,6 @@ class OAuth1Session(RauthSession):
         self._parse_optional_params(oauth_params, req_kwargs)
 
         return oauth_params
-
-    def _get_auth_header(self, oauth_params, realm=None):
-        '''Constructs and returns an authentication header.'''
-        auth_header = 'OAuth realm="{realm}"'.format(realm=realm or '')
-        params = ''
-        for k, v in oauth_params.items():
-            params += ',{key}="{value}"'.format(key=k, value=quote(str(v)))
-        auth_header += params
-        return auth_header
 
 
 class OAuth2Session(RauthSession):

@@ -6,9 +6,10 @@
     Test suite for rauth.utils.
 '''
 
+from collections import OrderedDict
 from base import RauthTestCase
 from rauth.utils import (absolute_url, CaseInsensitiveDict,
-                         parse_utf8_qsl, OAuth2Auth)
+                         parse_utf8_qsl, OAuth1Auth, OAuth2Auth)
 from requests import Request
 
 
@@ -49,6 +50,20 @@ class UtilsTestCase(RauthTestCase):
     def test_rauth_case_insensitive_dict_list_of_tuples(self):
         d = CaseInsensitiveDict([('Content-Type', 'foo')])
         self.assertEqual(d, {'content-type': 'foo'})
+
+    def test_oauth1_auth(self):
+        oauth_params = OrderedDict([('hello', 'world'), ('foo', 'bar')])
+
+        auth = OAuth1Auth(oauth_params, None)
+        r = auth(Request())
+        self.assertEqual(r.headers['Authorization'],
+                         'OAuth realm="",hello="world",foo="bar"')
+
+        # todo: make them in order
+        auth = OAuth1Auth(oauth_params, 'example')
+        r = auth(Request())
+        self.assertEqual(r.headers['Authorization'],
+                         'OAuth realm="example",hello="world",foo="bar"')
 
     def test_oauth2_auth(self):
         access_token = 'abcdefg'
