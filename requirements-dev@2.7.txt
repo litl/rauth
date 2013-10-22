@@ -3,5 +3,5 @@ flake8==2.0
 mock==1.0.1
 nose==1.2.1
 pycrypto==2.5
-requests==1.2.3
+requests>=1.2.3
 yanc==0.2.3

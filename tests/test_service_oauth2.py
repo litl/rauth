@@ -138,6 +138,12 @@ class OAuth2ServiceTestCase(RauthTestCase, RequestMixin, ServiceMixin,
         s = self.service.get_auth_session()
         self.assertIsInstance(s, OAuth2Session)
 
+    def test_get_auth_session_with_access_token_response(self):
+        self.response.content = \
+            'access_token=123&expires_in=3600&refresh_token=456'
+        s = self.service.get_auth_session()
+        self.assertIsNotNone(s.access_token_response)
+
     def test_pickle_session(self):
         session = pickle.loads(pickle.dumps(self.session))
 
