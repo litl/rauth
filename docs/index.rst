@@ -60,7 +60,7 @@ application an access token can be obtained:
 
     # the code should be returned upon the redirect from the authorize step,
     # be sure to use it here (hint: it's in the URL!)
-    sesssion = facebook.get_auth_session(data={'code': 'foo',
+    session = facebook.get_auth_session(data={'code': 'foo',
                                                'redirect_uri': redirect_uri})
 
     print session.get('me').json()['username']
