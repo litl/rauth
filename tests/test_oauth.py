@@ -208,5 +208,33 @@ class OAuthTestRsaSha1Case(RauthTestCase):
 
 
 class OAuthTestPlaintextCase(RauthTestCase):
-    def test_plaintext_notimplemented(self):
-        self.assertRaises(NotImplementedError, PlaintextSignature)
+    consumer_secret = '1234'
+    access_token_secret = 'abcdef'
+    method = 'GET'
+    url = 'http://example.com/'
+    oauth_params = {}
+    req_kwargs = {'params': {'foo': 'bar'}}
+
+    def test_plaintext_signature(self):
+        oauth_signature = PlaintextSignature().sign(self.consumer_secret,
+                                                    self.access_token_secret,
+                                                    self.method,
+                                                    self.url,
+                                                    self.oauth_params,
+                                                    self.req_kwargs)
+        self.assertIsNotNone(oauth_signature)
+        self.assertIsInstance(oauth_signature, stringtype)
+        sig = ('&'.join((self.consumer_secret, self.access_token_secret)))
+        self.assertEqual(sig, oauth_signature)
+
+    def test_no_token_secret_signature(self):
+        oauth_signature = PlaintextSignature().sign(self.consumer_secret,
+                                                    None,
+                                                    self.method,
+                                                    self.url,
+                                                    self.oauth_params,
+                                                    self.req_kwargs)
+        self.assertIsNotNone(oauth_signature)
+        self.assertIsInstance(oauth_signature, stringtype)
+        sig = ('&'.join((self.consumer_secret, '')))
+        self.assertEqual(sig, oauth_signature)
