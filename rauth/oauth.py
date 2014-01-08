@@ -222,10 +222,10 @@ class PlaintextSignature(SignatureMethod):
     '''PLAINTEXT Signature Method.'''
     NAME = 'PLAINTEXT'
 
-    def sign(self, consumer_secret, access_token_secret, method, url, oauth_params,
-             req_kwargs):
+    def sign(self, consumer_secret, access_token_secret, method, url,
+             oauth_params, req_kwargs):
         '''Sign request using PLAINTEXT method.
-        
+
         :param consumer_secret: Consumer secret.
         :type consumer_secret: str
         :param access_token_secret: Access token secret (optional).
