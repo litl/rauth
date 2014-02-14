@@ -122,7 +122,7 @@ class OAuth1Service(Service):
         :class:`rauth.OAuth1Session <OAuth1Session>`
     :type session_obj: :class:`Session`
     :param signature_obj: Object used to construct signatures with, defaults
-         to :class:`rauth.HmacSha1Signature <HmacSha1Signature>`
+         to :class:`rauth.oauth.HmacSha1Signature <HmacSha1Signature>`
     :type signature_obj: :class:`SignatureMethod`
     '''
     __attrs__ = Service.__attrs__ + ['consumer_key',
