@@ -3,6 +3,13 @@ Rauth Changelog
 
 This provides a list of changes to rauth by release.
 
+Changes in Version 0.7.0
+------------------------
+  * Made OAuth1 nonces more secure via SystemRandom
+  * Exposed authentication responses
+  * Allowed Requests versions >= 1.2.3
+  * Fixed OAuth1 unicode encoding issues
+
 Changes in Version 0.6.2
 ------------------------
   * Made OAuth access token name dynamic
