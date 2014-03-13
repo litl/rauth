@@ -9,7 +9,7 @@
 from copy import deepcopy
 from datetime import datetime
 from hashlib import sha1, md5
-from random import random
+from random import SystemRandom
 from time import time
 
 from rauth.compat import quote, parse_qsl, urljoin, urlsplit, is_basestring
@@ -21,6 +21,8 @@ from rauth.utils import (absolute_url, CaseInsensitiveDict, ENTITY_METHODS,
 from requests.sessions import Session
 
 OAUTH1_DEFAULT_TIMEOUT = OAUTH2_DEFAULT_TIMEOUT = OFLY_DEFAULT_TIMEOUT = 300.0
+
+random = SystemRandom().random
 
 
 class RauthSession(Session):
