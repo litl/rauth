@@ -90,6 +90,15 @@ class OAuth2SessionTestCase(RauthTestCase, RequestMixin):
         RauthTestCase.setUp(self)
 
         self.session = OAuth2Session('123', '345')
+        self.session_no_creds = OAuth2Session()
+
+    def test_with_credentials(self):
+        assert self.session.client_id == '123'
+        assert self.session.client_secret == '345'
+
+    def test_without_credentials(self):
+        assert self.session_no_creds.client_id is None
+        assert self.session_no_creds.client_secret is None
 
 
 class OflySessionTestCase(RauthTestCase, RequestMixin):
