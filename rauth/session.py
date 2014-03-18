@@ -295,9 +295,9 @@ class OAuth2Session(RauthSession):
                         params={'format': 'json'})
         print r.json()
 
-    :param client_id: Client id.
+    :param client_id: Client id, defaults to `None`.
     :type client_id: str
-    :param client_secret: Client secret.
+    :param client_secret: Client secret, defaults to `None`
     :type client_secret: str
     :param access_token: Access token, defaults to `None`.
     :type access_token: str
@@ -316,8 +316,8 @@ class OAuth2Session(RauthSession):
                                           'access_token']
 
     def __init__(self,
-                 client_id,
-                 client_secret,
+                 client_id=None,
+                 client_secret=None,
                  access_token=None,
                  service=None,
                  access_token_key=None):
