@@ -180,10 +180,10 @@ class OAuth1Session(RauthSession):
                                 oauth_params,
                                 req_kwargs)
 
-        if header_auth and not 'oauth_signature' in \
+        if header_auth and 'oauth_signature' not in \
                 req_kwargs['headers'].get('Authorization', ''):
             req_kwargs['auth'] = OAuth1Auth(oauth_params, realm)
-        elif entity_method and not 'oauth_signature' in \
+        elif entity_method and 'oauth_signature' not in \
                 (req_kwargs.get('data') or {}):
             req_kwargs['data'] = req_kwargs.get('data') or {}
 
@@ -203,7 +203,7 @@ class OAuth1Session(RauthSession):
             else:
                 req_kwargs.setdefault('params', {})
                 req_kwargs['params'].update(oauth_params)
-        elif not 'oauth_signature' in url:
+        elif 'oauth_signature' not in url:
             req_kwargs.setdefault('params', {})
             req_kwargs['params'].update(oauth_params)
 
