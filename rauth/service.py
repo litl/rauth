@@ -27,7 +27,7 @@ def process_token_request(r, decoder, *args):
 class Service(object):
     __attrs__ = ['name', 'base_url', 'authorize_url']
 
-    def __init__(self, name, base_url, authorize_url, decoder=parse_utf8_qsl):
+    def __init__(self, name, base_url, authorize_url):
         #: The service name, e.g. 'twitter'.
         self.name = name
 
@@ -36,9 +36,6 @@ class Service(object):
 
         #: The authorization URL.
         self.authorize_url = authorize_url
-
-        #: The default decoder
-        self.decoder = decoder
 
     def __getstate__(self):
         return dict((attr, getattr(self, attr, None)) for
@@ -143,8 +140,7 @@ class OAuth1Service(Service):
                  authorize_url=None,
                  base_url=None,
                  session_obj=None,
-                 signature_obj=None,
-                 decoder=parse_utf8_qsl):
+                 signature_obj=None):
 
         #: Client credentials.
         self.consumer_key = consumer_key
@@ -166,8 +162,7 @@ class OAuth1Service(Service):
 
         super(OAuth1Service, self).__init__(name,
                                             base_url,
-                                            authorize_url,
-                                            decoder)
+                                            authorize_url)
 
     def get_session(self, token=None, signature=None):
         '''
@@ -222,7 +217,7 @@ class OAuth1Service(Service):
 
     def get_request_token(self,
                           method='GET',
-                          decoder=None,
+                          decoder=parse_utf8_qsl,
                           key_token='oauth_token',
                           key_token_secret='oauth_token_secret',
                           **kwargs):
@@ -244,8 +239,6 @@ class OAuth1Service(Service):
         :param \*\*kwargs: Optional arguments. Same as Requests.
         :type \*\*kwargs: dict
         '''
-        if not decoder:
-            decoder = self.decoder
         r = self.get_raw_request_token(method=method, **kwargs)
         request_token, request_token_secret = \
             process_token_request(r, decoder, key_token, key_token_secret)
@@ -302,7 +295,7 @@ class OAuth1Service(Service):
                          request_token,
                          request_token_secret,
                          method='GET',
-                         decoder=None,
+                         decoder=parse_utf8_qsl,
                          key_token='oauth_token',
                          key_token_secret='oauth_token_secret',
                          **kwargs):
@@ -330,9 +323,6 @@ class OAuth1Service(Service):
         :param \*\*kwargs: Optional arguments. Same as Requests.
         :type \*\*kwargs: dict
         '''
-        if not decoder:
-            decoder = self.decoder
-
         r = self.get_raw_access_token(request_token,
                                       request_token_secret,
                                       method=method,
@@ -450,8 +440,7 @@ class OAuth2Service(Service):
                  access_token_url=None,
                  authorize_url=None,
                  base_url=None,
-                 session_obj=None,
-                 decoder=parse_utf8_qsl):
+                 session_obj=None):
 
         #: Client credentials.
         self.client_id = client_id
@@ -468,8 +457,7 @@ class OAuth2Service(Service):
 
         super(OAuth2Service, self).__init__(name,
                                             base_url,
-                                            authorize_url,
-                                            decoder)
+                                            authorize_url)
 
     def get_session(self, token=None):
         '''
@@ -532,7 +520,7 @@ class OAuth2Service(Service):
 
     def get_access_token(self,
                          method='POST',
-                         decoder=None,
+                         decoder=parse_utf8_qsl,
                          key='access_token',
                          **kwargs):
         '''
@@ -550,9 +538,6 @@ class OAuth2Service(Service):
         :param \*\*kwargs: Optional arguments. Same as Requests.
         :type \*\*kwargs: dict
         '''
-        if not decoder:
-            decoder = self.decoder
-
         r = self.get_raw_access_token(method, **kwargs)
         access_token, = process_token_request(r, decoder, key)
         return access_token
