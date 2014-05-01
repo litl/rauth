@@ -76,12 +76,12 @@ class OAuth2ServiceTestCase(RauthTestCase, RequestMixin, ServiceMixin,
             kwargs['params'] = dict(parse_qsl(kwargs['params']))
 
         if bearer_auth and self.access_token is not None:
-            bearer_token = 'Bearer {token}'.format(token=self.access_token)
-            bearer_header = {'Authorization': bearer_token}
-            kwargs.setdefault('headers', {})
-            kwargs['headers'].update(bearer_header)
+            auth = mock_request.call_args[1]['auth']
+            self.assertEqual(auth.access_token, self.access_token)
+            kwargs['auth'] = auth
         else:
-            kwargs['params'].update({'access_token': self.access_token})
+            kwargs['params'].update({'access_token':
+                                     self.access_token})
 
         mock_request.assert_called_with(method,
                                         url,

@@ -6,9 +6,10 @@
     General utilities.
 '''
 
-from rauth.compat import parse_qsl, is_basestring
+from rauth.compat import quote, parse_qsl, is_basestring
 
 from requests.structures import CaseInsensitiveDict as cidict
+from requests.auth import AuthBase
 
 FORM_URLENCODED = 'application/x-www-form-urlencoded'
 ENTITY_METHODS = ('POST', 'PUT', 'PATCH')
@@ -71,3 +72,31 @@ class CaseInsensitiveDict(cidict):
 
     def update(self, d):
         super(CaseInsensitiveDict, self).update(self._get_lowered_d(d))
+
+
+class OAuth2Auth(AuthBase):
+    ''' Attaches OAuth 2 Authentication to a given Request object. '''
+    def __init__(self, access_token):
+        self.access_token = access_token
+
+    def __call__(self, r):
+        r.headers['Authorization'] = 'Bearer ' + self.access_token
+        return r
+
+
+class OAuth1Auth(AuthBase):
+    ''' Attaches OAuth 1 Authentication to a given Request object. '''
+    def __init__(self, oauth_params, realm=None):
+        self.oauth_params = oauth_params
+        self.realm = realm or ''
+
+    def _get_auth_header(self):
+        ''' Constructs and returns an authentication header. '''
+        realm = 'realm="{realm}"'.format(realm=self.realm)
+        params = ['{k}="{v}"'.format(k=k, v=quote(str(v)))
+                  for k, v in self.oauth_params.items()]
+        return 'OAuth ' + ','.join([realm] + params)
+
+    def __call__(self, r):
+        r.headers['Authorization'] = self._get_auth_header()
+        return r
