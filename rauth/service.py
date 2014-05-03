@@ -213,6 +213,7 @@ class OAuth1Service(Service):
         self.request_token_response = session.request(method,
                                                       self.request_token_url,
                                                       **kwargs)
+        self.request_token_response.raise_for_status()
         return self.request_token_response
 
     def get_request_token(self,
@@ -289,6 +290,7 @@ class OAuth1Service(Service):
         self.access_token_response = session.request(method,
                                                      self.access_token_url,
                                                      **kwargs)
+        self.access_token_response.raise_for_status()
         return self.access_token_response
 
     def get_access_token(self,
@@ -516,6 +518,7 @@ class OAuth2Service(Service):
         self.access_token_response = session.request(method,
                                                      self.access_token_url,
                                                      **kwargs)
+        self.access_token_response.raise_for_status()
         return self.access_token_response
 
     def get_access_token(self,
