@@ -93,7 +93,7 @@ class OAuth1Auth(AuthBase):
     def _get_auth_header(self):
         ''' Constructs and returns an authentication header. '''
         realm = 'realm="{realm}"'.format(realm=self.realm)
-        params = ['{k}="{v}"'.format(k=k, v=quote(str(v)))
+        params = ['{k}="{v}"'.format(k=k, v=quote(str(v), safe=''))
                   for k, v in self.oauth_params.items()]
         return 'OAuth ' + ','.join([realm] + params)
 
