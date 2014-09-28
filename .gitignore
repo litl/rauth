@@ -9,3 +9,5 @@ virtualenv/*
 .coverage
 !.gitignore
 !.gitmodules
+.idea/*
+*.xml
