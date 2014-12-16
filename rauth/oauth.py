@@ -219,8 +219,27 @@ class RsaSha1Signature(SignatureMethod):
 
 
 class PlaintextSignature(SignatureMethod):
-    '''PLAINTEXT Signature Method. (Not implemented)'''
+    '''PLAINTEXT Signature Method.'''
     NAME = 'PLAINTEXT'
 
-    def __init__(self):
-        raise NotImplementedError
+    def sign(self, consumer_secret, access_token_secret, method, url,
+             oauth_params, req_kwargs):
+        '''Sign request using PLAINTEXT method.
+
+        :param consumer_secret: Consumer secret.
+        :type consumer_secret: str
+        :param access_token_secret: Access token secret (optional).
+        :type access_token_secret: str
+        :param method: Unused
+        :type method: str
+        :param url: Unused
+        :type url: str
+        :param oauth_params: Unused
+        :type oauth_params: dict
+        :param req_kwargs: Unused
+        :type req_kwargs: dict
+        '''
+        key = self._escape(consumer_secret) + b'&'
+        if access_token_secret:
+            key += self._escape(access_token_secret)
+        return key.decode()
