@@ -239,7 +239,7 @@ class PlaintextSignature(SignatureMethod):
         :param req_kwargs: Unused
         :type req_kwargs: dict
         '''
-        key = self._escape(consumer_secret) + u'&'
+        key = self._escape(consumer_secret) + b'&'
         if access_token_secret:
             key += self._escape(access_token_secret)
-        return key
+        return key.decode()
