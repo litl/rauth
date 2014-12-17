@@ -3,6 +3,12 @@ Rauth Changelog
 
 This provides a list of changes to rauth by release.
 
+Changes in Version 0.7.1
+------------------------
+  * Fixed Requests token saving in headers #137
+  * Fixed character encoding; all percent-encoded #165
+  * Added PLAINTEXT signature support #147
+
 Changes in Version 0.7.0
 ------------------------
   * Made OAuth1 nonces more secure via SystemRandom
