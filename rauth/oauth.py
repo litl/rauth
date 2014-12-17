@@ -71,7 +71,8 @@ class SignatureMethod(object):
 
         # process request parameters
         for k, v in params.items():
-            normalized += [(k, v)]
+            if v is not None:
+                normalized += [(k, v)]
 
         # process request data
         if 'Content-Type' in headers and \
