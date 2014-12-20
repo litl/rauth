@@ -150,8 +150,8 @@ class OAuth1Session(RauthSession):
 
         entity_method = method.upper() in ENTITY_METHODS
         if entity_method and 'files' not in req_kwargs or \
-        req_kwargs['files'] is None:
-            req_kwargs['headers'].setdefault('Content-Type', FORM_URLENCODED)
+            req_kwargs['files'] is None:
+                req_kwargs['headers'].setdefault('Content-Type', FORM_URLENCODED)
 
         form_urlencoded = \
             req_kwargs['headers'].get('Content-Type') == FORM_URLENCODED
