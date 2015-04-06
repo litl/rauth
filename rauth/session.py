@@ -149,7 +149,7 @@ class OAuth1Session(RauthSession):
         url = self._set_url(url)
 
         entity_method = method.upper() in ENTITY_METHODS
-        if entity_method:
+        if entity_method and not req_kwargs.get('files', None):
             req_kwargs['headers'].setdefault('Content-Type', FORM_URLENCODED)
 
         form_urlencoded = \
