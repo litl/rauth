@@ -12,7 +12,7 @@
 '''
 
 from flask import Flask, flash, request, redirect, render_template, url_for
-from flask.ext.sqlalchemy import SQLAlchemy
+from flask_sqlalchemy import SQLAlchemy
 
 from rauth.service import OAuth2Service
 
