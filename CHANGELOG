@@ -3,6 +3,12 @@ Rauth Changelog
 
 This provides a list of changes to rauth by release.
 
+Changes in Version 0.7.2
+------------------------
+  * Fixed encoding of tilde bug in urlencode #186
+  * Fixed overriding of Content-Type #166
+  * Allow optional query parameters #175
+
 Changes in Version 0.7.1
 ------------------------
   * Fixed Requests token saving in headers #137
