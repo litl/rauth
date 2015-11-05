@@ -20,10 +20,10 @@ if not hasattr(unittest.TestCase, 'assertIsNotNone'):
     except ImportError:
         raise RuntimeError('unittest2 is required to run the rauth test suite')
 
-from inspect import stack, isfunction
+from inspect import stack, isfunction  # NOQA
 
-from mock import Mock
-from nose.tools import nottest
+from mock import Mock  # NOQA
+from nose.tools import nottest  # NOQA
 
 
 class RauthTestCase(unittest.TestCase):

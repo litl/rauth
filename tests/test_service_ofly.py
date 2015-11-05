@@ -120,8 +120,8 @@ class OflyServiceTestCase(RauthTestCase, RequestMixin, ServiceMixin,
 
         signature_base_string += self.fake_get_sorted_params(ofly_params)
 
-        all_params = dict(tuple(ofly_params.items())
-                          + tuple(kwargs['params'].items()))
+        all_params = dict(tuple(ofly_params.items()) +
+                          tuple(kwargs['params'].items()))
 
         kwargs['params'] = self.fake_get_sorted_params(all_params)
         if not isinstance(kwargs['params'], bytes):
