@@ -98,7 +98,7 @@ class SignatureMethod(object):
         all_normalized.sort()
 
         # finally encode the params as a string
-        return urlencode(all_normalized, True).replace('+', '%20')
+        return urlencode(all_normalized, True).replace('+', '%20').replace('%7E', '~')
 
 
 class HmacSha1Signature(SignatureMethod):

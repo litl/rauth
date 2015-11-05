@@ -94,6 +94,13 @@ class OAuthTestHmacSha1Case(RauthTestCase):
             ._normalize_request_parameters(self.oauth_params, req_kwargs)
         self.assertEqual('foo=bar%20baz', normalized)
 
+    def test_normalize_request_parameters_tilde(self):
+        req_kwargs = {'data': {'foo': 'bar~'},
+                      'headers': {'Content-Type': FORM_URLENCODED}}
+        normalized = HmacSha1Signature()\
+            ._normalize_request_parameters(self.oauth_params, req_kwargs)
+        self.assertEqual('foo=bar~', normalized)
+
     def test_sign_utf8_encoded_string(self):
         # in the event a string is already UTF-8
         req_kwargs = {u'params': {u'foo': u'bar'}}
