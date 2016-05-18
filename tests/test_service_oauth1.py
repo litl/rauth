@@ -17,14 +17,18 @@ from rauth.utils import CaseInsensitiveDict, ENTITY_METHODS, FORM_URLENCODED
 from copy import deepcopy
 from hashlib import sha1
 
-from mock import patch
-
 import rauth
 
 import requests
 
 import json
 import pickle
+
+import sys
+if sys.version_info >= (3, 3):
+    from unittest.mock import patch
+else:
+    from mock import patch
 
 
 class OAuth1ServiceTestCase(RauthTestCase, RequestMixin, ServiceMixin,
