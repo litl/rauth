@@ -6,6 +6,7 @@
     Test suite common infrastructure.
 '''
 
+import sys
 import json
 
 import requests
@@ -22,7 +23,10 @@ if not hasattr(unittest.TestCase, 'assertIsNotNone'):
 
 from inspect import stack, isfunction  # NOQA
 
-from mock import Mock  # NOQA
+if sys.version_info >= (3, 3):
+    from unittest.mock import Mock
+else:
+    from mock import Mock  # NOQA
 from nose.tools import nottest  # NOQA
 
 

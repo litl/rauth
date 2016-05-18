@@ -14,12 +14,17 @@ from rauth.session import OAUTH2_DEFAULT_TIMEOUT, OAuth2Session
 from rauth.compat import parse_qsl, is_basestring
 
 from copy import deepcopy
-from mock import patch
 
 import requests
 
 import json
 import pickle
+
+import sys
+if sys.version_info >= (3, 3):
+    from unittest.mock import patch
+else:
+    from mock import patch
 
 
 class OAuth2ServiceTestCase(RauthTestCase, RequestMixin, ServiceMixin,

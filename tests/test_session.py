@@ -9,11 +9,16 @@
 from base import RauthTestCase
 from rauth.session import OAuth1Session, OAuth2Session, OflySession
 
-from mock import patch
 
 import requests
 
 import json
+
+import sys
+if sys.version_info >= (3, 3):
+    from unittest.mock import patch
+else:
+    from mock import patch
 
 
 class RequestMixin(object):

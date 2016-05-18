@@ -18,11 +18,15 @@ from copy import deepcopy
 from datetime import datetime
 from functools import wraps
 
-from mock import patch
-
 import requests
 
 import pickle
+
+import sys
+if sys.version_info >= (3, 3):
+    from unittest.mock import patch
+else:
+    from mock import patch
 
 
 class OflyServiceTestCase(RauthTestCase, RequestMixin, ServiceMixin,
