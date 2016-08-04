@@ -9,3 +9,6 @@ virtualenv/*
 .coverage
 !.gitignore
 !.gitmodules
+examples/secrets.py
+*~
+*.db
