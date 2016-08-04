@@ -1,0 +1,9 @@
+<!doctype html>
+<title>Login</title>
+{% for message in get_flashed_messages() %}
+{{ message }}
+{% endfor %}
+<h1>About you</h1>
+Welcome {{ user.name }}, and your email is {{ user.email }}
+<br />
+<a href ="{{ url_for('index') }}">Main page</a>
