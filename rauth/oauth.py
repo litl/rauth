@@ -90,6 +90,8 @@ class SignatureMethod(object):
 
         # add in the params from oauth_params for signing
         for k, v in oauth_params.items():
+            if is_basestring(v) and not isinstance(v, bytes):
+                v = v.encode('utf-8')
             if (k, v) in all_normalized:  # pragma: no cover
                 continue
             all_normalized += [(k, v)]
