@@ -9,3 +9,7 @@ virtualenv/*
 .coverage
 !.gitignore
 !.gitmodules
+venv/*
+/.project
+/.pydevproject
+/.settings
