@@ -10,6 +10,7 @@ import base64
 import hmac
 
 from hashlib import sha1
+from hashlib import sha256
 
 from rauth.compat import is_basestring, quote, urlencode, urlsplit, urlunsplit
 from rauth.utils import FORM_URLENCODED
@@ -102,16 +103,17 @@ class SignatureMethod(object):
             .replace('+', '%20')\
             .replace('%7E', '~')
 
-
-class HmacSha1Signature(SignatureMethod):
+class HmacShaAnySignature(SignatureMethod):
     '''
-    HMAC-SHA1 Signature Method.
+    Parent class for HMAC-SHA1 or HMAC-SHA256 Signature Method.
 
     This is a signature method, as per the OAuth 1.0/a specs. As the name
-    might suggest, this method signs parameters with HMAC using SHA1.
+    might suggest, this method signs parameters with HMAC using SHA1 or SHA256.
     '''
-    NAME = 'HMAC-SHA1'
-
+    def __init__(self, name, sha_hash):
+        self.NAME = name
+        self.HASH = sha_hash
+        
     def sign(self,
              consumer_secret,
              access_token_secret,
@@ -148,11 +150,19 @@ class HmacSha1Signature(SignatureMethod):
         # build a Signature Base String
         signature_base_string = b'&'.join(parameters)
 
-        # hash the string with HMAC-SHA1
-        hashed = hmac.new(key, signature_base_string, sha1)
+        # hash the string with HMAC-SHA*
+        hashed = hmac.new(key, signature_base_string, self.HASH)
 
         # return the signature
         return base64.b64encode(hashed.digest()).decode()
+
+class HmacSha1Signature(HmacShaAnySignature):
+    def __init__(self):
+        HmacShaAnySignature.__init__(self, 'HMAC-SHA1', sha1)
+
+class HmacSha256Signature(HmacShaAnySignature):
+    def __init__(self):
+        HmacShaAnySignature.__init__(self, 'HMAC-SHA256', sha256)
 
 
 class RsaSha1Signature(SignatureMethod):
