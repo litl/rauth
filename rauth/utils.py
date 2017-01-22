@@ -21,13 +21,12 @@ def absolute_url(url):
 
 
 def parse_utf8_qsl(s):
-    d = dict(parse_qsl(s))
+    d = dict()
 
-    for k, v in d.items():  # pragma: no cover
+    for k, v in dict(parse_qsl(s)).items():  # pragma: no cover
         if not isinstance(k, bytes) and not isinstance(v, bytes):
             # skip this iteration if we have no keys or values to update
             continue
-        d.pop(k)
         if isinstance(k, bytes):
             k = k.decode('utf-8')
         if isinstance(v, bytes):
