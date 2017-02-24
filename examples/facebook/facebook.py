@@ -91,7 +91,7 @@ def authorized():
     # the "me" response
     me = session.get('me').json()
 
-    User.get_or_create(me['username'], me['id'])
+    User.get_or_create(me['name'], me['id'])
 
     flash('Logged in as ' + me['name'])
     return redirect(url_for('index'))
