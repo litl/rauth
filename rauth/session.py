@@ -225,7 +225,8 @@ class OAuth1Session(RauthSession):
         for oauth_param in OPTIONAL_OAUTH_PARAMS:
             if oauth_param in params:
                 oauth_params[oauth_param] = params.pop(oauth_param)
-            if oauth_param in data:
+
+            if type(data) is not bytes and oauth_param in data:
                 oauth_params[oauth_param] = data.pop(oauth_param)
 
             if params:
