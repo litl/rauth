@@ -34,4 +34,5 @@ Add yourself as a contributor!
 * [Tatsuji Tsuchiya](https://github.com/ta2xeo)
 * [Chris McGraw](https://github.com/mitgr81)
 * [Ken Koontz](https://github.com/kennethkoontz)
+* [Markus Leuthold](https://github.com/githubkusi)
 * (your name here)

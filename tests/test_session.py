@@ -56,6 +56,13 @@ class OAuth1SessionTestCase(RauthTestCase, RequestMixin):
         self.assert_ok(r)
 
     @patch.object(requests.Session, 'request')
+    def test_request_with_optional_data_as_binary(self, mock_request):
+        mock_request.return_value = self.response
+        data = bytes(1)
+        r = self.session.request('POST', 'http://example.com/', data=data)
+        self.assert_ok(r)
+
+    @patch.object(requests.Session, 'request')
     def test_request_with_optional_params_with_data(self, mock_request):
         mock_request.return_value = self.response
         data = {'oauth_callback': 'http://example.com/callback'}
