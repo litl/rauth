@@ -23,7 +23,9 @@ def absolute_url(url):
 def parse_utf8_qsl(s):
     d = dict(parse_qsl(s))
 
-    for k, v in d.items():  # pragma: no cover
+    copy_d = dict(d);
+
+    for k, v in copy_d.items():  # pragma: no cover
         if not isinstance(k, bytes) and not isinstance(v, bytes):
             # skip this iteration if we have no keys or values to update
             continue
@@ -34,6 +36,7 @@ def parse_utf8_qsl(s):
             v = v.decode('utf-8')
         d[k] = v
     return d
+
 
 
 def get_sorted_params(params):
