@@ -465,7 +465,7 @@ class OAuth2Service(Service):
         authenticated session, otherwise an unauthenticated session object is
         generated. Returns an instance of :attr:`session_obj`..
 
-        :param token: A token with which to initilize the session.
+        :param token: A token with which to initialize the session.
         :type token: str
         '''
         if token is not None:
